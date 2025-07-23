@@ -6,6 +6,10 @@ var bodyParser = require('body-parser');
 var mongoose = require('mongoose');
 var port = process.env.PORT || 4201;
 
+// Middleware
+var cliente_route = require('./routes/cliente');
+
+
 // Conexión a la base de datos
 mongoose.connect('mongodb://localhost:27017/tienda')
   .then(() => {
@@ -19,5 +23,21 @@ mongoose.connect('mongodb://localhost:27017/tienda')
   .catch((err) => {
     console.error('Error al conectarse a la base de datos:', err);
   });
+
+// Para administrar el cuerpo de las peticiones
+app.use(bodyParser.urlencoded({ extended: true}));
+app.use(bodyParser.json({limit: '50mb', extended: true}));
+
+
+app.use((req, res, next)=>{
+    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Headers', 'Authorization, X-API-KEY, Origin, X-Requested-With, Content-Type, Accept, Access-Control-Allow-Request-Method');
+    res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, DELETE');
+    res.header('Allow', 'GET, POST, OPTIONS, PUT, DELETE');
+    next();
+});
+
+
+app.use('/api', cliente_route);
 
 module.exports = app;
