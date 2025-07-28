@@ -8,10 +8,11 @@ var port = process.env.PORT || 4201;
 
 // Middleware
 var cliente_route = require('./routes/cliente');
+var admin_route = require('./routes/admin');
 
 
 // Conexión a la base de datos
-mongoose.connect('mongodb://localhost:27017/tienda')
+mongoose.connect('mongodb://localhost:27017/tienda', {useUnifiedTopology: true, useNewUrlParser: true})
   .then(() => {
     console.log('Conectado a la base de datos');
 
@@ -39,5 +40,6 @@ app.use((req, res, next)=>{
 
 
 app.use('/api', cliente_route);
+app.use('/api', admin_route);
 
 module.exports = app;
