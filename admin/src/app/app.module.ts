@@ -8,12 +8,14 @@ import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 
 import { routing } from './app.routing';
-import { InicioComponent } from './components/inicio/inicio.component'; './app.routing';
+import { InicioComponent } from './components/inicio/inicio.component';
+import { SidebarComponent } from './components/sidebar/sidebar.component'; './app.routing';
 
 @NgModule({
   declarations: [
     AppComponent,
-    InicioComponent
+    InicioComponent,
+    SidebarComponent
   ],
   imports: [
     BrowserModule,
