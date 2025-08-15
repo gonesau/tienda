@@ -32,7 +32,7 @@ const login_admin = async (req, res) => {
   var admin_arr = [];
   admin_arr = await Admin.find({ email: data.email });
   if (admin_arr.length == 0) {
-    return res.status(404).send({ message: "El Admin no existe", data: undefined });
+    return res.status(200).send({ message: "El Admin no existe", data: undefined });
   } else {
     //Login
     let user = admin_arr[0];
@@ -43,7 +43,7 @@ const login_admin = async (req, res) => {
           token: jwt.createToken(user)
         });
       }else{
-        res.status(400).send({message: "Error al iniciar sesión, verifique sus credenciales",data: undefined,}); 
+        res.status(200).send({message: "Error al iniciar sesión, verifique sus credenciales",data: undefined,}); 
       }
     });
   }

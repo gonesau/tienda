@@ -6,13 +6,14 @@
         Inicia sesión en tu cuenta utilizando el correo electrónico y la contraseña proporcionados durante
         el registro.
       </p>
-      <form class="needs-validation" novalidate="">
+    <form #loginForm="ngForm" (ngSubmit)="login(loginForm)" >
         <div class="form-group">
           <label for="signin-email">Correo electrónico</label>
           <input
             type="email"
             class="form-control"
-            id="signin-email"
+            name="email"
+            [(ngModel)]="user.email"
             placeholder="Tu dirección de correo electrónico"
             required=""
           />
@@ -23,7 +24,8 @@
             <input
               type="password"
               class="form-control appended-form-control"
-              id="signin-password"
+              name="password"
+              [(ngModel)]="user.password"
               placeholder="Tu contraseña"
               required=""
             />
