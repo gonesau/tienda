@@ -4,7 +4,7 @@ var Cliente = require("../models/cliente");
 var bcrypt = require("bcrypt-nodejs");
 var jwt = require("../helpers/jwt");
 
-const registro_cliente = async (req, res) => {
+const registro_cliente = async function(req, res){
   var data = req.body;
   var clientes_arr = [];
   clientes_arr = await Cliente.find({ email: data.email });
@@ -40,7 +40,7 @@ const registro_cliente = async (req, res) => {
   }
 };
 
-const login_cliente = async (req, res) => {
+const login_cliente = async function(req, res){
   var data = req.body;
   var clientes_arr = [];
   clientes_arr = await Cliente.find({ email: data.email });
@@ -62,7 +62,30 @@ const login_cliente = async (req, res) => {
   }
 };
 
+const listar_clientes_filtro_admin = async function(req, res){
+  let tipo = req.query.tipo;
+  let filtro = req.query.filtro;
+
+  if(!tipo || tipo == "null"){
+    let clientes = await Cliente.find().sort({apellidos:1});
+    return res.status(200).send({data: clientes});
+  } else{
+    if(tipo == "apellidos"){
+      let reg = await Cliente.find({apellidos: new RegExp(filtro, 'i')});
+      return res.status(200).send({data: reg});
+    } else if(tipo == "correo"){
+      let reg = await Cliente.find({email: new RegExp(filtro, 'i')});
+      return res.status(200).send({data: reg});
+    }
+  }
+
+};
+
+
+
+
 module.exports = {
   registro_cliente,
   login_cliente,
+  listar_clientes_filtro_admin,
 };
