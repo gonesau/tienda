@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { ClienteService } from '../../../services/cliente.service';
+import { AdminService } from 'src/app/services/admin.service';
 
 @Component({
   selector: 'app-index-cliente',
@@ -11,18 +12,22 @@ export class IndexClienteComponent implements OnInit {
   public filtro_apellidos = '';
   public filtro_correo = '';
   public page = 1;
-  public pageSize = 1;
+  public pageSize = 10;
+  public token;
 
   constructor(
-    private _clienteService: ClienteService
-  ) { }
+    private _clienteService: ClienteService,
+    private _adminService: AdminService
+  ) { 
+    this.token = this._adminService.getToken();
+  }
 
   ngOnInit(): void {
     this.getClientes(null, null);
   }
 
   getClientes(tipo: any, filtro: any) {
-    this._clienteService.listar_clientes_filtro_admin(tipo, filtro).subscribe(
+    this._clienteService.listar_clientes_filtro_admin(tipo, filtro, this.token).subscribe(
       response => {
         this.clientes = response.data;
         console.log(this.clientes);
