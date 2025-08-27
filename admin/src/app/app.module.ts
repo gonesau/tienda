@@ -12,7 +12,8 @@ import { routing } from './app.routing';
 import { InicioComponent } from './components/inicio/inicio.component';
 import { SidebarComponent } from './components/sidebar/sidebar.component';
 import { LoginComponent } from './components/login/login.component';
-import { IndexClienteComponent } from './components/clientes/index-cliente/index-cliente.component'; './app.routing';
+import { IndexClienteComponent } from './components/clientes/index-cliente/index-cliente.component';
+import { CreateClienteComponent } from './components/clientes/create-cliente/create-cliente.component'; './app.routing';
 
 @NgModule({
   declarations: [
@@ -20,7 +21,8 @@ import { IndexClienteComponent } from './components/clientes/index-cliente/index
     InicioComponent,
     SidebarComponent,
     LoginComponent,
-    IndexClienteComponent
+    IndexClienteComponent,
+    CreateClienteComponent
   ],
   imports: [
     BrowserModule,

@@ -23,6 +23,11 @@ export class ClienteService {
     });
   }
 
+    registro_cliente_admin(data, token): Observable<any> {
+    let headers = new HttpHeaders({'Content-Type': 'application/json', 'Authorization': token });
+    return this._http.post(this.url + 'registro_cliente_admin', data, { headers: headers });
+  }
+
 
 
 }

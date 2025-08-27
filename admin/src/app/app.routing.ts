@@ -5,11 +5,14 @@ import { LoginComponent } from "./components/login/login.component";
 import { IndexClienteComponent } from "./components/clientes/index-cliente/index-cliente.component";
 
 import { AdminGuard } from "./guards/admin.guard";
+import { CreateClienteComponent } from "./components/clientes/create-cliente/create-cliente.component";
 
 const appRoutes: Routes = [
+  {path: '', redirectTo: '/inicio', pathMatch: 'full'},
   {path: 'inicio', component: InicioComponent, canActivate: [AdminGuard]},
   {path: 'panel', children: [
-    {path: 'clientes', component: IndexClienteComponent, canActivate: [AdminGuard]}
+    {path: 'clientes', component: IndexClienteComponent, canActivate: [AdminGuard]},
+    {path: 'clientes/registro', component: CreateClienteComponent, canActivate: [AdminGuard]},
   ]},
   {path: 'login', component: LoginComponent},
 ];
