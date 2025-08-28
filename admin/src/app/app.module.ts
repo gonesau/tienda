@@ -13,7 +13,8 @@ import { InicioComponent } from './components/inicio/inicio.component';
 import { SidebarComponent } from './components/sidebar/sidebar.component';
 import { LoginComponent } from './components/login/login.component';
 import { IndexClienteComponent } from './components/clientes/index-cliente/index-cliente.component';
-import { CreateClienteComponent } from './components/clientes/create-cliente/create-cliente.component'; './app.routing';
+import { CreateClienteComponent } from './components/clientes/create-cliente/create-cliente.component';
+import { EditClienteComponent } from './components/clientes/edit-cliente/edit-cliente.component'; './app.routing';
 
 @NgModule({
   declarations: [
@@ -22,7 +23,8 @@ import { CreateClienteComponent } from './components/clientes/create-cliente/cre
     SidebarComponent,
     LoginComponent,
     IndexClienteComponent,
-    CreateClienteComponent
+    CreateClienteComponent,
+    EditClienteComponent
   ],
   imports: [
     BrowserModule,
