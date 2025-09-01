@@ -18,13 +18,15 @@
     <div class="card-header">
         <form class="form-inline pt-2">
             <label class="sr-only" for="inline-form-input-name">Apellidos</label>
-            <input class="form-control mb-3 mr-sm-4" (keyup)="filtro('apellidos')" name="filtro_apellidos" [(ngModel)]="filtro_apellidos" type="text" id="inline-form-input-name" placeholder="Apellidos">
+            <input class="form-control mb-3 mr-sm-4" (keyup)="filtro('apellidos')" name="filtro_apellidos"
+                [(ngModel)]="filtro_apellidos" type="text" id="inline-form-input-name" placeholder="Apellidos">
             <label class="sr-only" for="inline-form-input-username">Correo</label>
             <div class="input-group mb-3 mr-sm-4">
                 <div class="input-group-prepend">
                     <div class="input-group-text">@</div>
                 </div>
-                <input class="form-control" type="text" (keyup)="filtro('correo')" name="filtro_correo" [(ngModel)]="filtro_correo" placeholder="Correo Electrónico">
+                <input class="form-control" type="text" (keyup)="filtro('correo')" name="filtro_correo"
+                    [(ngModel)]="filtro_correo" placeholder="Correo Electrónico">
             </div>
         </form>
     </div>
@@ -40,7 +42,8 @@
                         <th>Opciones</th>
                     </tr>
                 </thead>
-                <tbody *ngFor="let item of clientes | slice : (page - 1) * pageSize : page * pageSize; let indice = index">
+                <tbody
+                    *ngFor="let item of clientes | slice : (page - 1) * pageSize : page * pageSize; let indice = index">
                     <tr>
                         <td>{{ indice + 1 }}</td>
                         <td>{{ item.nombres }}</td>
@@ -53,8 +56,32 @@
                                     Opciones
                                 </button>
                                 <div class="dropdown-menu">
-                                    <a class="dropdown-item" [routerLink]="['/panel/clientes', item._id]">Editar Cliente</a>
-                                    <a class="dropdown-item" href="#">Eliminar Cliente</a>
+                                    <a class="dropdown-item" [routerLink]="['/panel/clientes', item._id]">Editar
+                                        Cliente</a>
+                                    <a class="dropdown-item" style="cursor: pointer;" data-toggle="modal" [attr.data-target]="'#delete-' + item._id">Eliminar Cliente</a>
+                                </div>
+                            </div>
+
+
+                            <div class="modal fade" id="delete-{{item._id}}" tabindex="-1" style="display: none;"
+                                aria-hidden="true">
+                                <div class="modal-dialog modal-dialog-centered" role="document">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h4 class="modal-title">Eliminar Cliente</h4>
+                                            <button class="btn-close" type="button" data-bs-dismiss="modal"
+                                                aria-label="Close"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <p class="fs-sm">¿Estás seguro de que deseas eliminar este cliente?</p>
+                                            <p class="fs-sm">{{item.nombres}} {{item.apellidos}}</p>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button class="btn btn-secondary btn-sm" type="button"
+                                                data-dismiss="modal">Cerrar</button>
+                                            <button class="btn btn-primary btn-sm" type="button" (click)="eliminar(item._id)">Si, eliminar</button>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </td>
@@ -64,12 +91,7 @@
         </div>
     </div>
     <div class="card-footer">
-        <ngb-pagination 
-        [(page)]="page"
-        [pageSize]="pageSize"
-        [collectionSize]="clientes.length"
-
-        >
+        <ngb-pagination [(page)]="page" [pageSize]="pageSize" [collectionSize]="clientes.length">
         </ngb-pagination>
     </div>
 </div>

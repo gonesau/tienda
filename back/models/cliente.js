@@ -15,6 +15,7 @@ var ClienteSchema = new Schema({
     genero: {type: String, required: false},
     f_nacimiento: {type: Date, required: false},
     dui: {type: String, required: false},
+    createdAt: { type: Date, default: Date.now, required: true }
 });
 
 // Asegura que el índice de dui sea único solo si el campo existe (sparse)

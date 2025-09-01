@@ -54,12 +54,10 @@ const login_cliente = async function (req, res) {
           token: jwt.createToken(user),
         });
       } else {
-        res
-          .status(400)
-          .send({
-            message: "Error al iniciar sesión, verifique sus credenciales",
-            data: undefined,
-          });
+        res.status(400).send({
+          message: "Error al iniciar sesión, verifique sus credenciales",
+          data: undefined,
+        });
       }
     });
   }
@@ -97,15 +95,17 @@ const registro_cliente_admin = async function (req, res) {
     if (req.user.role == "admin") {
       var data = req.body;
 
-      bcrypt.hash('123456789', null, null, async function (err, hash) {
+      bcrypt.hash("123456789", null, null, async function (err, hash) {
         if (hash) {
           data.password = hash;
           let reg = await Cliente.create(data);
           res.status(200).send({ data: reg });
         }
-      })
+      });
     } else {
-      res.status(200).send({ message: 'Error en el servidor', data: undefined });
+      res
+        .status(200)
+        .send({ message: "Error en el servidor", data: undefined });
     }
   } else {
     res.status(500).send({ message: "No autorizado" });
@@ -114,16 +114,16 @@ const registro_cliente_admin = async function (req, res) {
 
 const obtener_cliente_admin = async function (req, res) {
   if (req.user) {
-    if (req.user.role == 'admin') {
-      var id = req.params['id'];
+    if (req.user.role == "admin") {
+      var id = req.params["id"];
       try {
         var reg = await Cliente.findById({ _id: id });
         res.status(200).send({ data: reg });
       } catch (err) {
-        return res.status(200).send({ message: 'Error en el servidor', data: undefined });
+        return res
+          .status(200)
+          .send({ message: "Error en el servidor", data: undefined });
       }
-
-
     } else {
       res.status(500).send({ message: "No autorizado" });
     }
@@ -132,14 +132,14 @@ const obtener_cliente_admin = async function (req, res) {
   }
 };
 
-
 const actualizar_cliente_admin = async function (req, res) {
-    if (req.user) {
-    if (req.user.role == 'admin') {
-      var id = req.params['id'];
+  if (req.user) {
+    if (req.user.role == "admin") {
+      var id = req.params["id"];
       var data = req.body;
 
-      var reg = await Cliente.findByIdAndUpdate({ _id: id }, 
+      var reg = await Cliente.findByIdAndUpdate(
+        { _id: id },
         {
           nombres: data.nombres,
           apellidos: data.apellidos,
@@ -147,17 +147,42 @@ const actualizar_cliente_admin = async function (req, res) {
           telefono: data.telefono,
           f_nacimiento: data.f_nacimiento,
           dui: data.dui,
-          genero: data.genero
+          genero: data.genero,
         }
       );
-        res.status(200).send({ data: reg });
+      res.status(200).send({ data: reg });
     } else {
       res.status(500).send({ message: "No autorizado" });
     }
   } else {
     res.status(500).send({ message: "No autorizado" });
   }
-}
+};
+
+const eliminar_cliente_admin = async function (req, res) {
+  if (req.user) {
+    if (req.user.role == "admin") {
+      var id = req.params["id"];
+      try {
+        var reg = await Cliente.findOneAndDelete({ _id: id });
+        if (!reg) {
+          return res
+            .status(200)
+            .send({ message: "Cliente no encontrado", data: undefined });
+        }
+        res.status(200).send({ data: reg });
+      } catch (err) {
+        return res
+          .status(500)
+          .send({ message: "Error en el servidor", data: undefined });
+      }
+    } else {
+      res.status(500).send({ message: "No autorizado" });
+    }
+  } else {
+    res.status(500).send({ message: "No autorizado" });
+  }
+};
 
 module.exports = {
   registro_cliente,
@@ -165,5 +190,6 @@ module.exports = {
   listar_clientes_filtro_admin,
   registro_cliente_admin,
   obtener_cliente_admin,
-  actualizar_cliente_admin
+  actualizar_cliente_admin,
+  eliminar_cliente_admin,
 };
