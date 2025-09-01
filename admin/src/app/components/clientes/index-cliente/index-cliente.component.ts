@@ -17,6 +17,7 @@ export class IndexClienteComponent implements OnInit {
   public page = 1;
   public pageSize = 10;
   public token;
+  public load_data = true;
 
   constructor(
     private _clienteService: ClienteService,
@@ -35,7 +36,7 @@ export class IndexClienteComponent implements OnInit {
       .subscribe(
         (response) => {
           this.clientes = response.data;
-          console.log(this.clientes);
+          this.load_data = false;
         },
         (error) => {
           console.log(error);
@@ -44,10 +45,13 @@ export class IndexClienteComponent implements OnInit {
   }
 
   filtro(tipo: string) {
+    this.load_data = true;
     if (tipo == 'apellidos' && this.filtro_apellidos) {
       this.getClientes(tipo, this.filtro_apellidos);
+      this.load_data = false;
     } else if (tipo == 'correo' && this.filtro_correo) {
       this.getClientes(tipo, this.filtro_correo);
+      this.load_data = false;
     } else {
       this.getClientes(null, null);
     }
