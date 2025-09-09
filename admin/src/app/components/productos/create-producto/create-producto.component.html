@@ -54,7 +54,13 @@
             </div>
             <div class="col-lg-4 form-group">
               <label for="">Categoría</label>
-              <select class="form-control custom-select" id="select-input" required name="categoria" [(ngModel)]="producto.categoria">
+              <select
+                class="form-control custom-select"
+                id="select-input"
+                required
+                name="categoria"
+                [(ngModel)]="producto.categoria"
+              >
                 <option value="" selected disabled>Seleccionar</option>
                 <option value="Categoria 1">Categoria 1</option>
                 <option value="Categoria 2">Categoria 2</option>
@@ -75,7 +81,11 @@
             </div>
 
             <div class="col-lg-12 form-group">
-              <textarea class="form-control" required rows="15" name="contenido" [(ngModel)]="producto.contenido"></textarea>
+              <tinymce
+                [(ngModel)]="producto.contenido"
+                name="contenido"
+                [config]="config"
+              ></tinymce>
             </div>
           </div>
         </div>
@@ -84,8 +94,21 @@
             <div class="col-lg-12 form-group">
               <label for="">Portada</label>
               <div class="custom-file">
-                <input class="custom-file-input" type="file" id="file-input" (change)="fileChangeEvent($event)"/>
-                <label class="custom-file-label" for="file-input" id="input-portada" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"
+                <input
+                  class="custom-file-input"
+                  type="file"
+                  id="file-input"
+                  (change)="fileChangeEvent($event)"
+                />
+                <label
+                  class="custom-file-label"
+                  for="file-input"
+                  id="input-portada"
+                  style="
+                    white-space: nowrap;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                  "
                   >Seleccionar imagen</label
                 >
               </div>
