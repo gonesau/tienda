@@ -27,6 +27,12 @@ export class ProductoService {
     fd.append('portada', file);
     return this._http.post(this.url + 'registro_producto_admin', fd, { headers: headers });
   }
+
+  listar_productos_admin(filtro, token): Observable<any> {
+    let headers = new HttpHeaders({'Content-Type': 'application/json', 'Authorization': token});
+    return this._http.get(this.url + 'listar_productos_admin/'+filtro, { headers: headers });
+  }
+
 }
 
 
