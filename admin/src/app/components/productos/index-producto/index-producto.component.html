@@ -71,7 +71,11 @@
           <tbody *ngFor="let item of productos ; let i = index">
             <tr>
               <td>{{ i + 1 }}</td>
-              <td>{{ item.titulo }}</td>
+              <td>
+                <h6 style="padding-bottom: 0; margin-bottom: 0;">
+                  <img [src]="url + 'obtener_portada/' + item.portada" alt="{{ item.titulo }}" class="img-thumbnail rounded-0" style="width: 75px;" />
+                  {{ item.titulo }}</h6>
+              </td>
               <td>{{ item.stock }}</td>
               <td>${{ item.precio }}</td>
               <td>{{ item.categoria }}</td>

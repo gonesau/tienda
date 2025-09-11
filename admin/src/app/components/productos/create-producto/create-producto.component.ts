@@ -1,4 +1,5 @@
 import { Component, OnInit } from '@angular/core';
+import { Router } from '@angular/router';
 import { AdminService } from 'src/app/services/admin.service';
 import { ProductoService } from 'src/app/services/producto.service';
 
@@ -20,9 +21,12 @@ export class CreateProductoComponent implements OnInit {
   public config : any = {};
   public token;
 
+  public load_btn = false;
+
   constructor(
     private _productoService: ProductoService,
-    private _adminService: AdminService
+    private _adminService: AdminService,
+    private _router: Router
   ) {
     this.config = {
       height: 500,
@@ -48,11 +52,22 @@ export class CreateProductoComponent implements OnInit {
 
   registro(registroForm){
     if(registroForm.valid){
+      this.load_btn = true;
       this._productoService.registro_producto_admin(this.producto, this.file, this.token).subscribe(
         response => {
-          console.log(response);
+                    iziToast.show({
+            title: 'Éxito',
+            message: 'Producto registrado correctamente',
+            position: 'topRight',
+            class: 'text-success',
+            titleColor: '#1DC74C',
+          });
+          this.load_btn = false;
+          this._router.navigate(['/panel/productos']);
+
         }, error => {
           console.log(error);
+          this.load_btn = false;
         }
       );
     } else{
@@ -64,6 +79,8 @@ export class CreateProductoComponent implements OnInit {
           position: 'topRight',
           message: 'Los datos del formulario no son válidos',
       });
+
+      this.load_btn = false;
     }
   }
 
