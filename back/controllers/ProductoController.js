@@ -53,9 +53,29 @@ const obtener_portada = async function (req, res) {
   });
 }
 
+const obtener_producto_admin = async function (req, res) {
+  if (req.user) {
+    if (req.user.role == "admin") {
+      var id = req.params["id"];
+      try {
+        var reg = await Product.findById({ _id: id });
+        res.status(200).send({ data: reg });
+      } catch (err) {
+        return res
+          .status(200)
+          .send({ message: "Error en el servidor", data: undefined });
+      }
+    } else {
+      res.status(500).send({ message: "No autorizado" });
+    }
+  } else {
+    res.status(500).send({ message: "No autorizado" });
+  }
+};
 
 module.exports = {
   registro_producto_admin,
   listar_productos_admin,
-  obtener_portada
+  obtener_portada,
+  obtener_producto_admin
 };
