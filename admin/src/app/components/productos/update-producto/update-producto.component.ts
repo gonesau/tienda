@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { Global } from 'src/app/services/global';
 import { ProductoService } from 'src/app/services/producto.service';
 declare var iziToast: any;
@@ -23,7 +23,8 @@ export class UpdateProductoComponent implements OnInit {
 
   constructor(
     private _route: ActivatedRoute,
-    private _productoService: ProductoService
+    private _productoService: ProductoService,
+    private _router: Router
   ) {
     this.config = {
       height: 500,
@@ -70,8 +71,45 @@ export class UpdateProductoComponent implements OnInit {
 
   actualizar(actualizarForm) {
     if (actualizarForm.valid) {
-      console.log(this.producto);
-      
+      var data: any = {};
+      if (this.file != undefined) {
+        data.portada = this.file;
+      }
+      data.titulo = this.producto.titulo;
+      data.stock = this.producto.stock;
+      data.precio = this.producto.precio;
+      data.categoria = this.producto.categoria;
+      data.descripcion = this.producto.descripcion;
+      data.contenido = this.producto.contenido;
+
+      this.load_btn = true;
+      this._productoService
+        .actualizar_producto_admin(data, this.id, this.token)
+        .subscribe(
+          (response) => {
+            iziToast.show({
+              title: 'Éxito',
+              message: 'Producto actualizado correctamente',
+              position: 'topRight',
+              class: 'text-success',
+              titleColor: '#1DC74C',
+            });
+            this.load_btn = false;
+            this._router.navigate(['/panel/productos']);
+          },
+          (error) => {
+            iziToast.show({
+              title: 'Error',
+              titleColor: '#FF0000',
+              color: '#FFF',
+              class: 'text-danger',
+              position: 'topRight',
+              message: 'Error al actualizar el producto',
+            });
+            this.load_btn = false;
+            this._router.navigate(['/panel/productos']);
+          }
+        );
     } else {
       iziToast.show({
         title: 'Error',
@@ -81,6 +119,7 @@ export class UpdateProductoComponent implements OnInit {
         position: 'topRight',
         message: 'Los datos del formulario no son válidos',
       });
+      this.load_btn = false;
     }
   }
 

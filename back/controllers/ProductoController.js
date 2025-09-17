@@ -29,9 +29,11 @@ const registro_producto_admin = async function (req, res) {
 const listar_productos_admin = async function (req, res) {
   if (req.user) {
     if (req.user.role == "admin") {
-        var filtro = req.params["filtro"];
-        let reg = await Product.find({ titulo: new RegExp(filtro, "i") }).sort({ createdAt: -1 });
-        res.status(200).send({ data: reg });
+      var filtro = req.params["filtro"];
+      let reg = await Product.find({ titulo: new RegExp(filtro, "i") }).sort({
+        createdAt: -1,
+      });
+      res.status(200).send({ data: reg });
     } else {
       res.status(500).send({ message: "NoAccess" });
     }
@@ -51,7 +53,7 @@ const obtener_portada = async function (req, res) {
       res.status(200).sendFile(path.resolve(path_img));
     }
   });
-}
+};
 
 const obtener_producto_admin = async function (req, res) {
   if (req.user) {
@@ -73,9 +75,88 @@ const obtener_producto_admin = async function (req, res) {
   }
 };
 
+const actualizar_producto_admin = async function (req, res) {
+  if (req.user) {
+    if (req.user.role == "admin") {
+      let id = req.params["id"];
+      let data = req.body;
+      console.log(req.files);
+
+      if (req.files && req.files.portada && req.files.portada.path) {
+        // Si hay imagen
+        var img_path = req.files.portada.path;
+        var name = img_path.split("\\");
+        var portada_name = name[2];
+
+        let reg = await Product.findByIdAndUpdate(
+          { _id: id },
+          {
+            titulo: data.titulo,
+            stock: data.stock,
+            precio: data.precio,
+            categoria: data.categoria,
+            descripcion: data.descripcion,
+            contenido: data.contenido,
+            portada: portada_name,
+          }
+        );
+
+        fs.stat("./uploads/productos/" + reg.portada, function (err) {
+          if(!err){
+            fs.unlink("./uploads/productos/" + reg.portada, (err) => {
+              if (err) throw err;
+            });
+          }
+        });
+
+        res.status(200).send({ data: reg });
+      } else {
+        // No hay imagen
+        let reg = await Product.findByIdAndUpdate(
+          { _id: id },
+          {
+            titulo: data.titulo,
+            stock: data.stock,
+            precio: data.precio,
+            categoria: data.categoria,
+            descripcion: data.descripcion,
+            contenido: data.contenido,
+          }
+        );
+        res.status(200).send({ data: reg });
+      }
+      try {
+        if (data.titulo) {
+          data.slug = data.titulo
+            .toLowerCase()
+            .replace(/ /g, "-")
+            .replace(/[^\w-]+/g, "");
+        }
+
+        let reg = await Product.findByIdAndUpdate({ _id: id }, data, {
+          new: true,
+        });
+        res.status(200).send({ data: reg });
+      } catch (error) {
+        res
+          .status(500)
+          .send({
+            message: "Error al actualizar el producto",
+            error: error.message,
+          });
+      }
+    } else {
+      res.status(500).send({ message: "NoAccess" });
+    }
+  } else {
+    res.status(500).send({ message: "NoAccess" });
+  }
+};
+
 module.exports = {
   registro_producto_admin,
   listar_productos_admin,
   obtener_portada,
-  obtener_producto_admin
+  obtener_producto_admin,
+  actualizar_producto_admin,
 };
