@@ -125,6 +125,11 @@
                       [attr.data-target]="'#delete-' + item._id"
                       >Eliminar Producto</a
                     >
+                    <a
+                      class="dropdown-item"
+                      [routerLink]="['/panel/productos/inventario', item._id]"
+                      >Inventario</a
+                    >
                   </div>
                 </div>
 
