@@ -31,11 +31,15 @@
             class="form-control"
             type="text"
             placeholder="Título del producto"
-            name ="filtro"
+            name="filtro"
             [(ngModel)]="filtro"
           />
-          <button class="btn btn-primary" type="button" (click)="filtrar()">Filtrar</button>
-          <button class="btn btn-secondary" type="button" (click)="resetear()">Limpiar</button>
+          <button class="btn btn-primary" type="button" (click)="filtrar()">
+            Filtrar
+          </button>
+          <button class="btn btn-secondary" type="button" (click)="resetear()">
+            Limpiar
+          </button>
         </div>
       </div>
     </div>
@@ -71,13 +75,27 @@
         </tbody>
 
         <ng-container *ngIf="!load_data">
-          <tbody *ngFor="let item of productos| slice: (page-1)*pageSize:(page-1)*pageSize + pageSize ; let i = index">
+          <tbody
+            *ngFor="
+              let item of productos
+                | slice
+                  : (page - 1) * pageSize
+                  : (page - 1) * pageSize + pageSize;
+              let i = index
+            "
+          >
             <tr>
               <td>{{ i + 1 }}</td>
               <td>
-                <h6 style="padding-bottom: 0; margin-bottom: 0;">
-                  <img [src]="url + 'obtener_portada/' + item.portada" alt="{{ item.titulo }}" class="img-thumbnail rounded-0" style="width: 75px;" />
-                  {{ item.titulo }}</h6>
+                <h6 style="padding-bottom: 0; margin-bottom: 0">
+                  <img
+                    [src]="url + 'obtener_portada/' + item.portada"
+                    alt="{{ item.titulo }}"
+                    class="img-thumbnail rounded-0"
+                    style="width: 75px"
+                  />
+                  {{ item.titulo }}
+                </h6>
               </td>
               <td>{{ item.stock }}</td>
               <td>${{ item.precio }}</td>
@@ -133,10 +151,10 @@
                       </div>
                       <div class="modal-body">
                         <p class="fs-sm">
-                          ¿Estás seguro de que deseas eliminar este cliente?
+                          ¿Estás seguro de que deseas eliminar este producto?
                         </p>
                         <p class="fs-sm">
-                          {{ item.nombres }} {{ item.apellidos }}
+                          {{ item.titulo }}
                         </p>
                       </div>
                       <div class="modal-footer">
@@ -148,11 +166,26 @@
                           Cerrar
                         </button>
                         <button
+                          *ngIf="!load_btn"
                           class="btn btn-primary btn-sm"
                           type="button"
                           (click)="eliminar(item._id)"
                         >
                           Si, eliminar
+                        </button>
+                        <!-- Button with growing spinner and text -->
+                        <button
+                          *ngIf="load_btn"
+                          type="button"
+                          class="btn btn-secondary"
+                          disabled
+                        >
+                          <span
+                            class="spinner-grow spinner-grow-sm me-2"
+                            role="status"
+                            aria-hidden="true"
+                          ></span>
+                          Eliminando...
                         </button>
                       </div>
                     </div>
@@ -166,12 +199,11 @@
     </div>
   </div>
   <div class="card-footer">
-
-        <ngb-pagination
+    <ngb-pagination
       [(page)]="page"
       [pageSize]="pageSize"
       [collectionSize]="productos.length"
     >
-    </ngb-pagination> 
+    </ngb-pagination>
   </div>
 </div>

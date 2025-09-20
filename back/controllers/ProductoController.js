@@ -153,10 +153,29 @@ const actualizar_producto_admin = async function (req, res) {
   }
 };
 
+const eliminar_producto_admin = async function (req, res) {
+  if (req.user) {
+    if (req.user.role == "admin") {
+      var id = req.params["id"];
+      let reg = await Product.findOneAndDelete({ _id: id });
+      if (reg) {
+        res.status(200).send({ message: "Producto eliminado" });
+      } else {
+        res.status(404).send({ message: "Producto no encontrado" });
+      }
+    } else {
+      res.status(500).send({ message: "NoAccess" });
+    }
+  } else {
+    res.status(500).send({ message: "NoAccess" });
+  }
+};
+
 module.exports = {
   registro_producto_admin,
   listar_productos_admin,
   obtener_portada,
   obtener_producto_admin,
   actualizar_producto_admin,
+  eliminar_producto_admin,
 };
