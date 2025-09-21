@@ -30,6 +30,13 @@ export class InventarioProductoComponent implements OnInit {
               this.producto = undefined;
             } else {
               this.producto = response.data;
+              this._productoService.listar_inventario_producto_admin(this.id, this.token).subscribe(
+                response => {
+                  this.producto.inventario = response.data;
+                }, error => {
+                  console.log(error);
+                }
+              );
             }
           },
           (error) => {

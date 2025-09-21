@@ -1,6 +1,7 @@
 "use strict";
 
 var Product = require("../models/producto");
+var Inventario = require("../models/inventario");
 var fs = require("fs");
 var path = require("path");
 
@@ -17,7 +18,14 @@ const registro_producto_admin = async function (req, res) {
         .replace(/ /g, "-")
         .replace(/[^\w-]+/g, "");
       let reg = await Product.create(data);
-      res.status(200).send({ data: reg });
+
+      let inventario = await Inventario.create({
+        admin: req.user.sub,
+        cantidad: data.stock,
+        proveedor: 'Registro inicial',
+        producto: reg._id,
+      });
+      res.status(200).send({ data: reg, inventario: inventario });
     } else {
       res.status(500).send({ message: "NoAccess" });
     }
@@ -171,6 +179,22 @@ const eliminar_producto_admin = async function (req, res) {
   }
 };
 
+const listar_inventario_producto_admin = async function (req, res) {
+  if (req.user) {
+    if (req.user.role == "admin") {
+      var id = req.params["id"];
+
+      var reg = await Inventario.find({ producto: id });
+      res.status(200).send({ data: reg });
+
+    } else {
+      res.status(500).send({ message: "NoAccess" });
+    }
+  } else {
+    res.status(500).send({ message: "NoAccess" });
+  }
+};
+
 module.exports = {
   registro_producto_admin,
   listar_productos_admin,
@@ -178,4 +202,5 @@ module.exports = {
   obtener_producto_admin,
   actualizar_producto_admin,
   eliminar_producto_admin,
+  listar_inventario_producto_admin,
 };
