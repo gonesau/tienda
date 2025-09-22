@@ -11,20 +11,26 @@ import { CreateProductoComponent } from "./components/productos/create-producto/
 import { IndexProductoComponent } from "./components/productos/index-producto/index-producto.component";
 import { UpdateProductoComponent } from "./components/productos/update-producto/update-producto.component";
 import { InventarioProductoComponent } from "./components/productos/inventario-producto/inventario-producto.component";
+import { CreateCuponComponent } from "./components/cupones/create-cupon/create-cupon.component";
 
 
 const appRoutes: Routes = [
   {path: '', redirectTo: '/inicio', pathMatch: 'full'},
   {path: 'inicio', component: InicioComponent, canActivate: [AdminGuard]},
   {path: 'panel', children: [
+    // Rutas de clientes
     {path: 'clientes', component: IndexClienteComponent, canActivate: [AdminGuard]},
     {path: 'clientes/registro', component: CreateClienteComponent, canActivate: [AdminGuard]},
     {path: 'clientes/:id', component: EditClienteComponent, canActivate: [AdminGuard]},
 
+    // Rutas de productos
     {path: 'productos', component: IndexProductoComponent, canActivate: [AdminGuard]},
     {path: 'productos/registro', component: CreateProductoComponent, canActivate: [AdminGuard]},
     {path: 'productos/:id', component: UpdateProductoComponent, canActivate: [AdminGuard]},
     {path: 'productos/inventario/:id', component: InventarioProductoComponent, canActivate: [AdminGuard]},
+
+    //Ruta de Cupones
+    {path: 'cupones/registro', component: CreateCuponComponent, canActivate: [AdminGuard]},
 
   ]},
   {path: 'login', component: LoginComponent},
