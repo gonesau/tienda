@@ -59,11 +59,9 @@ export class ProductoService {
       fd.append('contenido', data.contenido);
       fd.append('categoria', data.categoria);
       fd.append('portada', data.portada);
-      return this._http.put(
-        this.url + 'actualizar_producto_admin/' + id,
-        fd,
-        { headers: headers }
-      );
+      return this._http.put(this.url + 'actualizar_producto_admin/' + id, fd, {
+        headers: headers,
+      });
     } else {
       let headers = new HttpHeaders({
         'Content-Type': 'application/json',
@@ -78,22 +76,45 @@ export class ProductoService {
   }
 
   eliminar_producto_admin(id, token): Observable<any> {
-    let headers = new HttpHeaders({'Content-Type': 'application/json', Authorization: token});
-    return this._http.delete(this.url + 'eliminar_producto_admin/' + id, {headers: headers});
+    let headers = new HttpHeaders({
+      'Content-Type': 'application/json',
+      Authorization: token,
+    });
+    return this._http.delete(this.url + 'eliminar_producto_admin/' + id, {
+      headers: headers,
+    });
   }
 
   listar_inventario_producto_admin(id, token): Observable<any> {
-    let headers = new HttpHeaders({'Content-Type': 'application/json', Authorization: token});
-    return this._http.get(this.url + 'listar_inventario_producto_admin/' + id, {headers: headers});
+    let headers = new HttpHeaders({
+      'Content-Type': 'application/json',
+      Authorization: token,
+    });
+    return this._http.get(this.url + 'listar_inventario_producto_admin/' + id, {
+      headers: headers,
+    });
   }
 
-eliminar_inventario_producto_admin(id: any, token: any): Observable<any> {
-  let headers = new HttpHeaders({
-    'Content-Type': 'application/json',
-    Authorization: token
-  });
-  return this._http.delete(this.url + 'eliminar_inventario_producto_admin/' + id, { headers: headers });
-}
+  eliminar_inventario_producto_admin(id: any, token: any): Observable<any> {
+    let headers = new HttpHeaders({
+      'Content-Type': 'application/json',
+      Authorization: token,
+    });
+    return this._http.delete(
+      this.url + 'eliminar_inventario_producto_admin/' + id,
+      { headers: headers }
+    );
+  }
 
-
+  registro_inventario_producto_admin(data: any, token: any): Observable<any> {
+    let headers = new HttpHeaders({
+      'Content-Type': 'application/json',
+      Authorization: token,
+    });
+    return this._http.post(
+      this.url + 'registro_inventario_producto_admin',
+      data,
+      { headers: headers }
+    );
+  }
 }
