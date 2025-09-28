@@ -34,4 +34,9 @@ export class CuponService {
     return this._http.put(this.url + 'actualizar_cupon_admin/' + id, data, { headers: headers });
   }
 
+  eliminar_cupon_admin(id, token): Observable<any> {
+    let headers = new HttpHeaders({'Content-Type': 'application/json', 'Authorization': token });
+    return this._http.delete(this.url + 'eliminar_cupon_admin/' + id, { headers: headers });
+  }
+
 }
