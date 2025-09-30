@@ -1,6 +1,19 @@
 'use strict';
 var config = require('../models/config');
 
+const obtener_config_admin = async (req, res) => {
+    if (req.user) {
+        if (req.user.role == "admin") {
+            let reg = await config.findById({ _id: "68daa75d1e1062bf51932fa2" });
+            res.status(200).send({ data: reg });
+        } else {
+            res.status(500).send({ message: "No autorizado" });
+        }
+    } else {
+        res.status(500).send({ message: "No autorizado" });
+    }
+}
+
 const actualizar_config_admin = async (req, res) => {
     if (req.user) {
         if (req.user.role == "admin") {
@@ -49,4 +62,5 @@ const actualizar_config_admin = async (req, res) => {
 
 module.exports = {
     actualizar_config_admin,
+    obtener_config_admin
 }
