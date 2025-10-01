@@ -56,5 +56,20 @@ export class AdminService {
     return this._http.get(this.url + 'obtener_config_admin', { headers: headers });
   }
 
+  actualizar_config_admin(id, data, token): Observable<any> {
+    if (data.logo) {
+      let headers = new HttpHeaders({'Authorization': token });
+      const fd = new FormData();
+      fd.append('titulo', data.titulo);
+      fd.append('serie', data.serie);
+      fd.append('correlativo', data.correlativo);
+      fd.append('categorias', JSON.stringify(data.categorias));
+      fd.append('logo', data.logo, data.logo.name);
+      return this._http.put(this.url + 'actualizar_config_admin/' + id, fd, { headers: headers });
+    } else {
+      let headers = new HttpHeaders({'Content-Type': 'application/json', 'Authorization': token });
+      return this._http.put(this.url + 'actualizar_config_admin/' + id, data, { headers: headers });
+    }
+  }
 
 }
