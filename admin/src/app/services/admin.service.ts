@@ -50,7 +50,6 @@ export class AdminService {
     return allowRoles.includes(decodedToken.role);
   }
 
-
   obtener_config_admin(token): Observable<any> {
     let headers = new HttpHeaders({'Content-Type': 'application/json', 'Authorization': token });
     return this._http.get(this.url + 'obtener_config_admin', { headers: headers });
@@ -72,4 +71,9 @@ export class AdminService {
     }
   }
 
+  obtener_config_publico(): Observable<any> {
+    let headers = new HttpHeaders().set('Content-Type', 'application/json');
+    return this._http.get(this.url + 'obtener_config_publico', { headers: headers });
+  }
+  
 }

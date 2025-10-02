@@ -1,76 +1,74 @@
-'use strict';
-var config = require('../models/config');
-var fs = require('fs');
-var path = require('path');
+"use strict";
+var config = require("../models/config");
+var fs = require("fs");
+var path = require("path");
 
 const obtener_config_admin = async (req, res) => {
-    if (req.user) {
-        if (req.user.role == "admin") {
-            let reg = await config.findById({ _id: "68daa75d1e1062bf51932fa2" });
-            res.status(200).send({ data: reg });
-        } else {
-            res.status(500).send({ message: "No autorizado" });
-        }
+  if (req.user) {
+    if (req.user.role == "admin") {
+      let reg = await config.findById({ _id: "68daa75d1e1062bf51932fa2" });
+      res.status(200).send({ data: reg });
     } else {
-        res.status(500).send({ message: "No autorizado" });
+      res.status(500).send({ message: "No autorizado" });
     }
-}
+  } else {
+    res.status(500).send({ message: "No autorizado" });
+  }
+};
 
 const actualizar_config_admin = async (req, res) => {
-    if (req.user) {
-        if (req.user.role == "admin") {
-            let data = req.body;
-            let reg;
+  if (req.user) {
+    if (req.user.role == "admin") {
+      let data = req.body;
+      let reg;
 
-            if (req.files && req.files.logo) {
-                console.log('si hay imagen');
-                var img_path = req.files.logo.path;
-                var name = img_path.split("\\");
-                var logo_name = name[name.length - 1]; 
+      if (req.files && req.files.logo) {
+        console.log("si hay imagen");
+        var img_path = req.files.logo.path;
+        var name = img_path.split("\\");
+        var logo_name = name[name.length - 1];
 
-                reg = await config.findByIdAndUpdate(
-                    { _id: "68daa75d1e1062bf51932fa2" },
-                    {
-                        categorias: JSON.parse(data.categorias),
-                        titulo: data.titulo,
-                        logo: logo_name,
-                        serie: data.serie,
-                        correlativo: data.correlativo,
-                    }
-                );
+        reg = await config.findByIdAndUpdate(
+          { _id: "68daa75d1e1062bf51932fa2" },
+          {
+            categorias: JSON.parse(data.categorias),
+            titulo: data.titulo,
+            logo: logo_name,
+            serie: data.serie,
+            correlativo: data.correlativo,
+          }
+        );
 
-                if (reg.logo) {
-                    fs.stat("./uploads/configuraciones/" + reg.logo, function (err) {
-                        if (!err) {
-                            fs.unlink("./uploads/configuraciones/" + reg.logo, (err) => {
-                                if (err) throw err;
-                            });
-                        }
-                    });
-                }
-
-            } else {
-                console.log('no hay imagen');
-                reg = await config.findByIdAndUpdate(
-                    { _id: "68daa75d1e1062bf51932fa2" },
-                    {
-                        categorias: data.categorias,
-                        titulo: data.titulo,
-                        serie: data.serie,
-                        correlativo: data.correlativo,
-                    }
-                );
+        if (reg.logo) {
+          fs.stat("./uploads/configuraciones/" + reg.logo, function (err) {
+            if (!err) {
+              fs.unlink("./uploads/configuraciones/" + reg.logo, (err) => {
+                if (err) throw err;
+              });
             }
-
-            res.status(200).send({ data: reg });
-
-        } else {
-            res.status(500).send({ message: "No autorizado" });
+          });
         }
+      } else {
+        console.log("no hay imagen");
+        reg = await config.findByIdAndUpdate(
+          { _id: "68daa75d1e1062bf51932fa2" },
+          {
+            categorias: data.categorias,
+            titulo: data.titulo,
+            serie: data.serie,
+            correlativo: data.correlativo,
+          }
+        );
+      }
+
+      res.status(200).send({ data: reg });
     } else {
-        res.status(500).send({ message: "No autorizado" });
+      res.status(500).send({ message: "No autorizado" });
     }
-}
+  } else {
+    res.status(500).send({ message: "No autorizado" });
+  }
+};
 
 const obtener_logo = async function (req, res) {
   var img = req.params["img"];
@@ -85,9 +83,14 @@ const obtener_logo = async function (req, res) {
   });
 };
 
+const obtener_config_publico = async (req, res) => {
+  let reg = await config.findById({ _id: "68daa75d1e1062bf51932fa2" });
+  res.status(200).send({ data: reg });
+};
 
 module.exports = {
-    actualizar_config_admin,
-    obtener_config_admin,
-    obtener_logo
-}
+  actualizar_config_admin,
+  obtener_config_admin,
+  obtener_logo,
+  obtener_config_publico,
+};

@@ -18,8 +18,8 @@ export class CreateProductoComponent implements OnInit {
   public imgSelect: any | ArrayBuffer = 'assets/img/01.png';
   public config: any = {};
   public token;
-
   public load_btn = false;
+  public config_global: any = {};
 
   constructor(
     private _productoService: ProductoService,
@@ -44,9 +44,16 @@ export class CreateProductoComponent implements OnInit {
     };
 
     this.token = this._adminService.getToken();
+    this._adminService.obtener_config_publico().subscribe(
+      response => {
+        this.config_global = response.data;
+      }, error => { 
+        console.log(error) 
+      }
+    );
   }
 
-  ngOnInit(): void {}
+  ngOnInit(): void { }
 
   registro(registroForm) {
     if (registroForm.valid) {

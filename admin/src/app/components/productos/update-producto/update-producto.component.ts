@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
+import { AdminService } from 'src/app/services/admin.service';
 import { Global } from 'src/app/services/global';
 import { ProductoService } from 'src/app/services/producto.service';
 declare var iziToast: any;
@@ -20,10 +21,12 @@ export class UpdateProductoComponent implements OnInit {
   public token;
   public url;
   public file: File = undefined;
+  public config_global: any = {};
 
   constructor(
     private _route: ActivatedRoute,
     private _productoService: ProductoService,
+    private _adminService: AdminService,
     private _router: Router
   ) {
     this.config = {
@@ -45,6 +48,15 @@ export class UpdateProductoComponent implements OnInit {
 
     this.token = localStorage.getItem('token');
     this.url = Global.url;
+
+        this._adminService.obtener_config_publico().subscribe(
+      response => {
+        this.config_global = response.data;
+      }, error => { 
+        console.log(error) 
+      }
+    );
+
   }
 
   ngOnInit(): void {
