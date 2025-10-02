@@ -1,6 +1,7 @@
 'use strict';
 var config = require('../models/config');
 var fs = require('fs');
+var path = require('path');
 
 const obtener_config_admin = async (req, res) => {
     if (req.user) {
@@ -30,7 +31,7 @@ const actualizar_config_admin = async (req, res) => {
                 reg = await config.findByIdAndUpdate(
                     { _id: "68daa75d1e1062bf51932fa2" },
                     {
-                        categorias: data.categorias,
+                        categorias: JSON.parse(data.categorias),
                         titulo: data.titulo,
                         logo: logo_name,
                         serie: data.serie,
@@ -71,7 +72,22 @@ const actualizar_config_admin = async (req, res) => {
     }
 }
 
+const obtener_logo = async function (req, res) {
+  var img = req.params["img"];
+  fs.stat("./uploads/configuraciones/" + img, function (err) {
+    if (!err) {
+      let path_img = "./uploads/configuraciones/" + img;
+      res.status(200).sendFile(path.resolve(path_img));
+    } else {
+      let path_img = "./uploads/default.jpg";
+      res.status(200).sendFile(path.resolve(path_img));
+    }
+  });
+};
+
+
 module.exports = {
     actualizar_config_admin,
-    obtener_config_admin
+    obtener_config_admin,
+    obtener_logo
 }

@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { AdminService } from 'src/app/services/admin.service';
+import { Global } from 'src/app/services/global';
 import { v4 as uuidv4 } from 'uuid';
 declare var iziToast;
 declare var jQuery: any;
@@ -14,7 +15,7 @@ declare var $: any;
 export class ConfigComponent implements OnInit {
   public token;
   public config: any = {};
-
+  public url;
   public titulo_cat = '';
   public icono_cat = '';
   public file: File | undefined;
@@ -24,10 +25,11 @@ export class ConfigComponent implements OnInit {
     private _adminService: AdminService
   ) {
     this.token = localStorage.getItem('token');
+    this.url = Global.url;
     this._adminService.obtener_config_admin(this.token).subscribe(
       response => {
         this.config = response.data;
-
+        this.imgSelect = this.url + 'obtener_logo/' + this.config.logo;
         if (!this.config.categorias) {
           this.config.categorias = [];
         }
@@ -164,5 +166,10 @@ export class ConfigComponent implements OnInit {
   ngDoCheck(): void {
     $('.cs-file-drop-preview').html('<img src="' + this.imgSelect + '" class="img-fluid" alt="Logo">');
   } 
+
+  eliminar_cat(idx){
+  this.config.categorias.splice(idx,1);
+  
+}
 
 }
