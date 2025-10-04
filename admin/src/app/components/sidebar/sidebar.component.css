@@ -1,0 +1,35 @@
+aside .nav-link {
+    color: #cfcfcf;
+    font-weight: 500;
+    border-left: 3px solid transparent;
+    transition: all 0.2s ease;
+}
+
+aside .nav-link:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    color: #fff;
+}
+
+aside .nav-link.active {
+    background-color: rgba(255, 255, 255, 0.15);
+    color: #fff;
+    border-left: 3px solid #f6c23e;
+}
+
+.navbar-light .navbar-brand img {
+    transition: transform 0.2s ease;
+}
+
+.navbar-light .navbar-brand img:hover {
+    transform: scale(1.05);
+}
+
+.dropdown-menu a {
+    font-size: 0.9rem;
+}
+
+@media (max-width: 991.98px) {
+    aside {
+        width: 100%;
+    }
+}

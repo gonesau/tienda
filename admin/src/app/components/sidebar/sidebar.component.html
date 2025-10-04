@@ -1,56 +1,108 @@
-<!-- Navbar-->
-<header class="navbar navbar-expand navbar-light fixed-top navbar-box-shadow bg-light px-3 px-lg-4" data-scroll-header
-  data-fixed-element>
-  <a class="navbar-brand d-lg-none" href="dev-setup.html">
-    <img src="assets/img/components/logo/logo-dark.svg" alt="Createx" width="130" />
+<!-- Navbar -->
+<header
+  class="navbar navbar-expand-lg navbar-light fixed-top bg-white shadow-sm px-3 px-lg-4"
+  data-scroll-header
+  data-fixed-element
+>
+  <a class="navbar-brand d-flex align-items-center" href="#">
+    <img src="assets/img/components/logo/logo-dark.svg" alt="Logo" width="130" />
   </a>
-  <button class="navbar-toggler d-block d-lg-none mr-3 ml-auto" type="button" data-toggle="offcanvas"
-    data-target="componentsNav">
+
+  <button
+    class="navbar-toggler ml-auto"
+    type="button"
+    data-toggle="offcanvas"
+    data-target="#componentsNav"
+    aria-controls="componentsNav"
+    aria-expanded="false"
+    aria-label="Toggle navigation"
+  >
     <span class="navbar-toggler-icon"></span>
   </button>
-  <ul class="navbar-nav ml-auto d-none d-lg-flex align-items-center">
-    <li class="nav-item">
-      <a class="nav-link py-0" href="../components/typography.html">
-        <i class="cxi-profile align-middle mt-n1 mr-2"></i>
-        Cuenta
+
+  <!-- Right-side menu -->
+  <ul class="navbar-nav ml-auto align-items-center">
+    <li class="nav-item dropdown">
+      <a
+        class="nav-link dropdown-toggle d-flex align-items-center"
+        href="#"
+        id="userDropdown"
+        role="button"
+        data-toggle="dropdown"
+        aria-haspopup="true"
+        aria-expanded="false"
+      >
+        <i class="cxi-profile mr-2"></i>
+        <span>Admin</span>
       </a>
+      <div class="dropdown-menu dropdown-menu-right shadow-sm" aria-labelledby="userDropdown">
+        <a class="dropdown-item" href="#"><i class="cxi-settings mr-2"></i>Configuración</a>
+        <a class="dropdown-item" href="#"><i class="cxi-logout mr-2"></i>Cerrar sesión</a>
+      </div>
     </li>
   </ul>
 </header>
 
-<!-- Side navigation (Off-canvas)-->
-<aside class="cs-offcanvas cs-offcanvas-expand bg-dark" id="componentsNav">
-  <div class="cs-offcanvas-cap d-none d-lg-block py-4">
-    <a class="navbar-brand py-2" href="dev-setup.html">
-      <img src="assets/img/components/logo/logo-white.svg" alt="Createx" width="130" />
-    </a>
-    <span class="badge badge-warning">Docs</span>
-  </div>
-  <div class="cs-offcanvas-cap d-flex d-lg-none">
-    <div class="d-flex align-items-center mt-1">
-      <h5 class="text-light mb-0 mr-3">Menu</h5>
-      <span class="badge badge-warning">Docs</span>
+<!-- Sidebar -->
+<aside
+  class="cs-offcanvas cs-offcanvas-expand bg-dark text-light"
+  id="componentsNav"
+  style="transition: all 0.3s ease-in-out;"
+>
+  <div class="cs-offcanvas-cap d-flex align-items-center justify-content-between py-3 px-4 border-bottom border-secondary">
+    <div class="d-flex align-items-center">
+      <img src="assets/img/components/logo/logo-white.svg" alt="Logo" width="120" class="mr-2" />
+      <span class="badge badge-warning">Admin</span>
     </div>
-    <button class="close text-light" type="button" data-dismiss="offcanvas" aria-label="Close">
+    <button class="close text-light d-lg-none" type="button" data-dismiss="offcanvas" aria-label="Close">
       <span aria-hidden="true">&times;</span>
     </button>
   </div>
-  <div class="d-flex d-lg-none align-items-center py-4 px-3 border-bottom border-light">
-    <a class="btn btn-primary btn-block mr-3 px-4" href="index.html"><i class="cxi-eye mt-n1 mr-2"></i>Preview</a>
-    <a class="btn btn-success btn-block mt-0 px-4" href="../components/typography.html"><i
-        class="cxi-layouts mt-n1 mr-2"></i>Components</a>
-  </div>
-  <div class="cs-offcanvas-body px-0 pt-4 pb-grid-gutter" data-simplebar data-simplebar-inverse>
-    <h6 class="font-size-lg text-light px-4 mt-2 mb-3">Contents</h6>
-    <hr class="hr-gradient hr-light mb-2 opacity-25" />
-    <nav class="nav nav-light">
-      <a class="nav-link px-4" [routerLink]="['/inicio']" routerLinkActive="active">Inicio</a>
-      <a class="nav-link px-4" [routerLink]="['/panel/clientes']" routerLinkActive="active">Cliente</a>
 
-      <a class="nav-link px-4" [routerLink]="['/panel/productos']" routerLinkActive="active">Productos</a>
+  <!-- Navigation -->
+  <div class="cs-offcanvas-body px-0 pt-3 pb-4" data-simplebar data-simplebar-inverse>
+    <h6 class="text-uppercase text-muted px-4 mb-3">Panel principal</h6>
+    <nav class="nav flex-column nav-light">
+      <a
+        class="nav-link d-flex align-items-center px-4 py-2"
+        [routerLink]="['/inicio']"
+        routerLinkActive="active"
+      >
+        <i class="cxi-home mr-3"></i> Inicio
+      </a>
 
-      <a class="nav-link px-4" [routerLink]="['/panel/cupones']" routerLinkActive="active">Cupones</a>
-      <a class="nav-link px-4" [routerLink]="['/panel/configuraciones']" routerLinkActive="active">Configuraciones</a>
+      <a
+        class="nav-link d-flex align-items-center px-4 py-2"
+        [routerLink]="['/panel/clientes']"
+        routerLinkActive="active"
+      >
+        <i class="fa-solid fa-users mr-3"></i> Clientes
+      </a>
+
+      <a
+        class="nav-link d-flex align-items-center px-4 py-2"
+        [routerLink]="['/panel/productos']"
+        routerLinkActive="active"
+      >
+        <i class="fa-solid fa-box-open mr-3"></i> Productos
+      </a>
+
+      <a
+        class="nav-link d-flex align-items-center px-4 py-2"
+        [routerLink]="['/panel/cupones']"
+        routerLinkActive="active"
+      >
+        <i class="fa-solid fa-gift mr-3"></i> Cupones
+      </a>
+
+      <a
+        class="nav-link d-flex align-items-center px-4 py-2"
+        [routerLink]="['/panel/configuraciones']"
+        routerLinkActive="active"
+      >
+        <i class="fa-solid fa-gear mr-3"></i> Configuración
+      </a>
     </nav>
   </div>
 </aside>
+

@@ -1,0 +1,14 @@
+  .file-drop-area {
+      border: 2px dashed #c7c7c7;
+      transition: border-color 0.2s ease, background-color 0.2s ease;
+  }
+
+  .file-drop-area:hover {
+      border-color: #007bff;
+      background-color: #f8f9fa;
+  }
+
+  table th,
+  table td {
+      vertical-align: middle !important;
+  }
