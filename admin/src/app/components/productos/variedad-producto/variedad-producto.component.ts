@@ -15,12 +15,16 @@ export class VariedadProductoComponent implements OnInit {
   public id;
   public token;
   public nueva_variedad = '';
+  public load_data = false;
+  public load_btn = false;
+  public url;
 
   constructor(
     private _route: ActivatedRoute,
     private _productoService: ProductoService
   ) {
     this.token = localStorage.getItem('token');
+    this.url = this._productoService.url;
     this._route.params.subscribe((params) => {
       this.id = params['id'];
       this._productoService
@@ -61,4 +65,54 @@ export class VariedadProductoComponent implements OnInit {
     }
   }
 
+  eliminar_variedad(idx) {
+    this.producto.variedades.splice(idx, 1);
+  }
+
+  actualizar() {
+    if (this.producto.titulo_variedad) {
+      //Actualizar
+      this.load_btn = true;
+      if (this.producto.variedades.length > 0) {
+        this._productoService.actualizar_producto_variedades_admin({
+          titulo_variedad: this.producto.titulo_variedad,
+          variedades: this.producto.variedades
+        }, this.id, this.token).subscribe(
+          response => {
+            iziToast.show({
+              title: 'Success',
+              titleColor: '#1DC74C',
+              color: '#FFF',
+              class: 'text-success',
+              position: 'topRight',
+              message: 'Se actualizó la información del producto.',
+            });
+            this.load_btn = false;
+            this.producto.titulo_variedad = '';
+            
+          }, error => {
+            console.log(error);
+            this.load_btn = false;
+          });
+      } else {
+        iziToast.show({
+          title: 'Error',
+          titleColor: '#FF0000',
+          color: '#FFF',
+          class: 'text-danger',
+          position: 'topRight',
+          message: 'Debe agregar al menos una variedad',
+        });
+      }
+    } else {
+      iziToast.show({
+        title: 'Error',
+        titleColor: '#FF0000',
+        color: '#FFF',
+        class: 'text-danger',
+        position: 'topRight',
+        message: 'Debe ingresar el título de la variedad',
+      });
+    }
+  }
 }
