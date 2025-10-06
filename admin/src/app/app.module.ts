@@ -24,6 +24,7 @@ import { CreateCuponComponent } from './components/cupones/create-cupon/create-c
 import { IndexCuponComponent } from './components/cupones/index-cupon/index-cupon.component';
 import { UpdateCuponComponent } from './components/cupones/update-cupon/update-cupon.component';
 import { ConfigComponent } from './components/config/config.component';
+import { VariedadProductoComponent } from './components/productos/variedad-producto/variedad-producto.component';
 
 
 
@@ -43,7 +44,8 @@ import { ConfigComponent } from './components/config/config.component';
     CreateCuponComponent,
     IndexCuponComponent,
     UpdateCuponComponent,
-    ConfigComponent
+    ConfigComponent,
+    VariedadProductoComponent
   ],
   imports: [
     BrowserModule,

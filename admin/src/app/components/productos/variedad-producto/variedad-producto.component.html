@@ -1,0 +1,105 @@
+<app-sidebar></app-sidebar>
+
+<div class="container-fluid mt-5 pt-4">
+
+    <!-- Header -->
+    <header class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3" style="margin-top: 80px;">
+        <div>
+            <h2 class="fw-bold mb-1">
+                <i class="fa-solid fa-gear text-primary me-2"></i> Variedades de Producto
+            </h2>
+            <p class="text-muted mb-0">
+                Administra la información general y parámetros de tu tienda en línea.
+            </p>
+        </div>
+
+        <button class="btn btn-primary d-flex align-items-center shadow-sm px-3 py-2" type="submit" form="confForm">
+            <i class="fa-solid fa-floppy-disk me-2"></i>
+            <span>Guardar cambios</span>
+        </button>
+    </header>
+
+
+    <!-- Formulario de variedades -->
+    <section class="card border-0 shadow-sm rounded-4 overflow-hidden">
+        <div class="card-body p-4">
+
+            <h5 class="fw-semibold text-secondary mb-4">
+                <i class="fa-solid fa-list-ul me-2 text-primary"></i> Configuración de variedades
+            </h5>
+
+            <form id="formVariedad" class="row g-4 needs-validation" novalidate>
+
+                <!-- Campo: Título de la variedad -->
+                <div class="col-12 col-md-6">
+                    <label for="text-input" class="form-label fw-semibold">
+                        Título de la variedad
+                    </label>
+                    <input id="text-input" name="titulo_variedad" class="form-control form-control-lg shadow-sm-sm"
+                        type="text" placeholder="Ej. Tipo de producto, categoría general..." required minlength="4"
+                        [(ngModel)]="producto.titulo_variedad" />
+                    <div class="invalid-feedback">
+                        Ingresa un título válido (mínimo 4 caracteres).
+                    </div>
+                </div>
+
+                <!-- Campo: Variedad del producto -->
+                <div class="col-12 col-md-6">
+                    <label for="nueva_variedad" class="form-label fw-semibold">
+                        Variedad del producto
+                    </label>
+                    <div class="input-group responsive-input-group">
+                        <input id="nueva_variedad" name="nueva_variedad" [(ngModel)]="nueva_variedad"
+                            class="form-control form-control-lg flex-grow-1" type="text"
+                            placeholder="Ej. Color, Talla, Tamaño..." required minlength="4" 
+                            />
+                        <button class="btn btn-outline-primary px-3" type="button" (click)="agregar_variedad()">
+                            <i class="fa-solid fa-plus me-1"></i> Agregar
+                        </button>
+                        <div class="invalid-feedback">
+                            Ingresa un nombre válido (mínimo 4 caracteres).
+                        </div>
+                    </div>
+                </div>
+            </form>
+
+            <!-- Tabla de variedades -->
+            <div class="table-responsive mt-5">
+                <table class="table align-middle table-hover text-center" *ngIf="producto.variedades">
+                    <thead class="table-light border-bottom">
+                        <tr class="text-primary">
+                            <th scope="col">Título</th>
+                            <th scope="col">Eliminar</th>
+                        </tr>
+                    </thead>
+
+                    <!-- Sin registros -->
+                    <tbody *ngIf="producto.variedades.length === 0">
+                        <tr>
+                            <td colspan="3" class="text-muted py-4">
+                                <i class="fa-solid fa-box-open me-2"></i>
+                                No hay variedades de producto registradas.
+                            </td>
+                        </tr>
+                    </tbody>
+
+                    <!-- Con registros -->
+                    <tbody *ngIf="producto.variedades.length > 0">
+                        <tr *ngFor="let item of producto.variedades; let i = index">
+                            <td class="fw-semibold">{{ item.titulo }}</td>
+
+                            <td>
+                                <div class="d-flex justify-content-center gap-2">
+                                    <button class="btn btn-sm btn-outline-danger" type="button" title="Eliminar">
+                                        <i class="fa-solid fa-trash"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+        </div>
+    </section>
+</div>
