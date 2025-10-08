@@ -1,0 +1,108 @@
+<app-sidebar></app-sidebar>
+
+<div class="container-fluid mt-5 pt-4">
+
+  <!-- Header -->
+  <header class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3" style="margin-top: 80px;">
+    <div>
+      <h2 class="fw-bold mb-1">
+        <i class="fa-solid fa-gear text-primary me-2"></i> Galería de Producto
+      </h2>
+      <p class="text-muted mb-0">
+        Administra las imagenes del producto.
+      </p>
+    </div>
+
+    <button class="btn btn-primary d-flex align-items-center shadow-sm px-3 py-2"
+            type="submit" form="confForm"
+            (click)="actualizar()" *ngIf="!load_btn">
+      <i class="fa-solid fa-floppy-disk me-2"></i>
+      <span>Guardar cambios</span>
+    </button>
+
+
+  </header>
+
+  <!-- Visualización del producto -->
+  <div class="card border-0 shadow-sm mb-5 rounded-4 overflow-hidden">
+    <div class="row g-0">
+      <div class="col-md-4 bg-light d-flex align-items-center justify-content-center p-3">
+        <img [src]="url + 'obtener_portada/'+ producto.portada"
+             class="img-fluid rounded-3 shadow-sm"
+             alt="Imagen del producto"
+             style="max-height: 220px; object-fit: cover;">
+      </div>
+      <div class="col-md-8">
+        <div class="card-body">
+          <h3 class="fw-bold text-primary mb-2">{{ producto.titulo }}</h3>
+          <p class="text-muted mb-3">{{ producto.descripcion }}</p>
+          <span class="badge bg-danger-subtle text-danger fs-5 px-3 py-2 shadow-sm">
+            {{ producto.precio | currency }}
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Formulario de galeria -->
+  <section class="card border-0 shadow-sm rounded-4 overflow-hidden">
+    <div class="card-body p-4">
+
+      <h5 class="fw-semibold text-secondary mb-4">
+        <i class="fa-solid fa-list-ul me-2 text-primary"></i> Configuración de galería
+      </h5>
+
+      <form id="formGaleria" class="row g-4 needs-validation" novalidate>
+
+
+        <!-- Campo: Imagenes -->
+        <div class="col-12">
+          <label for="nueva_variedad" class="form-label fw-semibold">
+            Imagenes del producto
+          </label>
+          <div class="input-group input-group-lg shadow-sm-sm flex-nowrap">
+            <input id="nueva_variedad" 
+                   class="form-control"
+                   type="file"
+                   required minlength="1" />
+            <button class="btn btn-primary px-4" type="button" (click)="subir_imagen()">
+              <i class="fa-solid fa-plus me-1"></i> Subir
+            </button>
+                <button type="button" class="btn btn-secondary" disabled *ngIf="load_btn">
+      <span class="spinner-grow spinner-grow-sm me-2" role="status" aria-hidden="true"></span>
+      Subiendo...
+    </button>
+          </div>
+          <div class="form-text text-muted mt-1">
+            Añade las opciones disponibles separadamente (una por una).
+          </div>
+        </div>
+      </form>
+
+      <!-- Tabla de Imagenes -->
+      <div class="table-responsive mt-5">
+        <table class="table align-middle table-hover text-center mb-0" *ngIf="producto.galeria">
+          <thead class="table-light border-bottom">
+            <tr class="text-primary">
+              <th scope="col">Imagen</th>
+              <th scope="col">Acción</th>
+            </tr>
+          </thead>
+
+          <tbody *ngIf="producto.galeria.length === 0">
+            <tr>
+              <td colspan="3" class="text-muted py-4">
+                <i class="fa-solid fa-box-open me-2"></i>
+                No hay imágenes registradas aún.
+              </td>
+            </tr>
+          </tbody>
+
+          <tbody *ngIf="producto.galeria.length > 0">
+
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+</div>
