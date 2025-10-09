@@ -1,6 +1,6 @@
-<app-sidebar> </app-sidebar>
+<app-sidebar></app-sidebar>
 
-<!-- Page title-->
+<!-- Page title -->
 <div class="border-bottom pt-5 mt-2 mb-5">
   <h1 class="mt-2 mt-md-4 mb-3 pt-5">Clientes</h1>
   <div class="d-flex flex-wrap flex-md-nowrap justify-content-between">
@@ -10,15 +10,18 @@
   </div>
 </div>
 
-<form #registroForm="ngForm" (ngSubmit)="registro(registroForm)">
+<form #registroForm="ngForm" (ngSubmit)="registro(registroForm)" novalidate>
   <div class="card box-shadow-sm">
     <div class="card-header">
-      <h5 style="margin-bottom: 0px">Registro de cliente</h5>
+      <h5 class="mb-0">Registro de cliente</h5>
     </div>
+
     <div class="card-body">
       <div class="row">
-        <div class="col-md-4 form-group">
-          <label for="validationCustom01" class="form-label">Nombres</label>
+
+        <!-- Nombres -->
+        <div class="col-md-4 form-group mb-3">
+          <label>Nombres</label>
           <input
             class="form-control"
             type="text"
@@ -26,10 +29,16 @@
             required
             name="nombres"
             [(ngModel)]="cliente.nombres"
+            #nombresCtrl="ngModel"
           />
+          <small class="text-danger" *ngIf="nombresCtrl.invalid && nombresCtrl.touched">
+            Este campo es obligatorio.
+          </small>
         </div>
-        <div class="col-md-4 form-group">
-          <label for="validationCustom01" class="form-label">Apellidos</label>
+
+        <!-- Apellidos -->
+        <div class="col-md-4 form-group mb-3">
+          <label>Apellidos</label>
           <input
             class="form-control"
             type="text"
@@ -37,47 +46,67 @@
             required
             name="apellidos"
             [(ngModel)]="cliente.apellidos"
+            #apellidosCtrl="ngModel"
           />
+          <small class="text-danger" *ngIf="apellidosCtrl.invalid && apellidosCtrl.touched">
+            Este campo es obligatorio.
+          </small>
         </div>
-        <div class="col-md-4 form-group">
-          <label for="validationCustom01" class="form-label"
-            >Correo electrónico</label
-          >
+
+        <!-- Email -->
+        <div class="col-md-4 form-group mb-3">
+          <label>Correo electrónico</label>
           <input
             class="form-control"
             type="email"
             placeholder="Email"
             required
+            email
             name="email"
             [(ngModel)]="cliente.email"
+            #emailCtrl="ngModel"
           />
+          <small class="text-danger" *ngIf="emailCtrl.invalid && emailCtrl.touched">
+            Ingresa un correo electrónico válido.
+          </small>
         </div>
 
-        <div class="col-md-4 form-group">
-          <label for="validationCustom01" class="form-label">Telefono</label>
+        <!-- Teléfono -->
+        <div class="col-md-4 form-group mb-3">
+          <label>Teléfono</label>
           <input
             class="form-control"
-            type="text"
-            placeholder="Telefono"
+            type="number"
+            placeholder="Teléfono"
             required
             name="telefono"
             [(ngModel)]="cliente.telefono"
+            #telefonoCtrl="ngModel"
           />
+          <small class="text-danger" *ngIf="telefonoCtrl.invalid && telefonoCtrl.touched">
+            Este campo es obligatorio.
+          </small>
         </div>
-        <div class="col-md-4 form-group">
-          <label for="validationCustom01" class="form-label"
-            >Fecha nacimiento</label
-          >
+
+        <!-- Fecha nacimiento -->
+        <div class="col-md-4 form-group mb-3">
+          <label>Fecha nacimiento</label>
           <input
             class="form-control"
             type="date"
             required
             name="f_nacimiento"
             [(ngModel)]="cliente.f_nacimiento"
+            #fechaCtrl="ngModel"
           />
+          <small class="text-danger" *ngIf="fechaCtrl.invalid && fechaCtrl.touched">
+            Este campo es obligatorio.
+          </small>
         </div>
-        <div class="col-md-4 form-group">
-          <label for="validationCustom01" class="form-label">DUI</label>
+
+        <!-- DUI -->
+        <div class="col-md-4 form-group mb-3">
+          <label>DUI</label>
           <input
             class="form-control"
             type="number"
@@ -85,37 +114,46 @@
             required
             name="dui"
             [(ngModel)]="cliente.dui"
+            #duiCtrl="ngModel"
           />
+          <small class="text-danger" *ngIf="duiCtrl.invalid && duiCtrl.touched">
+            Este campo es obligatorio.
+          </small>
         </div>
 
-        <div class="col-md-4">
-          <label for="validationCustom01" class="form-label">Genero</label>
+        <!-- Género -->
+        <div class="col-md-4 form-group mb-3">
+          <label>Género</label>
           <select
-            class="form-control custom-select"
+            class="form-control"
             required
             name="genero"
             [(ngModel)]="cliente.genero"
+            #generoCtrl="ngModel"
           >
             <option value="" disabled selected>Seleccione una opción</option>
             <option value="Masculino">Masculino</option>
             <option value="Femenino">Femenino</option>
           </select>
+          <small class="text-danger" *ngIf="generoCtrl.invalid && generoCtrl.touched">
+            Selecciona una opción.
+          </small>
         </div>
+
       </div>
     </div>
+
     <div class="card-footer">
       <button *ngIf="!load_btn" class="btn btn-primary mr-3" type="submit">
         Crear cliente
       </button>
-      <!-- Button with growing spinner and text -->
+
+      <!-- Botón de carga -->
       <button *ngIf="load_btn" type="button" class="btn btn-secondary" disabled>
-        <span
-          class="spinner-grow spinner-grow-sm me-2"
-          role="status"
-          aria-hidden="true"
-        ></span>
-       Cargando...
+        <span class="spinner-grow spinner-grow-sm me-2" role="status" aria-hidden="true"></span>
+        Cargando...
       </button>
+
       <a routerLink="/panel/clientes" class="btn btn-warning">Regresar</a>
     </div>
   </div>

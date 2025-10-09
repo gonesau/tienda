@@ -25,4 +25,8 @@ api.post('/registro_inventario_producto_admin', auth.auth, productoController.re
 //Variedades de productos
 api.put('/actualizar_producto_variedades_admin/:id', auth.auth, productoController.actualizar_producto_variedades_admin);
 
+//Galería de imágenes
+api.put('/agregar_imagen_galeria_admin/:id', [auth.auth, path] , productoController.agregar_imagen_galeria_admin);
+api.put('/eliminar_imagen_galeria_admin/:id', auth.auth, productoController.eliminar_imagen_galeria_admin);
+
 module.exports =  api;
