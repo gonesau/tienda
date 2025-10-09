@@ -8,28 +8,16 @@
   >
     <div>
       <h2 class="fw-bold mb-1">
-        <i class="fa-solid fa-gear text-primary me-2"></i> Galería de Producto
+        <i class="fa-solid fa-images text-primary me-2"></i> Galería de Producto
       </h2>
       <p class="text-muted mb-0">Administra las imágenes del producto.</p>
     </div>
-
-    <button
-      class="btn btn-primary d-flex align-items-center shadow-sm px-3 py-2"
-      type="button"
-      (click)="actualizar()"
-      *ngIf="!load_btn"
-    >
-      <i class="fa-solid fa-floppy-disk me-2"></i>
-      <span>Guardar cambios</span>
-    </button>
   </header>
 
   <!-- Visualización del producto -->
   <div class="card border-0 shadow-sm mb-5 rounded-4 overflow-hidden">
     <div class="row g-0">
-      <div
-        class="col-md-4 bg-light d-flex align-items-center justify-content-center p-3"
-      >
+      <div class="col-md-4 bg-light d-flex align-items-center justify-content-center p-3">
         <img
           [src]="url + 'obtener_portada/' + producto.portada"
           class="img-fluid rounded-3 shadow-sm"
@@ -53,18 +41,22 @@
   <section class="card border-0 shadow-sm rounded-4 overflow-hidden">
     <div class="card-body p-4">
       <h5 class="fw-semibold text-secondary mb-4">
-        <i class="fa-solid fa-list-ul me-2 text-primary"></i> Configuración de galería
+        <i class="fa-solid fa-cloud-arrow-up me-2 text-primary"></i> Subir imágenes
       </h5>
 
-      <form id="formGaleria" class="row g-4 needs-validation" novalidate>
+      <form class="row g-4">
         <div class="col-12">
-          <label for="input-img" class="form-label fw-semibold">Imágenes del producto</label>
+          <label for="input-img" class="form-label fw-semibold">
+            Seleccionar imagen
+          </label>
 
-          <div class="input-group input-group-lg shadow-sm-sm flex-nowrap">
+          <div class="input-group input-group-lg shadow-sm flex-nowrap">
             <input
+              #fileInput
               id="input-img"
               class="form-control"
               type="file"
+              accept="image/png,image/jpeg,image/jpg,image/webp"
               (change)="fileChangeEvent($event)"
             />
 
@@ -72,9 +64,11 @@
               class="btn btn-primary px-4"
               type="button"
               (click)="subir_imagen()"
-              [disabled]="!file"
+              [disabled]="!file || load_btn"
             >
-              <i class="fa-solid fa-plus me-1"></i> Subir
+              <span *ngIf="load_btn" class="spinner-border spinner-border-sm me-2"></span>
+              <i *ngIf="!load_btn" class="fa-solid fa-plus me-1"></i>
+              {{ load_btn ? 'Subiendo...' : 'Subir' }}
             </button>
           </div>
 
@@ -82,59 +76,71 @@
           <div *ngIf="preview" class="mt-3 text-center">
             <img
               [src]="preview"
-              alt="Preview"
+              alt="Vista previa"
               class="img-thumbnail shadow-sm mb-2"
               style="max-height: 200px; object-fit: cover"
             />
-            <p class="text-muted small mb-0">{{ file?.name }}</p>
+            <p class="text-muted small mb-0">
+              <i class="fa-solid fa-file-image me-1"></i>
+              {{ file?.name }}
+            </p>
           </div>
 
-          <div class="form-text text-muted mt-1">
-            Las imágenes deben ser PNG, JPG, JPEG o WEBP, máximo 5MB.
+          <div class="form-text text-muted mt-2">
+            <i class="fa-solid fa-info-circle me-1"></i>
+            Las imágenes deben ser PNG, JPG, JPEG o WEBP. Tamaño máximo: 5MB.
           </div>
         </div>
       </form>
 
       <!-- Tabla de Imágenes -->
-      <div class="table-responsive mt-5">
-        <table class="table align-middle table-hover text-center mb-0">
-          <thead class="table-light border-bottom">
-            <tr class="text-primary">
-              <th scope="col">Imagen</th>
-              <th scope="col">Acción</th>
-            </tr>
-          </thead>
+      <div class="mt-5">
+        <h5 class="fw-semibold text-secondary mb-3">
+          <i class="fa-solid fa-list-ul me-2 text-primary"></i> 
+          Imágenes de la galería
+        </h5>
 
-          <tbody *ngIf="!producto.galeria || producto.galeria.length === 0">
-            <tr>
-              <td colspan="2" class="text-muted py-4">
-                <i class="fa-solid fa-box-open me-2"></i>
-                No hay imágenes registradas aún.
-              </td>
-            </tr>
-          </tbody>
+        <div class="table-responsive">
+          <table class="table align-middle table-hover text-center mb-0">
+            <thead class="table-light border-bottom">
+              <tr class="text-primary">
+                <th scope="col" style="width: 70%">Imagen</th>
+                <th scope="col" style="width: 30%">Acción</th>
+              </tr>
+            </thead>
 
-          <tbody *ngIf="producto.galeria && producto.galeria.length > 0">
-            <tr *ngFor="let img of producto.galeria">
-              <td>
-                <img
-                    [src]="url+'obtener_portada/'+img.imagen"
-                  class="img-fluid rounded shadow-sm"
-                  style="max-height: 100px; object-fit: cover"
-                  alt="Imagen del producto"
-                />
-              </td>
-              <td>
-                <button
-                  class="btn btn-outline-danger btn-sm"
-                  (click)="openDeleteModal(img)"
-                >
-                  <i class="fa-solid fa-trash-can me-1"></i> Eliminar
-                </button>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+            <tbody *ngIf="!producto.galeria || producto.galeria.length === 0">
+              <tr>
+                <td colspan="2" class="text-muted py-5">
+                  <i class="fa-solid fa-box-open fa-2x mb-2 d-block"></i>
+                  <span>No hay imágenes en la galería</span>
+                </td>
+              </tr>
+            </tbody>
+
+            <tbody *ngIf="producto.galeria && producto.galeria.length > 0">
+              <tr *ngFor="let img of producto.galeria; let i = index">
+                <td>
+                  <img
+                    [src]="url + 'obtener_portada/' + img.imagen"
+                    class="img-fluid rounded shadow-sm"
+                    style="max-height: 100px; object-fit: cover"
+                    [alt]="'Imagen ' + (i + 1)"
+                  />
+                </td>
+                <td>
+                  <button
+                    class="btn btn-outline-danger btn-sm"
+                    type="button"
+                    (click)="openDeleteModal(img)"
+                  >
+                    <i class="fa-solid fa-trash-can me-1"></i> Eliminar
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   </section>
@@ -145,42 +151,57 @@
   class="modal fade"
   id="deleteModal"
   tabindex="-1"
+  aria-labelledby="deleteModalLabel"
   aria-hidden="true"
   data-bs-backdrop="static"
+  data-bs-keyboard="false"
 >
   <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content rounded-4">
+    <div class="modal-content rounded-4 shadow">
       <div class="modal-header border-0">
-        <h5 class="modal-title text-danger fw-bold">
-          <i class="fa-solid fa-triangle-exclamation me-2"></i> Confirmar eliminación
+        <h5 class="modal-title text-danger fw-bold" id="deleteModalLabel">
+          <i class="fa-solid fa-triangle-exclamation me-2"></i> 
+          Confirmar eliminación
         </h5>
-
-        <button type="button" class="btn-close" data-dismiss="modal"></button>
+        <button 
+          type="button" 
+          class="btn-close" 
+          data-bs-dismiss="modal" 
+          aria-label="Cerrar"
+        ></button>
       </div>
 
-      <div class="modal-body">
+      <div class="modal-body py-4">
         <p class="mb-0 text-muted">
-          ¿Estás seguro de que deseas eliminar esta imagen?
+          ¿Estás seguro de que deseas eliminar esta imagen de la galería?
+          <strong class="d-block mt-2">Esta acción no se puede deshacer.</strong>
         </p>
       </div>
 
       <div class="modal-footer border-0">
-        <button class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+        <button 
+          class="btn btn-secondary" 
+          type="button"
+          data-bs-dismiss="modal"
+          [disabled]="load_btn_eliminar"
+        >
+          Cancelar
+        </button>
 
         <button
           class="btn btn-danger"
+          type="button"
           (click)="confirmDelete()"
           [disabled]="load_btn_eliminar"
-          data-dismiss="modal" 
         >
           <span
             *ngIf="load_btn_eliminar"
             class="spinner-border spinner-border-sm me-2"
           ></span>
-          Eliminar
+          <i *ngIf="!load_btn_eliminar" class="fa-solid fa-trash-can me-2"></i>
+          {{ load_btn_eliminar ? 'Eliminando...' : 'Eliminar' }}
         </button>
       </div>
     </div>
   </div>
 </div>
-

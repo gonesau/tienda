@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { ProductoService } from 'src/app/services/producto.service';
 import { v4 as uuidv4 } from 'uuid';
@@ -11,17 +11,19 @@ declare var bootstrap: any;
   styleUrls: ['./galeria-producto.component.css']
 })
 export class GaleriaProductoComponent implements OnInit {
+  @ViewChild('fileInput') fileInput!: ElementRef<HTMLInputElement>;
 
   public producto: any = {};
   public id: any;
   public token: any;
   public file: File | undefined;
   public preview: string | ArrayBuffer | null = null;
-  public load_data = false;
   public load_btn = false;
   public load_btn_eliminar = false;
   public url: string;
+  
   private deleteTarget: any = null;
+  private deleteModal: any = null;
 
   constructor(
     private _route: ActivatedRoute,
@@ -35,40 +37,58 @@ export class GaleriaProductoComponent implements OnInit {
     });
   }
 
-  ngOnInit(): void {}
+  ngOnInit(): void {
+    // Inicializar el modal una sola vez
+    const modalElement = document.getElementById('deleteModal');
+    if (modalElement) {
+      this.deleteModal = new bootstrap.Modal(modalElement);
+    }
+  }
 
-  init_data() {
+  init_data(): void {
     this._productoService.obtener_producto_admin(this.id, this.token).subscribe(
       (response) => {
         this.producto = response.data || {};
       },
-      (error) => console.error(error)
+      (error) => {
+        console.error('Error al cargar producto:', error);
+        this.showToast('Error al cargar el producto', 'error');
+      }
     );
   }
 
   fileChangeEvent(event: any): void {
-    if (event.target.files && event.target.files[0]) {
-      const file = <File>event.target.files[0];
+    const files = event.target.files;
+    if (!files || !files[0]) return;
 
-      if (file.size > 5000000) {
-        return this.errorToast('La imagen no puede superar los 5MB');
-      }
+    const file = <File>files[0];
 
-      if (!['image/png', 'image/webp', 'image/jpg', 'image/jpeg'].includes(file.type)) {
-        return this.errorToast('Formato inválido: debe ser PNG, WEBP, JPG o JPEG');
-      }
-
-      this.file = file;
-
-      const reader = new FileReader();
-      reader.onload = (e) => (this.preview = e.target?.result);
-      reader.readAsDataURL(file);
+    // Validaciones
+    if (file.size > 5000000) {
+      this.showToast('La imagen no puede superar los 5MB', 'error');
+      this.resetFileInput();
+      return;
     }
+
+    const validTypes = ['image/png', 'image/webp', 'image/jpg', 'image/jpeg'];
+    if (!validTypes.includes(file.type)) {
+      this.showToast('Formato inválido: debe ser PNG, WEBP, JPG o JPEG', 'error');
+      this.resetFileInput();
+      return;
+    }
+
+    this.file = file;
+
+    // Generar preview
+    const reader = new FileReader();
+    reader.onload = (e) => (this.preview = e.target?.result || null);
+    reader.readAsDataURL(file);
   }
 
-  subir_imagen() {
+  subir_imagen(): void {
     if (!this.file) {
-      return this.errorToast('Debe seleccionar una imagen');
+      this.showToast('Debe seleccionar una imagen', 'error');
+      return;
     }
 
     const data = { imagen: this.file, _id: uuidv4() };
@@ -76,59 +96,69 @@ export class GaleriaProductoComponent implements OnInit {
 
     this._productoService.agregar_imagen_galeria_admin(this.id, data, this.token).subscribe(
       (response) => {
-        this.successToast('Se agregó la imagen correctamente');
-        this.load_btn = false;
-        this.file = undefined;
-        this.preview = null;
+        this.showToast('Imagen agregada correctamente', 'success');
+        this.resetFileInput();
         this.init_data();
+        this.load_btn = false;
       },
       (error) => {
-        console.error(error);
+        console.error('Error al subir imagen:', error);
+        this.showToast('Error al subir la imagen', 'error');
         this.load_btn = false;
       }
     );
   }
 
-  openDeleteModal(img: any) {
+  openDeleteModal(img: any): void {
     this.deleteTarget = img;
-    const modal = new bootstrap.Modal(document.getElementById('deleteModal'));
-    modal.show();
+    if (this.deleteModal) {
+      this.deleteModal.show();
+    }
   }
 
-  confirmDelete() {
+  confirmDelete(): void {
     if (!this.deleteTarget) return;
+    
     this.load_btn_eliminar = true;
 
     this._productoService.eliminar_imagen_galeria_admin(this.id, this.deleteTarget, this.token).subscribe(
       (response) => {
-        this.successToast('Se eliminó la imagen correctamente');
-        this.load_btn_eliminar = false;
+        this.showToast('Imagen eliminada correctamente', 'success');
+        this.closeDeleteModal();
         this.init_data();
-        this.deleteTarget = null;
-        bootstrap.Modal.getInstance(document.getElementById('deleteModal')).hide();
       },
       (error) => {
-        console.error(error);
+        console.error('Error al eliminar imagen:', error);
+        this.showToast('Error al eliminar la imagen', 'error');
         this.load_btn_eliminar = false;
       }
     );
   }
 
-  private successToast(msg: string) {
-    iziToast.show({
-      title: 'Éxito',
-      message: msg,
-      color: '#28a745',
-      position: 'topRight',
-    });
+  private closeDeleteModal(): void {
+    if (this.deleteModal) {
+      this.deleteModal.hide();
+    }
+    this.deleteTarget = null;
+    this.load_btn_eliminar = false;
   }
 
-  private errorToast(msg: string) {
-    iziToast.show({
-      title: 'Error',
-      message: msg,
-      color: '#dc3545',
+  private resetFileInput(): void {
+    this.file = undefined;
+    this.preview = null;
+    if (this.fileInput?.nativeElement) {
+      this.fileInput.nativeElement.value = '';
+    }
+  }
+
+  private showToast(message: string, type: 'success' | 'error'): void {
+    const config = {
+      title: type === 'success' ? 'Éxito' : 'Error',
+      message: message,
+      color: type === 'success' ? '#28a745' : '#dc3545',
       position: 'topRight',
-    });
+      timeout: 3000
+    };
+    iziToast.show(config);
   }
 }
