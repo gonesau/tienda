@@ -43,8 +43,11 @@
         </div>
       </div>
       <div class="col-12">
-        <button class="btn btn-success mt-3" (click)="download_excel()">
-          Exportar a Excel
+        <button 
+          class="btn btn-success mt-2" 
+          (click)="download_excel()"
+          [disabled]="productos.length == 0">
+          <i class="cxi-download"></i> Exportar a Excel
         </button>
       </div>
     </div>
