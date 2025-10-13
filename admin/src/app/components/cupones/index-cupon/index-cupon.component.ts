@@ -1,8 +1,9 @@
 import { Component, OnInit } from '@angular/core';
+import { Router } from '@angular/router';
 import { CuponService } from 'src/app/services/cupon.service';
-declare var jQuery: any;
-declare var $: any;
+
 declare var iziToast: any;
+declare var $: any;
 
 @Component({
   selector: 'app-index-cupon',
@@ -10,70 +11,102 @@ declare var iziToast: any;
   styleUrls: ['./index-cupon.component.css'],
 })
 export class IndexCuponComponent implements OnInit {
+  
+  public filtro = '';
+  public token: string;
+  public cupones: Array<any> = [];
+  
+  public load_data = true;
+  public load_btn = false;
+
+  // Paginación
   public page = 1;
   public pageSize = 10;
-  public token;
-  public load_data = true;
-  public cupones: Array<any> = [];
-  public filtro = '';
 
-  constructor(private _cuponService: CuponService) {
-    this.token = localStorage.getItem('token');
+  constructor(
+    private _cuponService: CuponService,
+    private _router: Router
+  ) {
+    this.token = localStorage.getItem('token') || '';
   }
 
   ngOnInit(): void {
-    this._cuponService
-      .listar_cupones_admin(this.filtro, this.token)
-      .subscribe((response) => {
-        this.cupones = response.data;
-        this.load_data = false;
-      });
+    if (!this.token) {
+      this._router.navigate(['/login']);
+      return;
+    }
+    this.cargar_datos();
+  }
+
+  cargar_datos() {
+    this.load_data = true;
+    this._cuponService.listar_cupones_admin(this.filtro, this.token).subscribe(
+        response => {
+          if (response.data) {
+            this.cupones = response.data;
+          } else {
+            this.cupones = [];
+          }
+          this.load_data = false;
+        },
+        error => {
+          console.error('Error al cargar cupones:', error);
+          this.mostrarError('Error en el servidor, no se pudieron cargar los cupones.');
+          this.load_data = false;
+        }
+      );
   }
 
   filtrar() {
-    this._cuponService
-      .listar_cupones_admin(this.filtro, this.token)
-      .subscribe((response) => {
-        this.cupones = response.data;
-        this.load_data = false;
-      });
+    this.cargar_datos();
   }
 
-  eliminar(id) {
+  resetear() {
+    this.filtro = '';
+    this.cargar_datos();
+  }
+
+  eliminar(id: string) {
+    if (!id) {
+        this.mostrarError('ID de cupón no válido.');
+        return;
+    }
+
+    this.load_btn = true;
     this._cuponService.eliminar_cupon_admin(id, this.token).subscribe(
-      (response) => {
+      response => {
         if (response.data) {
-          iziToast.show({
-            title: 'Éxito',
-            message: 'Cupón eliminado correctamente',
+          iziToast.success({
+            title: 'ÉXITO',
+            message: 'Cupón eliminado correctamente.',
             position: 'topRight',
-            class: 'text-success',
-            titleColor: '#1DC74C',
           });
+
           $('#delete-' + id).modal('hide');
           $('.modal-backdrop').removeClass('show');
-          this._cuponService
-            .listar_cupones_admin(this.filtro, this.token)
-            .subscribe((response) => {
-              this.cupones = response.data;
-              this.load_data = false;
-            });
+          $('body').removeClass('modal-open');
+
+          this.cargar_datos();
         } else {
-          iziToast.error({
-            title: 'Error',
-            message: 'No se pudo eliminar el cupón',
-            position: 'topRight',
-          });
+          this.mostrarError(response.message || 'No se pudo eliminar el cupón.');
         }
+        this.load_btn = false;
       },
-      (error) => {
-        iziToast.error({
-          title: 'Error',
-          message: 'Ocurrió un problema con el servidor',
-          position: 'topRight',
-        });
-        console.log(error);
+      error => {
+        console.error('Error al eliminar cupón:', error);
+        const errorMsg = error.error?.message || 'Ocurrió un problema con el servidor.';
+        this.mostrarError(errorMsg);
+        this.load_btn = false;
       }
     );
+  }
+
+  // Método auxiliar para mostrar errores
+  private mostrarError(mensaje: string): void {
+    iziToast.error({
+      title: 'Error',
+      message: mensaje,
+      position: 'topRight',
+    });
   }
 }

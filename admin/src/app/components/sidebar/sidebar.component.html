@@ -4,7 +4,7 @@
   data-scroll-header
   data-fixed-element
 >
-  <a class="navbar-brand d-flex align-items-center" href="#">
+  <a class="navbar-brand d-flex align-items-center" [routerLink]="['/']">
     <img src="assets/img/components/logo/logo-dark.svg" alt="Logo" width="130" />
   </a>
 
@@ -20,7 +20,7 @@
     <span class="navbar-toggler-icon"></span>
   </button>
 
-  <!-- Right-side menu -->
+  <!-- Menú de usuario a la derecha -->
   <ul class="navbar-nav ml-auto align-items-center">
     <li class="nav-item dropdown">
       <a
@@ -32,12 +32,19 @@
         aria-haspopup="true"
         aria-expanded="false"
       >
-        <i class="cxi-profile mr-2"></i>
-        <span>Admin</span>
+        <div class="user-avatar">
+          <i class="fa-solid fa-user"></i>
+        </div>
+        <span class="d-none d-sm-inline-block ml-2">Admin</span>
       </a>
       <div class="dropdown-menu dropdown-menu-right shadow-sm" aria-labelledby="userDropdown">
-        <a class="dropdown-item" href="#"><i class="cxi-settings mr-2"></i>Configuración</a>
-        <a class="dropdown-item" href="#"><i class="cxi-logout mr-2"></i>Cerrar sesión</a>
+        <a class="dropdown-item" [routerLink]="['/panel/configuraciones']">
+          <i class="fa-solid fa-gear me-2"></i>Configuración
+        </a>
+        <div class="dropdown-divider"></div>
+        <button class="dropdown-item text-danger" (click)="logout()">
+          <i class="fa-solid fa-arrow-right-from-bracket me-2"></i>Cerrar sesión
+        </button>
       </div>
     </li>
   </ul>
@@ -45,38 +52,42 @@
 
 <!-- Sidebar -->
 <aside
-  class="cs-offcanvas cs-offcanvas-expand bg-dark text-light"
+  class="cs-offcanvas cs-offcanvas-expand bg-dark"
   id="componentsNav"
-  style="transition: all 0.3s ease-in-out;"
 >
   <div class="cs-offcanvas-cap d-flex align-items-center justify-content-between py-3 px-4 border-bottom border-secondary">
     <div class="d-flex align-items-center">
       <img src="assets/img/components/logo/logo-white.svg" alt="Logo" width="120" class="mr-2" />
-      <span class="badge badge-warning">Admin</span>
+      <span class="badge badge-success">Admin</span>
     </div>
     <button class="close text-light d-lg-none" type="button" data-dismiss="offcanvas" aria-label="Close">
       <span aria-hidden="true">&times;</span>
     </button>
   </div>
 
-  <!-- Navigation -->
-  <div class="cs-offcanvas-body px-0 pt-3 pb-4" data-simplebar data-simplebar-inverse>
-    <h6 class="text-uppercase text-muted px-4 mb-3">Panel principal</h6>
+  <!-- Navegación -->
+  <div class="cs-offcanvas-body px-0 pt-4 pb-4" data-simplebar data-simplebar-inverse>
+    <h6 class="text-uppercase text-light opacity-50 px-4 mb-3">Principal</h6>
     <nav class="nav flex-column nav-light">
       <a
         class="nav-link d-flex align-items-center px-4 py-2"
         [routerLink]="['/inicio']"
         routerLinkActive="active"
       >
-        <i class="cxi-home mr-3"></i> Inicio
+        <i class="fa-solid fa-house fa-fw me-3"></i> Inicio
       </a>
+    </nav>
 
-      <a
+    <hr class="border-secondary my-3">
+
+    <h6 class="text-uppercase text-light opacity-50 px-4 mb-3">Gestión de Tienda</h6>
+    <nav class="nav flex-column nav-light">
+       <a
         class="nav-link d-flex align-items-center px-4 py-2"
         [routerLink]="['/panel/clientes']"
         routerLinkActive="active"
       >
-        <i class="fa-solid fa-users mr-3"></i> Clientes
+        <i class="fa-solid fa-users fa-fw me-3"></i> Clientes
       </a>
 
       <a
@@ -84,25 +95,30 @@
         [routerLink]="['/panel/productos']"
         routerLinkActive="active"
       >
-        <i class="fa-solid fa-box-open mr-3"></i> Productos
+        <i class="fa-solid fa-box-open fa-fw me-3"></i> Productos
       </a>
-
+      
       <a
         class="nav-link d-flex align-items-center px-4 py-2"
         [routerLink]="['/panel/cupones']"
         routerLinkActive="active"
       >
-        <i class="fa-solid fa-gift mr-3"></i> Cupones
-      </a>
-
-      <a
-        class="nav-link d-flex align-items-center px-4 py-2"
-        [routerLink]="['/panel/configuraciones']"
-        routerLinkActive="active"
-      >
-        <i class="fa-solid fa-gear mr-3"></i> Configuración
+        <i class="fa-solid fa-ticket fa-fw me-3"></i> Cupones
       </a>
     </nav>
+    
+    <hr class="border-secondary my-3">
+
+    <h6 class="text-uppercase text-light opacity-50 px-4 mb-3">Sistema</h6>
+     <nav class="nav flex-column nav-light">
+        <a
+            class="nav-link d-flex align-items-center px-4 py-2"
+            [routerLink]="['/panel/configuraciones']"
+            routerLinkActive="active"
+        >
+            <i class="fa-solid fa-gear fa-fw me-3"></i> Configuración
+        </a>
+     </nav>
   </div>
 </aside>
 

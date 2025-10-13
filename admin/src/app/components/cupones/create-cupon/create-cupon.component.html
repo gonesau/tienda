@@ -2,60 +2,132 @@
 
 <!-- Page title-->
 <div class="border-bottom pt-5 mt-2 mb-5">
-    <h1 class="mt-2 mt-md-4 mb-3 pt-5">Cupones</h1>
-    <div class="d-flex flex-wrap flex-md-nowrap justify-content-between">
-        <p class="text-muted">
-            Este módulo registra un nuevo cupón de la tienda.
-        </p>
-    </div>
+  <h1 class="mt-2 mt-md-4 mb-3 pt-5">Crear Nuevo Cupón</h1>
+  <div class="d-flex flex-wrap flex-md-nowrap justify-content-between">
+    <p class="text-muted">Registra un nuevo cupón de descuento para la tienda.</p>
+    <p class="font-size-sm font-weight-medium pl-md-4">
+        <a class="text-nowrap" [routerLink]="['/panel/cupones']"
+          >Regresar<i
+            class="cxi-angle-right font-size-base align-middle ml-1"
+          ></i
+        ></a>
+      </p>
+  </div>
 </div>
 
+<!-- Formulario principal -->
 <form #registroForm="ngForm" (ngSubmit)="registro(registroForm)">
-    <div class="card box-shadow-sm">
-        <div class="card-header">
-            <h5 style="margin-bottom: 0px">Registro de cupon</h5>
-        </div>
-        <div class="card-body">
-            <div class="row">
+  <div class="card box-shadow-sm">
+    <div class="card-header">
+      <h5 class="mb-0">Detalles del Cupón</h5>
+    </div>
 
-                <div class="col-lg-3 col-md-6 form-group">
-                    <label for="validationCustom01" class="form-label">Código de Cupon</label>
-                    <input class="form-control" type="text" placeholder="Codigo de cupon" required name="codigo"
-                        [(ngModel)]="cupon.codigo" />
-                </div>
+    <div class="card-body">
+      <div class="row">
 
-                <div class="col-lg-3 col-md-6 form-group">
-                    <label for="validationCustom01" class="form-label">Valor</label>
-                    <input class="form-control" type="number" placeholder="Valor del descuento" required name="valor"
-                        [(ngModel)]="cupon.valor" />
-                </div>
-
-                <div class="col-lg-3 col-md-6 form-group">
-                    <label for="validationCustom01" class="form-label">Limite</label>
-                    <input class="form-control" type="number" placeholder="Limite de uso" required name="limite"
-                        [(ngModel)]="cupon.limite" />
-                </div>
-
-                <div class="col-lg-3 col-md-6">
-                    <label for="validationCustom01" class="form-label">Tipo de Cupon</label>
-                    <select class="form-control custom-select" required name="tipo" [(ngModel)]="cupon.tipo">
-                        <option value="" disabled selected>Seleccione una opción</option>
-                        <option value="Porcentaje">Porcentaje</option>
-                        <option value="Valor fijo">Valor fijo</option>
-                    </select>
-                </div>
+        <!-- Tipo de Cupón -->
+        <div class="col-md-6 form-group mb-4">
+            <label for="tipo" class="form-label">Tipo de Cupón <span class="text-danger">*</span></label>
+            <select
+              id="tipo"
+              class="form-control custom-select"
+              required
+              name="tipo"
+              [(ngModel)]="cupon.tipo"
+              #tipo="ngModel"
+              [ngClass]="{'is-invalid': tipo.invalid && tipo.touched}"
+            >
+              <option value="" disabled selected>Seleccione una opción</option>
+              <option value="Porcentaje">Porcentaje</option>
+              <option value="Valor fijo">Valor fijo</option>
+            </select>
+            <div *ngIf="tipo.invalid && tipo.touched" class="invalid-feedback">
+                El tipo de cupón es requerido.
             </div>
         </div>
-        <div class="card-footer">
-            <button *ngIf="!load_btn" class="btn btn-primary mr-3" type="submit">
-                Crear Cupon
-            </button>
-            <!-- Button with growing spinner and text -->
-            <button *ngIf="load_btn" type="button" class="btn btn-secondary" disabled>
-                <span class="spinner-grow spinner-grow-sm me-2" role="status" aria-hidden="true"></span>
-                Cargando...
-            </button>
-            <a routerLink="/panel/cupones" class="btn btn-warning">Regresar</a>
+
+        <!-- Código -->
+        <div class="col-md-6 form-group mb-4">
+          <label for="codigo" class="form-label">Código del Cupón <span class="text-danger">*</span></label>
+          <input
+            id="codigo"
+            class="form-control"
+            type="text"
+            placeholder="Ej: DIA-DEL-PADRE"
+            required
+            name="codigo"
+            [(ngModel)]="cupon.codigo"
+            #codigo="ngModel"
+            [ngClass]="{'is-invalid': codigo.invalid && codigo.touched}"
+          />
+          <div *ngIf="codigo.invalid && codigo.touched" class="invalid-feedback">
+            El código del cupón es requerido.
+          </div>
         </div>
+
+        <!-- Valor -->
+        <div class="col-md-6 form-group mb-4">
+          <label for="valor" class="form-label">Valor del Descuento <span class="text-danger">*</span></label>
+          <div class="input-group">
+            <span class="input-group-text" *ngIf="cupon.tipo === 'Valor fijo'">$</span>
+            <input
+                id="valor"
+                class="form-control"
+                type="number"
+                placeholder="Ej: 25"
+                required
+                min="1"
+                name="valor"
+                [(ngModel)]="cupon.valor"
+                #valor="ngModel"
+                [ngClass]="{'is-invalid': valor.invalid && valor.touched}"
+            />
+             <span class="input-group-text" *ngIf="cupon.tipo === 'Porcentaje'">%</span>
+            <div *ngIf="valor.invalid && valor.touched" class="invalid-feedback">
+                <span *ngIf="valor.errors?.['required']">El valor es requerido.</span>
+                <span *ngIf="valor.errors?.['min']">El valor debe ser mayor a 0.</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Límite de Usos -->
+        <div class="col-md-6 form-group mb-4">
+          <label for="limite" class="form-label">Límite de Usos <span class="text-danger">*</span></label>
+          <input
+            id="limite"
+            class="form-control"
+            type="number"
+            placeholder="Ej: 100"
+            required
+            min="1"
+            name="limite"
+            [(ngModel)]="cupon.limite"
+            #limite="ngModel"
+            [ngClass]="{'is-invalid': limite.invalid && limite.touched}"
+          />
+          <div *ngIf="limite.invalid && limite.touched" class="invalid-feedback">
+            <span *ngIf="limite.errors?.['required']">El límite es requerido.</span>
+            <span *ngIf="limite.errors?.['min']">El límite debe ser de al menos 1 uso.</span>
+          </div>
+        </div>
+
+      </div>
     </div>
+
+    <div class="card-footer d-flex justify-content-end">
+        <a routerLink="/panel/cupones" class="btn btn-outline-secondary me-3">Cancelar</a>
+      <button 
+        class="btn btn-primary" 
+        type="submit"
+        [disabled]="registroForm.invalid || load_btn">
+        <span *ngIf="!load_btn">
+            <i class="cxi-add me-2"></i>Crear Cupón
+        </span>
+        <span *ngIf="load_btn">
+            <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+            Creando...
+        </span>
+      </button>
+    </div>
+  </div>
 </form>

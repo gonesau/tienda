@@ -1,35 +1,29 @@
-aside .nav-link {
-    color: #cfcfcf;
-    font-weight: 500;
-    border-left: 3px solid transparent;
-    transition: all 0.2s ease;
+/* Estilo para el enlace activo en el sidebar */
+.nav-link.active {
+    background-color: rgba(255, 255, 255, 0.08);
+    border-left: 3px solid #007bff; /* Color primario de Bootstrap */
+    color: #fff !important;
 }
 
-aside .nav-link:hover {
-    background-color: rgba(255, 255, 255, 0.1);
-    color: #fff;
+.nav-link.active i {
+    color: #0d6efd; /* Un color más brillante para el ícono activo */
 }
 
-aside .nav-link.active {
-    background-color: rgba(255, 255, 255, 0.15);
-    color: #fff;
-    border-left: 3px solid #f6c23e;
+/* Estilo para el avatar del usuario en el header */
+.user-avatar {
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    background-color: #007bff;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 14px;
+    text-transform: uppercase;
 }
 
-.navbar-light .navbar-brand img {
-    transition: transform 0.2s ease;
-}
-
-.navbar-light .navbar-brand img:hover {
-    transform: scale(1.05);
-}
-
-.dropdown-menu a {
-    font-size: 0.9rem;
-}
-
-@media (max-width: 991.98px) {
-    aside {
-        width: 100%;
-    }
+.dropdown-item {
+    cursor: pointer;
 }
