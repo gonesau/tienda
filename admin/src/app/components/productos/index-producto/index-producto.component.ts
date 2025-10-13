@@ -1,4 +1,5 @@
 import { Component, OnInit } from '@angular/core';
+import { Router } from '@angular/router';
 import { Global } from 'src/app/services/global';
 import { ProductoService } from 'src/app/services/producto.service';
 import { Workbook } from 'exceljs';
@@ -6,7 +7,6 @@ import * as fs from 'file-saver';
 
 declare var iziToast: any;
 declare var $: any;
-declare var iziToast: any;
 
 @Component({
   selector: 'app-index-producto',
@@ -14,273 +14,188 @@ declare var iziToast: any;
   styleUrls: ['./index-producto.component.css'],
 })
 export class IndexProductoComponent implements OnInit {
-  public load_data = true;
   public filtro = '';
-  public token;
+  public token: string;
   public productos: Array<any> = [];
-  public arr_productos: Array<any> = [];
-  public url;
-  public page = 1;
-  public pageSize = 10;
+  public url: string;
+  public load_data = true;
   public load_btn = false;
 
-  constructor(private _productoService: ProductoService) {
-    this.token = localStorage.getItem('token');
+  // Paginación
+  public page = 1;
+  public pageSize = 10;
+
+  constructor(private _productoService: ProductoService, private _router: Router) {
+    this.token = localStorage.getItem('token') || '';
     this.url = Global.url;
-  }
 
-  ngOnInit(): void {
-    this.init_data();
-  }
-
-  init_data() {
-    this._productoService
-      .listar_productos_admin(this.filtro, this.token)
-      .subscribe(
-        (response) => {
-          console.log(response);
-          this.productos = response.data;
-          this.productos.forEach((element, index) => {
-            this.arr_productos.push({
-              '#': index + 1,
-              Título: element.titulo,
-              Stock: element.stock,
-              Precio: element.precio,
-              'Categoría': element.categoria,
-              'N° de ventas': element.nventas,
-            });
-          });
-          console.log(this.arr_productos);
-          this.load_data = false;
-        },
-        (error) => {
-          console.error(error);
-        }
-      );
-  }
-
-  filtrar() {
-    if (this.filtro) {
-      this._productoService
-        .listar_productos_admin(this.filtro, this.token)
-        .subscribe(
-          (response) => {
-            console.log(response);
-            this.productos = response.data;
-            this.load_data = false;
-          },
-          (error) => {
-            console.error(error);
-          }
-        );
-    } else {
-      iziToast.show({
-        title: 'Error',
-        titleColor: '#FF0000',
-        color: '#FFF',
-        class: 'text-danger',
-        position: 'topRight',
-        message: 'Ingrese un filtro válido',
-      });
+    if (!this.token) {
+      this._router.navigate(['/login']);
     }
   }
 
-  resetear() {
-    this.filtro = '';
-    this.init_data();
+  ngOnInit(): void {
+    this.cargar_datos();
   }
 
-  eliminar(id) {
-    this.load_btn = true;
-    this._productoService.eliminar_producto_admin(id, this.token).subscribe(
+  cargar_datos(): void {
+    this.load_data = true;
+    this._productoService.listar_productos_admin(this.filtro, this.token).subscribe(
       (response) => {
-          iziToast.show({
-            title: 'Éxito',
-            message: 'Producto eliminado correctamente',
-            position: 'topRight',
-            class: 'text-success',
-            titleColor: '#1DC74C',
-          });
-          $('#delete-' + id).modal('hide');
-          $('.modal-backdrop').removeClass('show');
-          this.load_btn = false;
-          this.init_data();
+        if (response.data) {
+          this.productos = response.data;
+        } else {
+          this.productos = [];
+        }
+        this.load_data = false;
       },
       (error) => {
-        iziToast.error({
-          title: 'Error',
-          message: 'Ocurrió un problema con el servidor',
-          position: 'topRight',
-        });
-        console.log(error);
-        this.load_btn = false;
+        console.error('Error al cargar productos:', error);
+        this.load_data = false;
+        this.productos = [];
+        this.mostrarError('Error en el servidor, por favor intenta más tarde.');
       }
     );
   }
 
-download_excel() {
-  let workbook = new Workbook();
-  let worksheet = workbook.addWorksheet('Reporte de Productos');
+  filtrar(): void {
+    // El ngModel actualiza `this.filtro` automáticamente, solo necesitamos recargar.
+    this.cargar_datos();
+  }
 
-  // ===== CONFIGURACIÓN DE LA EMPRESA/TÍTULO =====
-  // Título principal
-  worksheet.mergeCells('A1:F1');
-  let titleRow = worksheet.getCell('A1');
-  titleRow.value = 'REPORTE DE PRODUCTOS';
-  titleRow.font = { 
-    name: 'Calibri', 
-    size: 18, 
-    bold: true, 
-    color: { argb: 'FFFFFFFF' } 
-  };
-  titleRow.alignment = { vertical: 'middle', horizontal: 'center' };
-  titleRow.fill = {
-    type: 'pattern',
-    pattern: 'solid',
-    fgColor: { argb: 'FF1F4E78' } // Azul oscuro
-  };
-  worksheet.getRow(1).height = 35;
+  resetear(): void {
+    this.filtro = '';
+    this.cargar_datos();
+  }
 
-  // Fecha de generación
-  worksheet.mergeCells('A2:F2');
-  let dateRow = worksheet.getCell('A2');
-  dateRow.value = `Fecha de generación: ${new Date().toLocaleString('es-ES')}`;
-  dateRow.font = { name: 'Calibri', size: 10, italic: true };
-  dateRow.alignment = { vertical: 'middle', horizontal: 'center' };
-  worksheet.getRow(2).height = 20;
+  eliminar(id: string): void {
+    if (!id) {
+      this.mostrarError('ID de producto inválido.');
+      return;
+    }
 
-  // Fila vacía para separación
-  worksheet.addRow([]);
+    this.load_btn = true;
+    this._productoService.eliminar_producto_admin(id, this.token).subscribe(
+      (response) => {
+        iziToast.success({
+          title: 'ÉXITO',
+          message: 'Producto eliminado correctamente.',
+          position: 'topRight',
+        });
 
-  // ===== ENCABEZADOS DE LA TABLA =====
-  let headerRow = worksheet.addRow(['#', 'Título', 'Stock', 'Precio', 'Categoría', 'N° de ventas']);
-  
-  // Estilo de los encabezados
-  headerRow.eachCell((cell) => {
-    cell.font = { 
-      name: 'Calibri', 
-      size: 12, 
-      bold: true, 
-      color: { argb: 'FFFFFFFF' } 
-    };
-    cell.alignment = { vertical: 'middle', horizontal: 'center' };
-    cell.fill = {
-      type: 'pattern',
-      pattern: 'solid',
-      fgColor: { argb: 'FF366092' } // Azul medio
-    };
-    cell.border = {
-      top: { style: 'thin', color: { argb: 'FF000000' } },
-      left: { style: 'thin', color: { argb: 'FF000000' } },
-      bottom: { style: 'thin', color: { argb: 'FF000000' } },
-      right: { style: 'thin', color: { argb: 'FF000000' } }
-    };
-  });
-  worksheet.getRow(4).height = 25;
+        // Cerrar modal
+        $('#delete-' + id).modal('hide');
+        $('.modal-backdrop').removeClass('show');
+        $('body').removeClass('modal-open');
 
-  // ===== DATOS DE LOS PRODUCTOS =====
-  this.arr_productos.forEach((producto, index) => {
-    let row = worksheet.addRow([
-      producto['#'],
-      producto['Título'],
-      producto['Stock'],
-      producto['Precio'],
-      producto['Categoría'],
-      producto['N° de ventas']
-    ]);
-
-    // Aplicar formato alternado a las filas (zebra striping)
-    row.eachCell((cell, colNumber) => {
-      // Bordes
-      cell.border = {
-        top: { style: 'thin', color: { argb: 'FFD3D3D3' } },
-        left: { style: 'thin', color: { argb: 'FFD3D3D3' } },
-        bottom: { style: 'thin', color: { argb: 'FFD3D3D3' } },
-        right: { style: 'thin', color: { argb: 'FFD3D3D3' } }
-      };
-
-      // Color de fondo alternado
-      if (index % 2 === 0) {
-        cell.fill = {
-          type: 'pattern',
-          pattern: 'solid',
-          fgColor: { argb: 'FFF2F2F2' } // Gris claro
-        };
+        this.load_btn = false;
+        
+        // Recargar los datos para reflejar la eliminación
+        this.cargar_datos();
+      },
+      (error) => {
+        console.error('Error al eliminar producto:', error);
+        this.load_btn = false;
+        const errorMsg = error.error?.message || 'Ocurrió un problema con el servidor.';
+        this.mostrarError(errorMsg);
       }
+    );
+  }
 
-      // Alineación según la columna
-      if (colNumber === 1) { // Columna #
-        cell.alignment = { vertical: 'middle', horizontal: 'center' };
-      } else if (colNumber === 2) { // Columna Título
-        cell.alignment = { vertical: 'middle', horizontal: 'left' };
-      } else { // Resto de columnas (números)
-        cell.alignment = { vertical: 'middle', horizontal: 'center' };
-      }
-
-      // Formato de moneda para la columna de Precio
-      if (colNumber === 4) {
-        cell.numFmt = '$#,##0.00';
-      }
-
-      // Fuente
-      cell.font = { name: 'Calibri', size: 11 };
-    });
-
-    row.height = 20;
-  });
-
-  // ===== CONFIGURACIÓN DE COLUMNAS =====
-  worksheet.columns = [
-    { key: '#', width: 8 },
-    { key: 'Título', width: 35 },
-    { key: 'Stock', width: 12 },
-    { key: 'Precio', width: 15 },
-    { key: 'Categoría', width: 20 },
-    { key: 'N° de ventas', width: 15 }
-  ];
-
-  // ===== FILA DE RESUMEN (OPCIONAL) =====
-  let summaryRowIndex = worksheet.rowCount + 1;
-  worksheet.addRow([]);
-  summaryRowIndex++;
-  
-  let summaryRow = worksheet.getRow(summaryRowIndex);
-  worksheet.mergeCells(`A${summaryRowIndex}:B${summaryRowIndex}`);
-  
-  let totalProductos = this.productos.length;
-  let totalStock = this.productos.reduce((sum, p) => sum + (p.stock || 0), 0);
-  let totalVentas = this.productos.reduce((sum, p) => sum + (p.nventas || 0), 0);
-
-  summaryRow.getCell(1).value = 'RESUMEN';
-  summaryRow.getCell(1).font = { bold: true, size: 11 };
-  summaryRow.getCell(1).alignment = { vertical: 'middle', horizontal: 'left' };
-  
-  summaryRow.getCell(3).value = `Stock Total: ${totalStock}`;
-  summaryRow.getCell(3).font = { bold: true, size: 10 };
-  summaryRow.getCell(3).alignment = { vertical: 'middle', horizontal: 'center' };
-  
-  summaryRow.getCell(6).value = `Ventas Totales: ${totalVentas}`;
-  summaryRow.getCell(6).font = { bold: true, size: 10 };
-  summaryRow.getCell(6).alignment = { vertical: 'middle', horizontal: 'center' };
-
-  // ===== GENERAR Y DESCARGAR EL ARCHIVO =====
-  let fname = `reporte_productos_${new Date().getTime()}.xlsx`;
-
-  workbook.xlsx.writeBuffer().then((data) => {
-    let blob = new Blob([data], {
-      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8',
-    });
-    fs.saveAs(blob, fname);
+  download_excel(): void {
+    if (this.productos.length === 0) {
+      this.mostrarError('No hay productos para exportar.');
+      return;
+    }
     
-    // Notificación de éxito
-    iziToast.show({
-      title: 'Éxito',
-      message: 'Excel generado correctamente',
-      position: 'topRight',
-      class: 'text-success',
-      titleColor: '#1DC74C',
-    });
-  });
-}
+    try {
+      let workbook = new Workbook();
+      let worksheet = workbook.addWorksheet('Reporte de Productos');
 
+      // Título
+      worksheet.mergeCells('A1:F1');
+      let titleRow = worksheet.getCell('A1');
+      titleRow.value = 'REPORTE DE PRODUCTOS';
+      titleRow.font = { name: 'Calibri', size: 18, bold: true, color: { argb: 'FFFFFFFF' } };
+      titleRow.alignment = { vertical: 'middle', horizontal: 'center' };
+      titleRow.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1F4E78' } };
+      worksheet.getRow(1).height = 35;
+
+      // Fecha de generación
+      worksheet.mergeCells('A2:F2');
+      let dateRow = worksheet.getCell('A2');
+      dateRow.value = `Fecha de generación: ${new Date().toLocaleString('es-ES')}`;
+      dateRow.font = { name: 'Calibri', size: 10, italic: true };
+      dateRow.alignment = { vertical: 'middle', horizontal: 'center' };
+      worksheet.getRow(2).height = 20;
+
+      worksheet.addRow([]);
+
+      // Encabezados
+      let headerRow = worksheet.addRow(['#', 'Título', 'Stock', 'Precio', 'Categoría', 'N° de ventas']);
+      headerRow.eachCell((cell) => {
+        cell.font = { name: 'Calibri', size: 12, bold: true, color: { argb: 'FFFFFFFF' } };
+        cell.alignment = { vertical: 'middle', horizontal: 'center' };
+        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF366092' } };
+        cell.border = { top: { style: 'thin' }, left: { style: 'thin' }, bottom: { style: 'thin' }, right: { style: 'thin' } };
+      });
+      worksheet.getRow(4).height = 25;
+
+      // Datos
+      this.productos.forEach((item, index) => {
+        let row = worksheet.addRow([
+          index + 1,
+          item.titulo,
+          item.stock,
+          item.precio,
+          item.categoria || 'Sin categoría',
+          item.nventas,
+        ]);
+
+        row.eachCell((cell, colNumber) => {
+          cell.border = { top: { style: 'thin', color: { argb: 'FFD3D3D3' } }, left: { style: 'thin', color: { argb: 'FFD3D3D3' } }, bottom: { style: 'thin', color: { argb: 'FFD3D3D3' } }, right: { style: 'thin', color: { argb: 'FFD3D3D3' } } };
+          if (index % 2 === 1) {
+            cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF2F2F2' } };
+          }
+           if (colNumber === 4) { // Columna Precio
+            cell.numFmt = '$#,##0.00';
+            cell.alignment = { vertical: 'middle', horizontal: 'right' };
+          } else {
+            cell.alignment = { vertical: 'middle', horizontal: 'left' };
+          }
+        });
+      });
+
+      // Ancho de columnas
+      worksheet.columns = [
+        { key: '#', width: 5 },
+        { key: 'Título', width: 40 },
+        { key: 'Stock', width: 10 },
+        { key: 'Precio', width: 15 },
+        { key: 'Categoría', width: 25 },
+        { key: 'N° de ventas', width: 15 },
+      ];
+
+      // Generar archivo
+      let fname = `Reporte_Productos_${new Date().getTime()}.xlsx`;
+      workbook.xlsx.writeBuffer().then((data) => {
+        let blob = new Blob([data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+        fs.saveAs(blob, fname);
+        iziToast.success({ title: 'ÉXITO', message: 'Excel generado correctamente.', position: 'topRight' });
+      });
+
+    } catch (error) {
+      console.error('Error al generar Excel:', error);
+      this.mostrarError('No se pudo generar el archivo Excel.');
+    }
+  }
+
+  // Método auxiliar para mostrar errores
+  private mostrarError(mensaje: string): void {
+    iziToast.error({
+      title: 'Error',
+      message: mensaje,
+      position: 'topRight',
+    });
+  }
 }

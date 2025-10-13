@@ -147,6 +147,7 @@ const actualizar_cliente_admin = async function (req, res) {
           telefono: data.telefono,
           f_nacimiento: data.f_nacimiento,
           dui: data.dui,
+          pais: data.pais,
           genero: data.genero,
         }
       );

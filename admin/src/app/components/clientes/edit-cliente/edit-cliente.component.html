@@ -1,150 +1,213 @@
-<app-sidebar> </app-sidebar>
+<app-sidebar></app-sidebar>
 
 <!-- Page title-->
 <div class="border-bottom pt-5 mt-2 mb-5">
-  <h1 class="mt-2 mt-md-4 mb-3 pt-5">Clientes</h1>
+  <h1 class="mt-2 mt-md-4 mb-3 pt-5">Editar Cliente</h1>
   <div class="d-flex flex-wrap flex-md-nowrap justify-content-between">
-    <p class="text-muted">
-      Este módulo registra un nuevo cliente de la tienda.
+    <p class="text-muted" *ngIf="cliente">
+      Modificando la información de {{ cliente.nombres }} {{ cliente.apellidos }}.
     </p>
+    <p class="font-size-sm font-weight-medium pl-md-4">
+        <a class="text-nowrap" [routerLink]="['/panel/clientes']"
+          >Regresar<i
+            class="cxi-angle-right font-size-base align-middle ml-1"
+          ></i
+        ></a>
+      </p>
   </div>
 </div>
 
-<form #updateForm="ngForm" (ngSubmit)="actualizar(updateForm)">
-  <div class="card box-shadow-sm">
-    <div class="card-header">
-      <h5 style="margin-bottom: 0px">Actualizar cliente</h5>
-    </div>
-
-    <ng-container *ngIf="load_data">
-      <div class="card-body">
-        <div class="row">
-          <div class="col-12 text-center">
-            <div
-              class="spinner-border"
-              style="width: 3rem; height: 3rem"
-              role="status"
-            >
-              <span class="visually-hidden">Cargando...</span>
-            </div>
-          </div>
-        </div>
+<!-- Precargador inicial -->
+<div class="card box-shadow-sm" *ngIf="load_data">
+    <div class="card-body text-center py-5">
+      <div
+        class="spinner-border text-primary"
+        style="width: 3rem; height: 3rem"
+        role="status"
+      >
+        <span class="visually-hidden">Cargando...</span>
       </div>
-    </ng-container>
+      <p class="mt-3 text-muted">Cargando datos del cliente...</p>
+    </div>
+</div>
+  
 
-    <ng-container *ngIf="!load_data">
-      <div class="card-body" *ngIf="cliente != undefined">
+<!-- Mensaje de cliente no encontrado -->
+<div class="card box-shadow-sm mb-4" *ngIf="!cliente && !load_data">
+    <div class="card-body text-center py-5">
+      <h3 class="mb-3">Cliente no encontrado</h3>
+      <img
+        src="assets/img/error.png"
+        alt="Error"
+        class="mb-3"
+        style="width: 150px; height: auto"
+      />
+      <p class="text-muted">El cliente que buscas no existe o fue eliminado.</p>
+      <a [routerLink]="['/panel/clientes']" class="btn btn-primary">
+        Volver a Clientes
+      </a>
+    </div>
+</div>
+
+<!-- Formulario principal -->
+<form #updateForm="ngForm" (ngSubmit)="actualizar(updateForm)" *ngIf="cliente && !load_data">
+    <div class="card box-shadow-sm">
+      <div class="card-header">
+        <h5 class="mb-0">Detalles del Cliente</h5>
+      </div>
+  
+      <div class="card-body">
+        <!-- Sección de Información Personal -->
+        <h6>Información Personal</h6>
+        <hr>
         <div class="row">
-          <div class="col-md-4 form-group">
-            <label for="validationCustom01" class="form-label">Nombres</label>
+          <!-- Nombres -->
+          <div class="col-md-6 form-group mb-4">
+            <label for="nombres" class="form-label">Nombres <span class="text-danger">*</span></label>
             <input
+              id="nombres"
               class="form-control"
               type="text"
-              placeholder="Nombres"
+              placeholder="Nombres del cliente"
               required
               name="nombres"
               [(ngModel)]="cliente.nombres"
+              #nombres="ngModel"
+              [ngClass]="{'is-invalid': nombres.invalid && nombres.touched}"
             />
+            <div *ngIf="nombres.invalid && nombres.touched" class="invalid-feedback">
+              Los nombres son requeridos.
+            </div>
           </div>
-          <div class="col-md-4 form-group">
-            <label for="validationCustom01" class="form-label">Apellidos</label>
+  
+          <!-- Apellidos -->
+          <div class="col-md-6 form-group mb-4">
+            <label for="apellidos" class="form-label">Apellidos <span class="text-danger">*</span></label>
             <input
+              id="apellidos"
               class="form-control"
               type="text"
-              placeholder="Apellidos"
+              placeholder="Apellidos del cliente"
               required
               name="apellidos"
               [(ngModel)]="cliente.apellidos"
+              #apellidos="ngModel"
+              [ngClass]="{'is-invalid': apellidos.invalid && apellidos.touched}"
             />
+            <div *ngIf="apellidos.invalid && apellidos.touched" class="invalid-feedback">
+              Los apellidos son requeridos.
+            </div>
           </div>
-          <div class="col-md-4 form-group">
-            <label for="validationCustom01" class="form-label"
-              >Correo electrónico</label
-            >
+  
+          <!-- Género -->
+          <div class="col-md-6 form-group mb-4">
+              <label for="genero" class="form-label">Género</label>
+              <select
+                id="genero"
+                class="form-control custom-select"
+                name="genero"
+                [(ngModel)]="cliente.genero"
+              >
+                <option value="" disabled selected>Seleccione una opción</option>
+                <option value="Masculino">Masculino</option>
+                <option value="Femenino">Femenino</option>
+                <option value="Otro">Otro</option>
+              </select>
+            </div>
+  
+          <!-- Fecha de Nacimiento -->
+          <div class="col-md-6 form-group mb-4">
+            <label for="f_nacimiento" class="form-label">Fecha de nacimiento</label>
             <input
-              class="form-control"
-              type="email"
-              placeholder="Email"
-              required
-              name="email"
-              [(ngModel)]="cliente.email"
-            />
-          </div>
-
-          <div class="col-md-4 form-group">
-            <label for="validationCustom01" class="form-label">Telefono</label>
-            <input
-              class="form-control"
-              type="text"
-              placeholder="Telefono"
-              required
-              name="telefono"
-              [(ngModel)]="cliente.telefono"
-            />
-          </div>
-          <div class="col-md-4 form-group">
-            <label for="validationCustom01" class="form-label"
-              >Fecha nacimiento</label
-            >
-            <input
+              id="f_nacimiento"
               class="form-control"
               type="date"
-              required
               name="f_nacimiento"
               [(ngModel)]="cliente.f_nacimiento"
             />
           </div>
-          <div class="col-md-4 form-group">
-            <label for="validationCustom01" class="form-label">DUI</label>
+        </div>
+  
+        <!-- Sección de Contacto e Identificación -->
+        <h6 class="mt-3">Información de Contacto y Ubicación</h6>
+        <hr>
+        <div class="row">
+          <!-- Email -->
+          <div class="col-md-6 form-group mb-4">
+            <label for="email" class="form-label">Correo electrónico <span class="text-danger">*</span></label>
             <input
+              id="email"
               class="form-control"
-              type="number"
-              placeholder="DUI"
+              type="email"
+              placeholder="correo@ejemplo.com"
               required
+              pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,4}$"
+              name="email"
+              [(ngModel)]="cliente.email"
+              #email="ngModel"
+              [ngClass]="{'is-invalid': email.invalid && email.touched}"
+            />
+            <div *ngIf="email.invalid && email.touched" class="invalid-feedback">
+               <span *ngIf="email.errors?.['required']">El correo es requerido.</span>
+               <span *ngIf="email.errors?.['pattern']">El formato del correo no es válido.</span>
+            </div>
+          </div>
+  
+          <!-- Teléfono -->
+          <div class="col-md-6 form-group mb-4">
+            <label for="telefono" class="form-label">Teléfono</label>
+            <input
+              id="telefono"
+              class="form-control"
+              type="text"
+              placeholder="Número de teléfono"
+              name="telefono"
+              [(ngModel)]="cliente.telefono"
+            />
+          </div>
+  
+          <!-- País -->
+          <div class="col-md-6 form-group mb-4">
+              <label for="pais" class="form-label">País</label>
+              <input
+                id="pais"
+                class="form-control"
+                type="text"
+                placeholder="País de residencia"
+                name="pais"
+                [(ngModel)]="cliente.pais"
+              />
+            </div>
+  
+          <!-- DUI -->
+          <div class="col-md-6 form-group mb-4">
+            <label for="dui" class="form-label">DUI (Documento de Identidad)</label>
+            <input
+              id="dui"
+              class="form-control"
+              type="text"
+              placeholder="00000000-0"
               name="dui"
               [(ngModel)]="cliente.dui"
             />
           </div>
-
-          <div class="col-md-4">
-            <label for="validationCustom01" class="form-label">Genero</label>
-            <select
-              class="form-control custom-select"
-              required
-              name="genero"
-              [(ngModel)]="cliente.genero"
-            >
-              <option value="" disabled selected>Seleccione una opción</option>
-              <option value="Masculino">Masculino</option>
-              <option value="Femenino">Femenino</option>
-            </select>
-          </div>
         </div>
       </div>
-
-      <div class="card-body" *ngIf="cliente == undefined">
-        <h3 class="text-center">Cliente no encontrado</h3>
-        <img
-          src="assets/img/error.png"
-          alt="Error"
-          style="display: block; margin: auto; width: 150px; height: auto"
-        />
+  
+      <div class="card-footer d-flex justify-content-end">
+        <a routerLink="/panel/clientes" class="btn btn-outline-secondary me-3">Cancelar</a>
+        <button 
+          class="btn btn-primary" 
+          type="submit"
+          [disabled]="updateForm.invalid || load_btn">
+          <span *ngIf="!load_btn">
+              <i class="cxi-save me-2"></i>Actualizar Cliente
+          </span>
+          <span *ngIf="load_btn">
+              <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+              Actualizando...
+          </span>
+        </button>
       </div>
-    </ng-container>
-
-    <div class="card-footer">
-      <button *ngIf="!load_btn" class="btn btn-primary mr-3" type="submit">
-        Actualizar cliente
-      </button>
-      <button *ngIf="load_btn" type="button" class="btn btn-secondary" disabled>
-        <span
-          class="spinner-grow spinner-grow-sm me-2"
-          role="status"
-          aria-hidden="true"
-        ></span>
-        Cargando...
-      </button>
-      <a routerLink="/panel/clientes" class="btn btn-warning">Regresar</a>
     </div>
-  </div>
-</form>
+  </form>

@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { AdminService } from 'src/app/services/admin.service';
 import { ClienteService } from 'src/app/services/cliente.service';
+import { NgForm } from '@angular/forms';
 declare var iziToast: any;
 
 @Component({
@@ -12,11 +13,11 @@ declare var iziToast: any;
 export class CreateClienteComponent implements OnInit {
 
   public cliente: any = {
-    genero: ''
+    genero: '',
+    pais: ''
   };
 
-
-  public token;
+  public token: string;
   public load_btn = false;
 
   constructor(
@@ -24,97 +25,58 @@ export class CreateClienteComponent implements OnInit {
     private _adminService: AdminService,
     private _router: Router
   ) {
-    this.token = this._adminService.getToken();
+    this.token = this._adminService.getToken() || '';
+     if (!this.token) {
+      this._router.navigate(['/login']);
+    }
   }
 
   ngOnInit(): void {
   }
 
-registro(registroForm) {
-  // Validar campos vacíos manualmente
-  if (
-    !this.cliente.nombres ||
-    !this.cliente.apellidos ||
-    !this.cliente.email ||
-    !this.cliente.telefono ||
-    !this.cliente.f_nacimiento ||
-    !this.cliente.dui ||
-    !this.cliente.genero
-  ) {
-    iziToast.warning({
-      title: 'Campos incompletos',
-      message: 'Por favor completa todos los campos requeridos antes de continuar.',
-      position: 'topRight',
-      titleColor: '#FFA500',
-      color: '#FFF',
-    });
-    return;
-  }
-
-  // Validar formato de correo electrónico
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  if (!emailRegex.test(this.cliente.email)) {
-    iziToast.warning({
-      title: 'Correo inválido',
-      message: 'Por favor ingresa un correo electrónico válido.',
-      position: 'topRight',
-      titleColor: '#FFA500',
-      color: '#FFF',
-    });
-    return;
-  }
-
-  // Validación general del formulario
-  if (registroForm.valid) {
+  registro(registroForm: NgForm) {
+    if (registroForm.invalid) {
+      // Marcar todos los campos como "touched" para que se muestren los errores
+      Object.keys(registroForm.controls).forEach(key => {
+        registroForm.controls[key].markAsTouched();
+      });
+      
+      this.mostrarError('Por favor, completa todos los campos requeridos correctamente.');
+      return;
+    }
+    
     this.load_btn = true;
-
     this._clienteService.registro_cliente_admin(this.cliente, this.token).subscribe(
       response => {
-        iziToast.success({
-          title: 'Éxito',
-          message: 'Cliente registrado correctamente.',
-          position: 'topRight',
-          titleColor: '#1DC74C',
-          color: '#FFF',
-        });
+        if (response.data) {
+          iziToast.success({
+            title: 'ÉXITO',
+            message: 'Cliente registrado correctamente.',
+            position: 'topRight',
+          });
 
-        // Reiniciar formulario
-        this.cliente = {
-          nombres: '',
-          apellidos: '',
-          email: '',
-          telefono: '',
-          f_nacimiento: '',
-          dui: '',
-          genero: '',
-        };
-        registroForm.resetForm();
-
-        this.load_btn = false;
-        this._router.navigate(['/panel/clientes']);
+          this.load_btn = false;
+          this._router.navigate(['/panel/clientes']);
+        } else {
+           this.mostrarError(response.message || 'Error en el servidor, no se pudo registrar el cliente.');
+           this.load_btn = false;
+        }
       },
       error => {
-        console.error(error);
-        iziToast.error({
-          title: 'Error',
-          message: 'Ocurrió un error al registrar el cliente.',
-          position: 'topRight',
-          titleColor: '#FF0000',
-          color: '#FFF',
-        });
+        console.error('Error en el servidor:', error);
+        const errorMsg = error.error?.message || 'Ocurrió un error inesperado, por favor intenta más tarde.';
+        this.mostrarError(errorMsg);
         this.load_btn = false;
       }
     );
-  } else {
-    iziToast.warning({
-      title: 'Campos incompletos',
-      message: 'Por favor revisa que todos los campos estén correctamente llenos.',
+  }
+  
+  // Método auxiliar para mostrar errores
+  private mostrarError(mensaje: string): void {
+    iziToast.error({
+      title: 'Error',
+      message: mensaje,
       position: 'topRight',
-      titleColor: '#FFA500',
-      color: '#FFF',
     });
   }
-}
-
-
 }

@@ -2,10 +2,11 @@ import { Component, OnInit } from '@angular/core';
 import { AdminService } from 'src/app/services/admin.service';
 import { Global } from 'src/app/services/global';
 import { v4 as uuidv4 } from 'uuid';
-declare var iziToast;
-declare var jQuery: any;
-declare var $: any;
+import { NgForm } from '@angular/forms';
+import { Router } from '@angular/router';
 
+declare var iziToast: any;
+declare var $: any;
 
 @Component({
   selector: 'app-config',
@@ -13,163 +14,157 @@ declare var $: any;
   styleUrls: ['./config.component.css']
 })
 export class ConfigComponent implements OnInit {
-  public token;
-  public config: any = {};
-  public url;
+
+  public token: string;
+  public config: any = undefined;
+  public url: string;
+
   public titulo_cat = '';
   public icono_cat = '';
+  
   public file: File | undefined;
-    public imgSelect: any | ArrayBuffer;
+  public imgSelect: any | ArrayBuffer = 'assets/img/01.png';
+
+  public load_data = true;
+  public load_btn = false;
 
   constructor(
-    private _adminService: AdminService
+    private _adminService: AdminService,
+    private _router: Router
   ) {
-    this.token = localStorage.getItem('token');
+    this.token = localStorage.getItem('token') || '';
     this.url = Global.url;
+  }
+
+  ngOnInit(): void {
+    if (!this.token) {
+        this._router.navigate(['/login']);
+        return;
+    }
+    this.init_data();
+  }
+
+  init_data() {
+    this.load_data = true;
     this._adminService.obtener_config_admin(this.token).subscribe(
       response => {
-        this.config = response.data;
-        this.imgSelect = this.url + 'obtener_logo/' + this.config.logo;
-        if (!this.config.categorias) {
-          this.config.categorias = [];
+        if(response.data){
+            this.config = response.data;
+            this.imgSelect = this.url + 'obtener_logo/' + this.config.logo;
+            if (!this.config.categorias) {
+              this.config.categorias = [];
+            }
+        } else {
+            this.mostrarError('No se pudo obtener la configuración.');
         }
+        this.load_data = false;
       },
       error => {
-        console.log(error);
+        console.error('Error al cargar configuración:', error);
+        this.load_data = false;
+        this.mostrarError('Error en el servidor, no se pudo cargar la configuración.');
       }
     );
   }
 
-  ngOnInit(): void {}
-
   agregar_cat() {
     if (this.titulo_cat && this.icono_cat) {
-      this.config.categorias.push({ titulo: this.titulo_cat, icono: this.icono_cat, _id: uuidv4() });
+      if (!this.config.categorias) {
+        this.config.categorias = [];
+      }
+      this.config.categorias.push({ 
+        titulo: this.titulo_cat, 
+        icono: this.icono_cat, 
+        _id: uuidv4() 
+      });
       this.titulo_cat = '';
       this.icono_cat = '';
     } else {
-      iziToast.show({
-        title: 'Error',
-        titleColor: '#FF0000',
-        color: '#FFF',
-        class: 'text-danger',
-        position: 'topRight',
-        message: 'Debe ingresar el título e icono de la categoría',
-      });
+      this.mostrarError('Debe ingresar un título e icono para la categoría.');
     }
   }
 
-  actualizar(confForm: any) {
-    if (confForm.valid) {
-      let data = {
-        titulo: confForm.value.titulo,
-        serie: confForm.value.serie,
-        correlativo: confForm.value.correlativo,
-        categorias: this.config.categorias,
-        logo: this.file
-      };
-
-      this._adminService.actualizar_config_admin('68daa75d1e1062bf51932fa2', data, this.token).subscribe(
-        response => {
-          iziToast.show({
-            title: 'Éxito',
-            titleColor: '#1DC74C',
-            color: '#FFF',
-            class: 'text-success',
-            position: 'topRight',
-            message: 'Configuración actualizada correctamente',
-          });
-        }, error => {
-          console.log(error);
-        }
-      );
-    } else {
-      iziToast.show({
-        title: 'Error',
-        titleColor: '#FF0000',
-        color: '#FFF',
-        class: 'text-danger',
-        position: 'topRight',
-        message: 'Complete correctamente el formulario',
-      });
+  eliminar_cat(id: string) {
+    if (id) {
+        this.config.categorias = this.config.categorias.filter(cat => cat._id !== id);
     }
+  }
+
+  actualizar(confForm: NgForm) {
+    if (confForm.invalid) {
+      this.mostrarError('Complete correctamente el formulario.');
+      return;
+    }
+    
+    this.load_btn = true;
+    let data: any = {
+      titulo: this.config.titulo,
+      serie: this.config.serie,
+      correlativo: this.config.correlativo,
+      categorias: this.config.categorias
+    };
+
+    if (this.file) {
+      data.logo = this.file;
+    }
+
+    this._adminService.actualizar_config_admin(this.config._id, data, this.token).subscribe(
+      response => {
+        iziToast.success({
+          title: 'ÉXITO',
+          message: 'Configuración actualizada correctamente.',
+          position: 'topRight'
+        });
+        this.load_btn = false;
+        this.init_data(); // Recargar los datos para mostrar el nuevo logo si se cambió
+      }, 
+      error => {
+        console.error('Error al actualizar:', error);
+        const errorMsg = error.error?.message || 'Ocurrió un error al actualizar la configuración.';
+        this.mostrarError(errorMsg);
+        this.load_btn = false;
+      }
+    );
   }
 
   fileChangeEvent(event: any): void {
-    var file;
+    const file: File | undefined = event.target.files[0];
 
-    if (event.target.files && event.target.files[0]) {
-      file = <File>event.target.files[0];
-      console.log(file);
-    } else {
-      iziToast.show({
-        title: 'Error',
-        titleColor: '#FF0000',
-        color: '#FFF',
-        class: 'text-danger',
-        position: 'topRight',
-        message: 'No hay una imagen seleccionada',
-      });
-
-      $('#confForm').text('Seleccionar imagen');
-      this.imgSelect = 'assets/img/01.png';
+    if (!file) {
+      this.mostrarError('No se ha seleccionado ninguna imagen.');
       this.file = undefined;
+      return;
+    }
+    
+    // Validación de tamaño (máx 5MB)
+    if (file.size > 5000000) {
+      this.mostrarError('La imagen no puede superar los 5MB.');
+      this.file = undefined;
+      event.target.value = ''; // Limpiar el input
+      return;
     }
 
-    // Validación tamaño
-    if (file.size <= 5000000) {
-      // Validación tipo
-      if (
-        file.type == 'image/png' ||
-        file.type == 'image/webp' ||
-        file.type == 'image/jpg' ||
-        file.type == 'image/jpeg'
-      ) {
-        const reader = new FileReader();
-        reader.onload = (e) => (this.imgSelect = reader.result);
-        
-        $('.cs-file-drop-icon').addClass('cs-file-drop-preview img-thumbnail rounded');
-        $('.cs-file-drop-icon').removeClass('cs-file-drop-icon cxi-upload');
-
-        reader.readAsDataURL(file);
-        $('#confForm').text(file.name);
-
-        this.file = file;
-      } else {
-        iziToast.show({
-          title: 'Error',
-          titleColor: '#FF0000',
-          color: '#FFF',
-          class: 'text-danger',
-          position: 'topRight',
-          message: 'La imagen debe ser png, webp, jpg o jpeg',
-        });
-        $('#input-portada').text('Seleccionar imagen');
-        this.imgSelect = 'assets/img/01.png';
-        this.file = undefined;
-      }
-    } else {
-      iziToast.show({
-        title: 'Error',
-        titleColor: '#FF0000',
-        color: '#FFF',
-        class: 'text-danger',
-        position: 'topRight',
-        message: 'La imagen no puede superar los 5MB',
-      });
-      $('#confForm').text('Seleccionar imagen');
-      this.imgSelect = 'assets/img/01.png';
+    // Validación de tipo de archivo
+    if (!['image/png', 'image/webp', 'image/jpg', 'image/jpeg', 'image/svg+xml'].includes(file.type)) {
+      this.mostrarError('El archivo debe ser una imagen (png, jpg, webp, svg).');
       this.file = undefined;
+      event.target.value = ''; // Limpiar el input
+      return;
     }
+
+    this.file = file;
+    const reader = new FileReader();
+    reader.onload = e => this.imgSelect = reader.result;
+    reader.readAsDataURL(this.file);
   }
-
-  ngDoCheck(): void {
-    $('.cs-file-drop-preview').html('<img src="' + this.imgSelect + '" class="img-fluid" alt="Logo">');
-  } 
-
-  eliminar_cat(idx){
-  this.config.categorias.splice(idx,1);
   
+  // Método auxiliar para mostrar errores
+  private mostrarError(mensaje: string): void {
+    iziToast.error({
+      title: 'Error',
+      message: mensaje,
+      position: 'topRight',
+    });
+  }
 }
 
-}
