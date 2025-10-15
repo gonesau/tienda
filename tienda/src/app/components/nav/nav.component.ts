@@ -10,8 +10,8 @@ import { ClienteService } from 'src/app/services/cliente.service';
 export class NavComponent implements OnInit {
   public token;
   public id;
-  public usuario : any = undefined;
-  public user_lc : any = {};
+  public usuario: any = undefined;
+  public user_lc: any = {};
 
   constructor(
     private _clienteService: ClienteService,
@@ -20,16 +20,20 @@ export class NavComponent implements OnInit {
   ) {
     this.token = localStorage.getItem('token');
     this.id = localStorage.getItem('_id');
-    if (localStorage.getItem('usuario')) {
-      this.user_lc = JSON.parse(localStorage.getItem('usuario'));
-    } else {
-      this.user_lc = undefined;
-    }
+
 
     this._clienteService.obtener_cliente_guest(this.id, this.token).subscribe(
       response => {
         this.usuario = response.data;
         localStorage.setItem('usuario', JSON.stringify(this.usuario));
+
+
+        if (localStorage.getItem('usuario')) {
+          this.user_lc = JSON.parse(localStorage.getItem('usuario'));
+        } else {
+          this.user_lc = undefined;
+        }
+
       }, error => {
         this.usuario = undefined;
         console.log(error);
