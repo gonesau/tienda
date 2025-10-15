@@ -2,67 +2,47 @@
 <header class="cs-header">
   <!-- Navbar -->
   <!-- Remove "navbar-sticky" class to make navigation bar scrollable with the page -->
-  <div
-    class="navbar navbar-expand-lg navbar-light bg-light navbar-sticky"
-    data-fixed-element
-  >
+  <div class="navbar navbar-expand-lg navbar-light bg-light navbar-sticky" data-fixed-element>
     <div class="container px-0 px-xl-3">
       <a href="index.html" class="navbar-brand order-lg-1 mr-0 pr-lg-3 mr-lg-4">
-        <img
-          src="assets/img/ecommerce/logo.svg"
-          alt="Createx Logo"
-          width="130"
-        />
+        <img src="assets/img/ecommerce/logo.svg" alt="Createx Logo" width="130" />
       </a>
       <!-- Search desktop -->
-      <div
-        class="input-group-overlay ml-4 d-lg-block d-none order-lg-3"
-        style="max-width: 21rem"
-      >
-        <input
-          class="form-control appended-form-control"
-          type="text"
-          placeholder="Search for products..."
-        />
+      <div class="input-group-overlay ml-4 d-lg-block d-none order-lg-3" style="max-width: 21rem">
+        <input class="form-control appended-form-control" type="text" placeholder="Search for products..." />
         <div class="input-group-append-overlay">
-          <span class="input-group-text"
-            ><i class="cxi-search lead align-middle"></i
-          ></span>
+          <span class="input-group-text"><i class="cxi-search lead align-middle"></i></span>
         </div>
       </div>
       <!-- Toolbar -->
       <div class="d-flex align-items-center order-lg-3">
         <ul class="nav nav-tools flex-nowrap">
           <li class="nav-item d-lg-block d-none mb-0">
-            <a [routerLink]="['/login']" class="nav-tool">
-              <i class="cxi-profile nav-tool-icon"></i>
-              <span class="nav-tool-label">Iniciar Sesión</span>
-            </a>
+            <ng-container *ngIf="user_lc == undefined">
+              <a [routerLink]="['/login']" class="nav-tool">
+                <i class="cxi-profile nav-tool-icon"></i>
+                <span class="nav-tool-label">Iniciar Sesión</span>
+              </a>
+            </ng-container>
+
+            <ng-container *ngIf="user_lc != undefined">
+              <a class="nav-tool">
+                <i class="cxi-profile nav-tool-icon"></i>
+                <span class="nav-tool-label">{{ user_lc.nombres }}</span>
+              </a>
+            </ng-container>
           </li>
           <li class="divider-vertical mb-0 d-lg-block d-none"></li>
           <li class="nav-item align-self-center mb-0">
-            <a
-              href="#"
-              class="nav-tool pr-lg-0"
-              data-toggle="offcanvas"
-              data-target="cart"
-            >
+            <a href="#" class="nav-tool pr-lg-0" data-toggle="offcanvas" data-target="cart">
               <i class="cxi-cart nav-tool-icon"></i>
-              <span
-                class="badge badge-success align-middle mt-n1 ml-2 px-2 py-1 font-size-xs"
-                >4</span
-              >
+              <span class="badge badge-success align-middle mt-n1 ml-2 px-2 py-1 font-size-xs">4</span>
             </a>
           </li>
           <li class="divider-vertical mb-0 d-lg-none d-block"></li>
           <li class="nav-item mb-0">
-            <button
-              class="navbar-toggler mt-n1 mr-n3"
-              type="button"
-              data-toggle="collapse"
-              data-target="#navbarCollapse"
-              aria-expanded="false"
-            >
+            <button class="navbar-toggler mt-n1 mr-n3" type="button" data-toggle="collapse"
+              data-target="#navbarCollapse" aria-expanded="false">
               <span class="navbar-toggler-icon"></span>
             </button>
           </li>
@@ -72,11 +52,8 @@
       <nav class="collapse navbar-collapse order-lg-2" id="navbarCollapse">
         <!-- Search mobile -->
         <div class="input-group-overlay form-group mb-0 d-lg-none d-block">
-          <input
-            type="text"
-            class="form-control prepended-form-control rounded-0 border-0"
-            placeholder="Search for products..."
-          />
+          <input type="text" class="form-control prepended-form-control rounded-0 border-0"
+            placeholder="Search for products..." />
           <div class="input-group-prepend-overlay">
             <span class="input-group-text">
               <i class="cxi-search font-size-lg align-middle mt-n1"></i>
@@ -86,22 +63,17 @@
         <!-- Menu -->
         <ul class="navbar-nav mr-auto">
           <li class="nav-item">
-            <a [routerLink]="['/']" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}" class="nav-link">Inicio</a>
+            <a [routerLink]="['/']" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}"
+              class="nav-link">Inicio</a>
           </li>
           <li class="nav-item dropdown">
-            <a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown"
-              >Shop</a
-            >
+            <a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown">Shop</a>
             <ul class="dropdown-menu">
               <li>
-                <a href="shop-catalog.html" class="dropdown-item"
-                  >Catalog with Filters</a
-                >
+                <a href="shop-catalog.html" class="dropdown-item">Catalog with Filters</a>
               </li>
               <li>
-                <a href="shop-single.html" class="dropdown-item"
-                  >Single Product</a
-                >
+                <a href="shop-single.html" class="dropdown-item">Single Product</a>
               </li>
               <li>
                 <a href="checkout.html" class="dropdown-item">Checkout</a>
@@ -109,9 +81,7 @@
             </ul>
           </li>
           <li class="nav-item dropdown mega-dropdown">
-            <a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown"
-              >Megamenu</a
-            >
+            <a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown">Megamenu</a>
             <div class="dropdown-menu">
               <div class="container pt-lg-1 pb-lg-3">
                 <div class="row">
@@ -125,9 +95,7 @@
                       </li>
                       <li><a href="#" class="dropdown-item">Plus size</a></li>
                       <li>
-                        <a href="#" class="dropdown-item text-danger"
-                          >Sale up to 70%</a
-                        >
+                        <a href="#" class="dropdown-item text-danger">Sale up to 70%</a>
                       </li>
                     </ul>
                   </div>
@@ -141,28 +109,20 @@
                       <li><a href="#" class="dropdown-item">Suits</a></li>
                       <li><a href="#" class="dropdown-item">Dresses</a></li>
                       <li>
-                        <a href="#" class="dropdown-item"
-                          >Cardigans &amp; sweaters</a
-                        >
+                        <a href="#" class="dropdown-item">Cardigans &amp; sweaters</a>
                       </li>
                       <li>
-                        <a href="#" class="dropdown-item"
-                          >Sweatshirts &amp; hoodies</a
-                        >
+                        <a href="#" class="dropdown-item">Sweatshirts &amp; hoodies</a>
                       </li>
                       <li>
-                        <a href="#" class="dropdown-item"
-                          >T-shirts &amp; tops</a
-                        >
+                        <a href="#" class="dropdown-item">T-shirts &amp; tops</a>
                       </li>
                       <li><a href="#" class="dropdown-item">Pants</a></li>
                       <li><a href="#" class="dropdown-item">Jeans</a></li>
                       <li><a href="#" class="dropdown-item">Shorts</a></li>
                       <li><a href="#" class="dropdown-item">Skirts</a></li>
                       <li>
-                        <a href="#" class="dropdown-item"
-                          >Lingerie &amp; nightwear</a
-                        >
+                        <a href="#" class="dropdown-item">Lingerie &amp; nightwear</a>
                       </li>
                       <li><a href="#" class="dropdown-item">Sportswear</a></li>
                     </ul>
@@ -187,9 +147,7 @@
                     </h4>
                     <ul class="list-unstyled">
                       <li>
-                        <a href="#" class="dropdown-item"
-                          >Bags &amp; backpacks</a
-                        >
+                        <a href="#" class="dropdown-item">Bags &amp; backpacks</a>
                       </li>
                       <li>
                         <a href="#" class="dropdown-item">Hats &amp; scarves</a>
@@ -212,11 +170,7 @@
                   </div>
                   <div class="col-lg-3 d-none d-lg-block py-2">
                     <a href="#" class="d-block text-decoration-none pt-1">
-                      <img
-                        src="assets/img/ecommerce/megamenu.jpg"
-                        class="d-block rounded mb-3"
-                        alt="Promo banner"
-                      />
+                      <img src="assets/img/ecommerce/megamenu.jpg" class="d-block rounded mb-3" alt="Promo banner" />
                       <h5 class="font-size-sm mb-3">
                         Back to school. Sale up to 50%
                       </h5>
