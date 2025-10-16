@@ -6,43 +6,42 @@
             }'>
         <div class="sidebar-sticky-inner">
             <div class="card">
-                <div class="card-body">
-                    <h5 class="card-title mb-1">Annette Black</h5>
-                    <p class="card-text text-muted mb-lg-0">ann.black@example.com</p>
-                    <a href="#account-menu" class="btn btn-primary btn-block d-lg-none" data-toggle="collapse">Account
-                        Menu</a>
+                <div class="card-body" *ngIf="user_lc">
+                    <h5 class="card-title mb-1">{{ user_lc.nombres }}</h5>
+                    <p class="card-text text-muted mb-lg-0">{{ user_lc.email }}</p>
+                    <a href="#account-menu" class="btn btn-primary btn-block d-lg-none" data-toggle="collapse">Menu</a>
                 </div>
                 <div id="account-menu" class="collapse d-lg-block">
                     <div class="list-group list-group-flush border-top">
-                        <a href="account-profile.html"
-                            class="list-group-item list-group-item-action d-flex align-items-center active">
+                        <a [routerLink]="['/cuenta/perfil']" routerLinkActive="active"
+                            class="list-group-item list-group-item-action d-flex align-items-center">
                             <i class="cxi-profile font-size-lg mr-2"></i>
-                            <span>My profile</span>
+                            <span>Mi perfil</span>
                         </a>
                         <a href="account-orders.html"
                             class="list-group-item list-group-item-action d-flex align-items-center">
                             <i class="cxi-bag font-size-lg mr-2"></i>
-                            <span>My orders</span>
+                            <span>Mis pedidos</span>
                         </a>
                         <a href="account-wishlist.html"
                             class="list-group-item list-group-item-action d-flex align-items-center">
                             <i class="cxi-heart font-size-lg mr-2"></i>
-                            <span>Wishlist</span>
+                            <span>Lista de deseos</span>
                             <span class="badge badge-warning ml-auto">2</span>
                         </a>
                         <a href="account-recently-viewed.html"
                             class="list-group-item list-group-item-action d-flex align-items-center">
                             <i class="cxi-eye font-size-lg mr-2"></i>
-                            <span>Recently viewed</span>
+                            <span>Recientemente visto</span>
                         </a>
                         <a href="account-reviews.html"
                             class="list-group-item list-group-item-action d-flex align-items-center">
                             <i class="cxi-star font-size-lg mr-2"></i>
-                            <span>My reviews</span>
+                            <span>Mis reseñas</span>
                         </a>
                         <a href="#" class="list-group-item list-group-item-action d-flex align-items-center">
                             <i class="cxi-logout font-size-lg mr-2"></i>
-                            <span>Sign out</span>
+                            <span>Cerrar sesión</span>
                         </a>
                     </div>
                 </div>

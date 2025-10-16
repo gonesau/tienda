@@ -21,7 +21,8 @@ export class NavComponent implements OnInit {
     this.token = localStorage.getItem('token');
     this.id = localStorage.getItem('_id');
 
-
+    if (this.token) {
+      
     this._clienteService.obtener_cliente_guest(this.id, this.token).subscribe(
       response => {
         this.usuario = response.data;
@@ -39,6 +40,13 @@ export class NavComponent implements OnInit {
         console.log(error);
       }
     );
+    } else {
+      this.usuario = undefined;
+    localStorage.removeItem('usuario');
+    this.user_lc = undefined;
+    this._router.navigate(['/']);
+    }
+
   }
 
   ngOnInit(): void {

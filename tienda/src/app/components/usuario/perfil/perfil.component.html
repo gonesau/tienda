@@ -8,12 +8,9 @@
         <div class="container">
             <ol class="breadcrumb breadcrumb-alt mb-0">
                 <li class="breadcrumb-item">
-                    <a href="index.html"><i class="cxi-home"></i></a>
+                    <a [routerLink]="['/']"><i class="cxi-home"></i></a>
                 </li>
-                <li class="breadcrumb-item">
-                    <a href="#">Account</a>
-                </li>
-                <li class="breadcrumb-item active" aria-current="page">My profile</li>
+                <li class="breadcrumb-item active" aria-current="page">Mi perfil</li>
             </ol>
         </div>
     </nav>
@@ -34,51 +31,52 @@
                 <div class="d-flex align-items-center justify-content-between mb-4 pb-1 pb-sm-3">
                     <h1 class="h2 mb-0">Mi Perfil</h1>
                 </div>
-                <form>
+                <form #actualizarForm="ngForm" (ngSubmit)="actualizar(actualizarForm)">
                     <div class="row pb-3">
                         <div class="col-sm-6 form-group">
                             <label for="ac-fn">Nombres</label>
-                            <input type="text" class="form-control form-control-lg" name="nombres"
+                            <input required type="text" class="form-control form-control-lg" name="nombres"
                                 [(ngModel)]="cliente.nombres" placeholder="Nombres">
                         </div>
                         <div class="col-sm-6 form-group">
                             <label for="ac-ln">Apellidos</label>
-                            <input type="text" class="form-control form-control-lg" name="apellidos"
+                            <input required type="text" class="form-control form-control-lg" name="apellidos"
                                 [(ngModel)]="cliente.apellidos" placeholder="Apellidos">
                         </div>
                         <div class="col-sm-6 form-group">
                             <label for="ac-email">Correo electrónico</label>
-                            <input type="email" class="form-control form-control-lg" name="email"
-                                [(ngModel)]="cliente.email" placeholder="Correo electrónico">
+                            <input required type="email" class="form-control form-control-lg" readonly value="{{cliente.email}}"
+                                 placeholder="Correo electrónico">
                         </div>
 
                         <div class="col-sm-6 form-group">
                             <label for="ac-password">Contraseña</label>
-                            <input type="password" class="form-control form-control-lg" name="password"
+                            <input type="password" class="form-control form-control-lg" name="password" autocomplete="new-password"
                                 [(ngModel)]="cliente.password" placeholder="Contraseña">
                         </div>
 
                         <div class="col-sm-6 form-group">
                             <label for="ac-phone">Telefono</label>
-                            <input type="text" class="form-control form-control-lg" name="telefono"
+                            <input required type="text" class="form-control form-control-lg" name="telefono"
                                 [(ngModel)]="cliente.telefono" placeholder="Telefono">
                         </div>
 
                         <div class="col-sm-6 form-group">
                             <label for="ac-phone">Fecha de Nacimiento</label>
-                            <input type="date" class="form-control form-control-lg" name="f_nacimiento"
+                            <input required type="date" class="form-control form-control-lg" name="f_nacimiento"
                                 [(ngModel)]="cliente.f_nacimiento">
                         </div>
 
-                                                <div class="col-sm-6 form-group">
+                        <div class="col-sm-6 form-group">
                             <label for="ac-phone">DUI</label>
-                            <input type="text" class="form-control form-control-lg" name="dui"
+                            <input required type="text" class="form-control form-control-lg" name="dui"
                                 [(ngModel)]="cliente.dui" placeholder="00000000-0">
                         </div>
 
                         <div class="col-sm-6 form-group">
                             <label for="ac-gender">Genero</label>
-                            <select id="ac-gender" class="custom-select custom-select-lg">
+                            <select required id="ac-gender" class="custom-select custom-select-lg" name="genero"
+                                [(ngModel)]="cliente.genero">
                                 <option value="" disabled selected>Seleccione su genero</option>
                                 <option value="masculino">Masculino</option>
                                 <option value="femenino">Femenino</option>
@@ -87,7 +85,8 @@
                         </div>
                         <div class="col-sm-6 form-group">
                             <label for="ac-country">País</label>
-                            <select id="ac-country" class="custom-select custom-select-lg">
+                            <select required id="ac-country" class="custom-select custom-select-lg" name="pais"
+                                [(ngModel)]="cliente.pais">
                                 <option value="" disabled selected>Seleccione su país</option>
                                 <option value="el-salvador">El Salvador</option>
                                 <option value="guatemala">Guatemala</option>
@@ -97,15 +96,6 @@
                                 <option value="panama">Panamá</option>
                                 <option value="other">Otro</option>
                             </select>
-                        </div>
-                        <div class="col-sm-6 form-group">
-                            <label for="ac-address">Address</label>
-                            <input type="text" id="ac-address" class="form-control form-control-lg"
-                                value="2464 Royal Ln. Mesa, New Jersey">
-                        </div>
-                        <div class="col-sm-6 form-group">
-                            <label for="ac-zip">ZIP Code</label>
-                            <input type="text" id="ac-zip" class="form-control form-control-lg" value="45463">
                         </div>
                     </div>
                     <button type="submit" class="btn btn-primary btn-lg">Actualizar Perfil</button>
