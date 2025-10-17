@@ -21,15 +21,13 @@ export class SidebarComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    // Verificar autenticación al inicializar
+
     if (!this.token || !this.id) {
       this._router.navigate(['/login']);
     }
   }
 
-  /**
-   * Carga la información del usuario
-   */
+
   private cargarUsuario(): void {
     this.token = localStorage.getItem('token');
     this.id = localStorage.getItem('_id');
@@ -39,7 +37,7 @@ export class SidebarComponent implements OnInit {
       return;
     }
 
-    // Intentar obtener de localStorage primero
+
     const usuarioGuardado = localStorage.getItem('usuario');
     if (usuarioGuardado) {
       try {
@@ -72,9 +70,6 @@ export class SidebarComponent implements OnInit {
     );
   }
 
-  /**
-   * Limpia la sesión del usuario
-   */
   private limpiarSesion(): void {
     this.usuario = undefined;
     this.user_lc = undefined;

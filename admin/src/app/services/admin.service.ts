@@ -35,7 +35,11 @@ export class AdminService {
     try {
       const helper = new JwtHelperService();
       var decodedToken = helper.decodeToken(token);
-      console.log(decodedToken);
+
+      if (helper.isTokenExpired(token)) {
+        localStorage.clear();
+        return false;
+      }
 
       if (!decodedToken) {
         console.log('Token is invalid');
@@ -51,13 +55,13 @@ export class AdminService {
   }
 
   obtener_config_admin(token): Observable<any> {
-    let headers = new HttpHeaders({'Content-Type': 'application/json', 'Authorization': token });
+    let headers = new HttpHeaders({ 'Content-Type': 'application/json', 'Authorization': token });
     return this._http.get(this.url + 'obtener_config_admin', { headers: headers });
   }
 
   actualizar_config_admin(id, data, token): Observable<any> {
     if (data.logo) {
-      let headers = new HttpHeaders({'Authorization': token });
+      let headers = new HttpHeaders({ 'Authorization': token });
       const fd = new FormData();
       fd.append('titulo', data.titulo);
       fd.append('serie', data.serie);
@@ -66,7 +70,7 @@ export class AdminService {
       fd.append('logo', data.logo, data.logo.name);
       return this._http.put(this.url + 'actualizar_config_admin/' + id, fd, { headers: headers });
     } else {
-      let headers = new HttpHeaders({'Content-Type': 'application/json', 'Authorization': token });
+      let headers = new HttpHeaders({ 'Content-Type': 'application/json', 'Authorization': token });
       return this._http.put(this.url + 'actualizar_config_admin/' + id, data, { headers: headers });
     }
   }
@@ -75,5 +79,5 @@ export class AdminService {
     let headers = new HttpHeaders().set('Content-Type', 'application/json');
     return this._http.get(this.url + 'obtener_config_publico', { headers: headers });
   }
-  
+
 }
