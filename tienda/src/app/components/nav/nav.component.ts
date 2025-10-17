@@ -52,4 +52,10 @@ export class NavComponent implements OnInit {
   ngOnInit(): void {
   }
 
+  logout() {
+    window.location.reload();
+    localStorage.clear();
+    this._router.navigate(['/']);
+  }
+
 }
