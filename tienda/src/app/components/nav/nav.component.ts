@@ -8,54 +8,87 @@ import { ClienteService } from 'src/app/services/cliente.service';
   styleUrls: ['./nav.component.css']
 })
 export class NavComponent implements OnInit {
-  public token;
-  public id;
+  public token: string | null;
+  public id: string | null;
   public usuario: any = undefined;
-  public user_lc: any = {};
+  public user_lc: any = undefined;
 
   constructor(
     private _clienteService: ClienteService,
-    private _router: Router,
-
+    private _router: Router
   ) {
-    this.token = localStorage.getItem('token');
-    this.id = localStorage.getItem('_id');
-
-    if (this.token) {
-      
-    this._clienteService.obtener_cliente_guest(this.id, this.token).subscribe(
-      response => {
-        this.usuario = response.data;
-        localStorage.setItem('usuario', JSON.stringify(this.usuario));
-
-
-        if (localStorage.getItem('usuario')) {
-          this.user_lc = JSON.parse(localStorage.getItem('usuario'));
-        } else {
-          this.user_lc = undefined;
-        }
-
-      }, error => {
-        this.usuario = undefined;
-        console.log(error);
-      }
-    );
-    } else {
-      this.usuario = undefined;
-    localStorage.removeItem('usuario');
-    this.user_lc = undefined;
-    this._router.navigate(['/']);
-    }
-
+    this.cargarUsuario();
   }
 
   ngOnInit(): void {
+    // Recargar usuario al inicializar
+    this.cargarUsuario();
   }
 
-  logout() {
-    window.location.reload();
-    localStorage.clear();
-    this._router.navigate(['/']);
+  /**
+   * Carga la información del usuario desde localStorage o el servidor
+   */
+  private cargarUsuario(): void {
+    this.token = localStorage.getItem('token');
+    this.id = localStorage.getItem('_id');
+
+    if (this.token && this.id) {
+      // Intentar obtener usuario de localStorage primero
+      const usuarioGuardado = localStorage.getItem('usuario');
+      
+      if (usuarioGuardado) {
+        try {
+          this.user_lc = JSON.parse(usuarioGuardado);
+        } catch (e) {
+          console.error('Error parseando usuario de localStorage:', e);
+          this.user_lc = undefined;
+        }
+      }
+
+      // Verificar con el servidor que el token sea válido
+      this._clienteService.obtener_cliente_guest(this.id, this.token).subscribe(
+        response => {
+          if (response.data) {
+            this.usuario = response.data;
+            this.user_lc = response.data;
+            localStorage.setItem('usuario', JSON.stringify(this.usuario));
+          } else {
+            this.limpiarSesion();
+          }
+        },
+        error => {
+          console.error('Error obteniendo cliente:', error);
+          this.limpiarSesion();
+        }
+      );
+    } else {
+      this.limpiarSesion();
+    }
   }
 
+  /**
+   * Limpia la sesión del usuario
+   */
+  private limpiarSesion(): void {
+    this.usuario = undefined;
+    this.user_lc = undefined;
+    localStorage.removeItem('token');
+    localStorage.removeItem('_id');
+    localStorage.removeItem('usuario');
+    localStorage.removeItem('nombre_cliente');
+  }
+
+  /**
+   * Cierra la sesión del usuario
+   */
+  logout(): void {
+    // Limpiar datos de sesión
+    this.limpiarSesion();
+    
+    // Redirigir a inicio
+    this._router.navigate(['/']).then(() => {
+      // Recargar página después de redirigir
+      window.location.reload();
+    });
+  }
 }
