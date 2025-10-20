@@ -12,12 +12,22 @@ export class NavComponent implements OnInit {
   public id: string | null;
   public usuario: any = undefined;
   public user_lc: any = undefined;
-
+  public config_global: any = {};
+  
   constructor(
     private _clienteService: ClienteService,
-    private _router: Router
+    private _router: Router,
   ) {
     this.cargarUsuario();
+
+    this._clienteService.obtener_config_publico().subscribe(
+      response => {
+        this.config_global = response.data;
+      }, error => {
+        console.log(error)
+      }
+    );
+
   }
 
   ngOnInit(): void {
@@ -35,7 +45,7 @@ export class NavComponent implements OnInit {
     if (this.token && this.id) {
       // Intentar obtener usuario de localStorage primero
       const usuarioGuardado = localStorage.getItem('usuario');
-      
+
       if (usuarioGuardado) {
         try {
           this.user_lc = JSON.parse(usuarioGuardado);
@@ -84,7 +94,7 @@ export class NavComponent implements OnInit {
   logout(): void {
     // Limpiar datos de sesión
     this.limpiarSesion();
-    
+
     // Redirigir a inicio
     this._router.navigate(['/']).then(() => {
       // Recargar página después de redirigir
