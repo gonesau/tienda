@@ -22,7 +22,7 @@
     <link rel="stylesheet" media="screen" href="assets/css/demo/ecommerce/theme.min.css">
     <link rel="stylesheet" href="assets/css/iziToast.min.css">
     <link rel="stylesheet" href="assets/css/simplebar.min.css">
-    <link rel="stylesheet" href="assets/css/nouislider.min.css
+    <link rel="stylesheet" href="assets/css/nouislider.min.css">
 
         <!-- Page loading styles-->
     <style>
@@ -105,7 +105,26 @@
       }
     </style>
 
-    <!-- Page loading scripts-->
+     <style>
+    .cs-range-slider-ui .noUi-handle {
+        top: 50% !important;
+        width: .875rem !important;
+        height: .875rem !important;
+        margin-top: -.4375rem !important;
+        border: 2px solid #fff !important;
+        border-radius: 50% !important;
+        box-shadow: none !important;
+        background-color: #17696a !important;
+    }
+    .cs-range-slider-ui {
+        height: .125rem !important;
+        margin: 3rem 0 !important;
+        border: 0 !important;
+        background-color: #dadbdd !important;
+        box-shadow: none !important;
+    }
+  </style>
+
     <script>
       (function () {
         window.onload = function () {
@@ -146,7 +165,13 @@
 <body>
 
      
-
+    <!-- Page loading spinner-->
+    <div class="cs-page-loading active">
+      <div class="cs-page-loading-inner">
+        <div class="cs-page-spinner"></div>
+        <span>Cargando...</span>
+      </div>
+    </div>
 
     <main class="cs-page-wrapper">
         <app-root></app-root>
