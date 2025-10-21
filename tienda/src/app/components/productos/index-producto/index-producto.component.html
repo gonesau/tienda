@@ -123,10 +123,11 @@
                                 <div class="cs-widget pl-1  pb-4 mt-n3">
                                     <div class="input-group-overlay  d-lg-block d-none order-lg-3 mt-3">
                                         <input class="form-control appended-form-control" type="text"
-                                            placeholder="Buscar producto"
-                                            name="filter_producto"
-                                            [(ngModel)]="filter_producto"/>
-                                        <div class="input-group-append-overlay" style="cursor: pointer; color: white !important; background-color: #17696a !important;" (click)="buscar_productos()">
+                                            placeholder="Buscar producto" name="filter_producto"
+                                            [(ngModel)]="filter_producto" />
+                                        <div class="input-group-append-overlay"
+                                            style="cursor: pointer; color: white !important; background-color: #17696a !important;"
+                                            (click)="buscar_productos()">
                                             <span class="input-group-text" style="color: white;"><i
                                                     class="cxi-search lead align-middle"></i></span>
                                         </div>
@@ -221,7 +222,17 @@
 
             <!-- Product grid -->
             <div class="col">
-                <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-3" data-filters-columns>
+
+                <div class="row" *ngIf="load_data == true">
+                    <div class="col-12 text-center mb-4">
+                        <!-- Custom size border spinner -->
+                        <div class="spinner-border" style="width: 3rem; height: 3rem;" role="status">
+                            <span class="visually-hidden">Cargando...</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div *ngIf="load_data == false" class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-3" data-filters-columns>
 
                     <!-- Item -->
                     <div class="col pb-sm-2 mb-grid-gutter" *ngFor="let producto of productos">
