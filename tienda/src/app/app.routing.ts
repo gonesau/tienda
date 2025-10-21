@@ -16,6 +16,9 @@ const appRoutes: Routes = [
     //Ruta productos
     {path:'productos', component: IndexProductoComponent},
 
+    //Ruta por categoria
+    {path:'productos/categoria/:categoria', component: IndexProductoComponent},
+
 ];
 
 export const appRoutingProviders: any[] = [];

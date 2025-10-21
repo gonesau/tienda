@@ -1,5 +1,6 @@
 import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
+import { NgbPaginationModule } from '@ng-bootstrap/ng-bootstrap';
 
 import { FormsModule } from '@angular/forms';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
@@ -16,9 +17,10 @@ import { PerfilComponent } from './components/usuario/perfil/perfil.component';
 import { SidebarComponent } from './components/usuario/sidebar/sidebar.component';
 import { IndexProductoComponent } from './components/productos/index-producto/index-producto.component';
 
+
 @NgModule({
   declarations: [AppComponent, InicioComponent, NavComponent, FooterComponent, LoginComponent, PerfilComponent, SidebarComponent, IndexProductoComponent],
-  imports: [BrowserModule, AppRoutingModule, FormsModule, HttpClientModule, routing],
+  imports: [BrowserModule, AppRoutingModule, FormsModule, HttpClientModule, routing, NgbPaginationModule],
   providers: [],
   bootstrap: [AppComponent],
 })
