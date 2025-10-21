@@ -73,6 +73,20 @@ export class IndexProductoComponent implements OnInit, AfterViewInit {
     );
   }
 
+  buscar_precios(){
+    this._clienteService.obtener_productos_publico(this.filter_producto).subscribe(
+      response => {
+        this.productos = response.data.filter((item: { precio: number; }) =>
+          item.precio >= parseInt($('.cs-range-slider-value-min').val()) &&
+          item.precio <= parseInt($('.cs-range-slider-value-max').val())
+        );
+        this.load_data = false;
+      }, error => {
+        console.log(error)
+      }
+    );
+    return;
+  }
 
   // Mueve tu lógica a este método
   ngAfterViewInit(): void {
@@ -81,11 +95,11 @@ export class IndexProductoComponent implements OnInit, AfterViewInit {
     // Comprobamos si el slider existe antes de crearlo
     if (slider) {
       noUiSlider.create(slider, {
-        start: [0, 1000],
+        start: [0, 5000],
         connect: true,
         range: {
           'min': 0,
-          'max': 1000
+          'max': 5000
         },
         tooltips: [true, true],
         pips: {
