@@ -1,6 +1,7 @@
 // Importa AfterViewInit
 import { Component, OnInit, AfterViewInit } from '@angular/core';
 import { ClienteService } from 'src/app/services/cliente.service';
+import { Global } from 'src/app/services/global';
 declare var noUiSlider: any;
 declare var $: any;
 
@@ -14,10 +15,15 @@ export class IndexProductoComponent implements OnInit, AfterViewInit {
 
   public config_global: any = {};
   public filter_categoria = '';
+  public productos: Array<any> = [];
+  public filter_producto = '';
+  public url;
+  public load_data = true;
 
   constructor(
     private _clienteService: ClienteService
   ) {
+    this.url = Global.url;
     this._clienteService.obtener_config_publico().subscribe(
       response => {
         this.config_global = response.data;
@@ -25,6 +31,16 @@ export class IndexProductoComponent implements OnInit, AfterViewInit {
         console.log(error)
       }
     );
+
+    this._clienteService.obtener_productos_publico(this.filter_producto).subscribe(
+      response => {
+        this.productos = response.data;
+        this.load_data = false;
+      }, error => {
+        console.log(error)
+      }
+    );
+
   }
 
   ngOnInit(): void {
@@ -44,6 +60,17 @@ export class IndexProductoComponent implements OnInit, AfterViewInit {
         }
       );
     }
+  }
+
+  buscar_productos() {
+    this._clienteService.obtener_productos_publico(this.filter_producto).subscribe(
+      response => {
+        this.productos = response.data;
+        this.load_data = false;
+      }, error => {
+        console.log(error)
+      }
+    );
   }
 
 
