@@ -16,10 +16,11 @@ import { LoginComponent } from './components/login/login.component';
 import { PerfilComponent } from './components/usuario/perfil/perfil.component';
 import { SidebarComponent } from './components/usuario/sidebar/sidebar.component';
 import { IndexProductoComponent } from './components/productos/index-producto/index-producto.component';
+import { ShowProductoComponent } from './components/productos/show-producto/show-producto.component';
 
 
 @NgModule({
-  declarations: [AppComponent, InicioComponent, NavComponent, FooterComponent, LoginComponent, PerfilComponent, SidebarComponent, IndexProductoComponent],
+  declarations: [AppComponent, InicioComponent, NavComponent, FooterComponent, LoginComponent, PerfilComponent, SidebarComponent, IndexProductoComponent, ShowProductoComponent],
   imports: [BrowserModule, AppRoutingModule, FormsModule, HttpClientModule, routing, NgbPaginationModule],
   providers: [],
   bootstrap: [AppComponent],

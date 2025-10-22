@@ -46,7 +46,9 @@ const appRoutes: Routes = [
     {path: 'productos/variedades/:id', component: VariedadProductoComponent, canActivate: [AdminGuard]},
 
     // Ruta de Galeria de Producto
-    {path: 'productos/galeria/:id', component: GaleriaProductoComponent, canActivate: [AdminGuard]}
+    {path: 'productos/galeria/:id', component: GaleriaProductoComponent, canActivate: [AdminGuard]},
+
+
   ]},
   {path: 'login', component: LoginComponent},
 ];
