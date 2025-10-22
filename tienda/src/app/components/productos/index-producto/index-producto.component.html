@@ -1,330 +1,287 @@
-<app-nav>
-</app-nav>
+<app-nav></app-nav>
 
 <main class="cs-page-wrapper">
-    <nav class="bg-secondary mb-3" aria-label="breadcrumb">
-        <div class="container">
-            <ol class="breadcrumb breadcrumb-alt mb-0">
-                <li class="breadcrumb-item">
-                    <a [routerLink]="['/']"><i class="cxi-home"></i></a>
-                </li>
-                <li class="breadcrumb-item active" aria-current="page">Todos los</li>
-            </ol>
+  <nav class="bg-secondary mb-3" aria-label="breadcrumb">
+    <div class="container">
+      <ol class="breadcrumb breadcrumb-alt mb-0">
+        <li class="breadcrumb-item">
+          <a [routerLink]="['/']"><i class="cxi-home"></i></a>
+        </li>
+        <li class="breadcrumb-item active" aria-current="page">
+          {{ filter_cat_producto === 'todos' ? 'Todos los productos' : filter_cat_producto }}
+        </li>
+      </ol>
+    </div>
+  </nav>
+
+  <section class="container pt-3 pb-5 pb-md-6 mb-2 mb-lg-0">
+
+    <div class="row mb-4 pb-2">
+      <div class="col-md-3 pr-lg-4 mb-3 mb-md-0">
+        <div class="d-none d-lg-block">
+            <h3><i class="cxi-filter-1"></i> Filtros:</h3>
         </div>
-    </nav>
+        <button type="button" class="btn btn-primary btn-block mt-0 d-lg-none" data-toggle="offcanvas" data-target="#filtersOffcanvas">
+            <i class="cxi-filter-2 mr-1"></i>
+            Show filters
+        </button>
+      </div>
 
-    <!-- Page container -->
-    <section class="container pt-3 pb-5 pb-md-6 mb-2 mb-lg-0">
+      <div class="col-md-9">
+        <div class="d-flex align-items-center">
+          <div class="form-inline flex-nowrap mr-3 mr-xl-5">
+            <label for="sorting-top" class="font-weight-bold text-nowrap mr-2 pr-1 d-none d-lg-block">Ordenar por</label>
+            <select id="sorting-top" class="custom-select" [(ngModel)]="sort_by" (change)="orden_por_handler()">
+              <option value="Defecto">Defecto</option>
+              <option value="menoramayor">Precio: Bajo a Alto</option>
+              <option value="mayoramenor">Precio: Alto a Bajo</option>
+              <option value="calificacionpromedio">Calificación Promedio</option>
+              <option value="ordenarA_Z">Ordenar de la A a la Z</option>
+              <option value="ordenarZ_A">Ordenar de la Z a la A</option>
+            </select>
+          </div>
+          <div class="form-inline flex-nowrap d-none d-sm-flex mr-3 mr-xl-5">
+            <label for="pager-top" class="font-weight-bold text-nowrap mr-2 pr-1 d-none d-lg-block">Mostrar</label>
+            <select id="pager-top" class="custom-select" [(ngModel)]="pageSize">
+              <option value="15">15</option>
+              <option value="30">30</option>
+              <option value="45">45</option>
+              <option value="60">60</option>
+              <option value="75">75</option>
+            </select>
+            <span class="font-size-sm text-muted text-nowrap ml-2 d-none d-lg-block">productos por página</span>
+          </div>
+           <ngb-pagination *ngIf="productos.length > 0"
+                           [(page)]="page"
+                           [pageSize]="+pageSize"
+                           [collectionSize]="productos.length">
+          </ngb-pagination>
+        </div>
+      </div>
+    </div>
 
+    <div class="row flex-lg-nowrap">
 
-        <!-- Toolbar + Pagination -->
-        <div class="row mb-4 pb-2">
-            <div class="col-md-3 pr-lg-4 mb-3 mb-md-0">
+      <div id="filtersSidebar" class="col-lg-3 pr-lg-4">
+        <div id="filtersOffcanvas" class="cs-offcanvas cs-offcanvas-collapse">
+          <div class="cs-offcanvas-cap align-items-center border-bottom mb-3">
+            <h2 class="h5 mb-0">Shop filters</h2>
+            <button class="close mr-n1" type="button" data-dismiss="offcanvas" aria-label="Close">
+              <span class="h2 font-weight-normal mt-n1 mb-0" aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="cs-offcanvas-body accordion-alt pb-4">
 
-                <!-- Show / hide filters on Desktop -->
-                <div class="d-none d-lg-block">
-                    <h3><i class="cxi-filter-1"></i> Filtros:</h3>
+            <div class="card border-bottom">
+               <div class="card-header py-3" id="filter-panel">
+                    <h6 class="accordion-heading">
+                        <a href="#filter" role="button" data-toggle="collapse" aria-expanded="true" aria-controls="filter">
+                            Buscar Producto
+                            <span class="accordion-indicator"></span>
+                        </a>
+                    </h6>
                 </div>
-
-                <!-- Show / hide filters (off-canvas) on Mobile -->
-                <button type="button" class="btn btn-primary btn-block mt-0 d-lg-none" data-toggle="offcanvas"
-                    data-target="filtersOffcanvas">
-                    <i class="cxi-filter-2 mr-1"></i>
-                    Show filters
-                </button>
+              <div class="collapse show" id="filter" aria-labelledby="filter-panel">
+                <div class="cs-widget pl-1 pb-4 mt-n3">
+                  <div class="input-group-overlay d-lg-block d-none order-lg-3 mt-3">
+                    <input class="form-control appended-form-control" type="text"
+                           placeholder="Buscar producto" name="filter_producto"
+                           [(ngModel)]="filter_producto" (input)="buscar_productos_handler()" />
+                    <div class="input-group-append-overlay"
+                         style="cursor: pointer; color: white !important; background-color: #17696a !important;"
+                         (click)="buscar_productos_handler()">
+                      <span class="input-group-text" style="color: white;"><i class="cxi-search lead align-middle"></i></span>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
 
-            <div class="col-md-9">
-                <div class="d-flex align-items-center">
-                    <div class="form-inline flex-nowrap mr-3 mr-xl-5">
-                        <label for="sorting-top" class="font-weight-bold text-nowrap mr-2 pr-1 d-none d-lg-block">Ordenar por</label>
-                        <select id="sorting-bottom" class="custom-select" [(ngModel)]="sort_by" (change)="orden_por()">
-                            <option value="Defecto">Defecto</option>
-                            <option value="menoramayor">Precio: Bajo a Alto</option>
-                            <option value="mayoramenor">Precio: Alto a Bajo</option>
-                            <option value="calificacionpromedio">Calificación Promedio</option>
-                            <option value="ordenarA_Z">Ordenar de la A a la Z</option>
-                            <option value="ordenarZ_A">Ordenar de la Z a la A</option>
-                        </select>
+            <div class="card border-bottom">
+               <div class="card-header pt-0 pb-3" id="category-panel">
+                  <h6 class="accordion-heading">
+                      <a href="#category" role="button" data-toggle="collapse" aria-expanded="true" aria-controls="category">
+                          Categorías
+                          <span class="accordion-indicator"></span>
+                      </a>
+                  </h6>
+              </div>
+              <div class="collapse show" id="category" aria-labelledby="category-panel">
+                <div class="cs-widget-data-list cs-filter">
+                  <div class="input-group-overlay mb-3">
+                    <input type="text"
+                           class="cs-filter-search form-control form-control-sm appended-form-control"
+                           placeholder="Buscar categoría" name="filter_categoria"
+                           [(ngModel)]="filter_categoria" (keyup)="buscar_categorias()"> <div class="input-group-append-overlay">
+                      <span class="input-group-text">
+                        <i class="cxi-search font-size-sm"></i>
+                      </span>
                     </div>
-                    <div class="form-inline flex-nowrap d-none d-sm-flex mr-3 mr-xl-5">
-                        <label for="pager-top"
-                            class="font-weight-bold text-nowrap mr-2 pr-1 d-none d-lg-block">Mostrar</label>
-                        <select id="pager-top" class="custom-select" [(ngModel)]="pageSize">
-                            <option>15</option>
-                            <option>30</option>
-                            <option>45</option>
-                            <option>60</option>
-                            <option>75</option>
-                        </select>
-                        <span class="font-size-sm text-muted text-nowrap ml-2 d-none d-lg-block">productos por
-                            página</span>
-                    </div>
-                    <ngb-pagination [(page)]="page" [pageSize]="pageSize" [collectionSize]="productos.length">
-
-                    </ngb-pagination>
+                  </div>
+                  <ul class="cs-filter-list list-unstyled pr-3" style="height: 12rem;" data-simplebar data-simplebar-auto-hide="false">
+                    <li class="cs-filter-item">
+                       <div class="custom-control custom-radio">
+                         <input type="radio" (change)="buscar_por_categoria_handler()" name="group1"
+                               class="custom-control-input" id="categoria-todos" value="todos"
+                               [(ngModel)]="filter_cat_producto">
+                        <label for="categoria-todos" class="custom-control-label">
+                          <span class="cs-filter-item-text">Todos</span>
+                          <span class="pl-1 text-muted">(?)</span> </label>
+                      </div>
+                    </li>
+                    <li class="cs-filter-item" *ngFor="let item of config_global.categorias; let indice = index">
+                       <div class="custom-control custom-radio">
+                         <input type="radio" (change)="buscar_por_categoria_handler()" name="group1"
+                               class="custom-control-input" id="categoria-{{indice}}"
+                               [value]="item.titulo" [(ngModel)]="filter_cat_producto">
+                        <label for="categoria-{{indice}}" class="custom-control-label">
+                          <span class="cs-filter-item-text">{{ item.titulo }}</span>
+                           <span class="pl-1 text-muted">(?)</span> </label>
+                      </div>
+                    </li>
+                  </ul>
                 </div>
+              </div>
             </div>
-        </div>
 
-        <div class="row flex-lg-nowrap">
-
-
-            <!-- Filters (sidebar) -->
-            <div id="filtersSidebar" class="col-lg-3 pr-lg-4">
-                <div id="filtersOffcanvas" class="cs-offcanvas cs-offcanvas-collapse">
-                    <div class="cs-offcanvas-cap align-items-center border-bottom mb-3">
-                        <h2 class="h5 mb-0">Shop filters</h2>
-                        <button class="close mr-n1" type="button" data-dismiss="offcanvas" aria-label="Close">
-                            <span class="h2 font-weight-normal mt-n1 mb-0" aria-hidden="true">&times;</span>
+            <div class="card border-bottom">
+               <div class="card-header py-3" id="price-panel">
+                  <h6 class="accordion-heading">
+                      <a href="#price" role="button" data-toggle="collapse" aria-expanded="true" aria-controls="price">
+                          Price
+                          <span class="accordion-indicator"></span>
+                      </a>
+                  </h6>
+               </div>
+              <div class="collapse show" id="price" aria-labelledby="price-panel">
+                <div class="cs-widget pl-1 pr-3 pb-4 mt-n3">
+                   <div class="cs-range-slider" [attr.data-start-min]="precioMin" [attr.data-start-max]="precioMax" data-min="0"
+                       data-max="5000" data-step="1"> <div class="cs-range-slider-ui" id="slider"></div>
+                    <div class="d-flex align-items-center mt-3">
+                      <div class="w-50">
+                        <div class="form-group position-relative mb-0">
+                           <input type="number" [(ngModel)]="precioMin" name="precioMinInput"
+                                 class="form-control form-control-sm cs-range-slider-value-min">
+                        </div>
+                      </div>
+                      <div class="mx-1 px-2 font-size-xs">—</div>
+                      <div class="w-50">
+                        <div class="form-group position-relative mb-0">
+                           <input type="number" [(ngModel)]="precioMax" name="precioMaxInput"
+                                 class="form-control form-control-sm cs-range-slider-value-max">
+                        </div>
+                      </div>
+                    </div>
+                    <div class="row mt-4">
+                      <div class="col-12">
+                         <button class="btn btn-primary btn-sm btn-block" type="button"
+                                (click)="buscar_precios_handler()">
+                          Filtrar
                         </button>
+                      </div>
                     </div>
-                    <div class="cs-offcanvas-body accordion-alt pb-4">
-
-                        <!-- Busqueda -->
-                        <div class="card border-bottom">
-                            <div class="card-header py-3" id="filter-panel">
-                                <h6 class="accordion-heading">
-                                    <a href="#filter" role="button" data-toggle="collapse" aria-expanded="true"
-                                        aria-controls="filter">
-                                        Buscar Producto
-                                        <span class="accordion-indicator"></span>
-                                    </a>
-                                </h6>
-                            </div>
-                            <div class="collapse show" id="filter" aria-labelledby="filter-panel">
-                                <div class="cs-widget pl-1  pb-4 mt-n3">
-                                    <div class="input-group-overlay  d-lg-block d-none order-lg-3 mt-3">
-                                        <input class="form-control appended-form-control" type="text"
-                                            placeholder="Buscar producto" name="filter_producto"
-                                            [(ngModel)]="filter_producto" />
-                                        <div class="input-group-append-overlay"
-                                            style="cursor: pointer; color: white !important; background-color: #17696a !important;"
-                                            (click)="buscar_productos()">
-                                            <span class="input-group-text" style="color: white;"><i
-                                                    class="cxi-search lead align-middle"></i></span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Category -->
-                        <div class="card border-bottom">
-                            <div class="card-header pt-0 pb-3" id="category-panel">
-                                <h6 class="accordion-heading">
-                                    <a href="#category" role="button" data-toggle="collapse" aria-expanded="true"
-                                        aria-controls="category">
-                                        Categorías
-                                        <span class="accordion-indicator"></span>
-                                    </a>
-                                </h6>
-                            </div>
-                            <div class="collapse show" id="category" aria-labelledby="category-panel">
-                                <div class="cs-widget-data-list cs-filter">
-                                    <div class="input-group-overlay mb-3">
-                                        <input type="text"
-                                            class="cs-filter-search form-control form-control-sm appended-form-control"
-                                            placeholder="Buscar categoría" name="filter_categoria"
-                                            [(ngModel)]="filter_categoria" (keyup)="buscar_categorias()">
-                                        <div class="input-group-append-overlay">
-                                            <span class="input-group-text">
-                                                <i class="cxi-search font-size-sm"></i>
-                                            </span>
-                                        </div>
-                                    </div>
-                                    <ul class="cs-filter-list list-unstyled pr-3" style="height: 12rem;" data-simplebar
-                                        data-simplebar-auto-hide="false">
-
-
-                                        <li class="cs-filter-item">
-                                            <div class="custom-control custom-checkbox">
-                                                <input type="radio" (change)="buscar_por_categoria()" name="group1"
-                                                    class="custom-control-input" id="categoria-todos" value="todos"
-                                                    [(ngModel)]="filter_cat_producto">
-                                                <label for="categoria-todos" class="custom-control-label">
-                                                    <span class="cs-filter-item-text">Todos</span>
-                                                    <span class="pl-1 text-muted">235</span>
-                                                </label>
-                                            </div>
-                                        </li>
-
-
-                                        <li class="cs-filter-item"
-                                            *ngFor="let item of config_global.categorias; let indice = index">
-                                            <div class="custom-control custom-checkbox">
-                                                <input type="radio" (change)="buscar_por_categoria()" name="group1"
-                                                    class="custom-control-input" id="categoria-{{indice}}"
-                                                    value="{{ item.titulo }}" [(ngModel)]="filter_cat_producto">
-                                                <label for="categoria-{{indice}}" class="custom-control-label">
-                                                    <span class="cs-filter-item-text">{{ item.titulo }}</span>
-                                                    <span class="pl-1 text-muted">235</span>
-                                                </label>
-                                            </div>
-                                        </li>
-                                    </ul>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Price -->
-                        <div class="card border-bottom">
-                            <div class="card-header py-3" id="price-panel">
-                                <h6 class="accordion-heading">
-                                    <a href="#price" role="button" data-toggle="collapse" aria-expanded="true"
-                                        aria-controls="price">
-                                        Price
-                                        <span class="accordion-indicator"></span>
-                                    </a>
-                                </h6>
-                            </div>
-                            <div class="collapse show" id="price" aria-labelledby="price-panel">
-                                <div class="cs-widget pl-1 pr-3 pb-4 mt-n3">
-                                    <div class="cs-range-slider" data-start-min="250" data-start-max="680" data-min="0"
-                                        data-max="1000" data-step="1">
-                                        <div class="cs-range-slider-ui" id="slider"></div>
-                                        <div class="d-flex align-items-center mt-3">
-                                            <div class="w-50">
-                                                <div class="form-group position-relative mb-0">
-                                                    <input type="number"
-                                                        class="form-control form-control-sm cs-range-slider-value-min">
-                                                </div>
-                                            </div>
-                                            <div class="mx-1 px-2 font-size-xs">—</div>
-                                            <div class="w-50">
-                                                <div class="form-group position-relative mb-0">
-                                                    <input type="number"
-                                                        class="form-control form-control-sm cs-range-slider-value-max">
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="row mt-4">
-                                            <div class="col-12">
-                                                <button class="btn btn-primary btn-sm btn-block" type="button"
-                                                    (click)="buscar_precios()">
-                                                    Filtrar
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-
-                    </div>
+                  </div>
                 </div>
+              </div>
             </div>
 
+          </div> </div>
+      </div> <div class="col">
 
-            <!-- Product grid -->
-            <div class="col">
+         <div class="row" *ngIf="load_data">
+             <div class="col-12 text-center mb-4">
+                 <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status">
+                     <span class="visually-hidden">Cargando...</span>
+                 </div>
+             </div>
+         </div>
 
-                <div class="row" *ngIf="load_data == true">
-                    <div class="col-12 text-center mb-4">
-                        <!-- Custom size border spinner -->
-                        <div class="spinner-border" style="width: 3rem; height: 3rem;" role="status">
-                            <span class="visually-hidden">Cargando...</span>
-                        </div>
+         <div class="row" *ngIf="!load_data && load_productos">
+             <div class="col-12 text-center mb-4">
+                 <div class="spinner-border text-secondary" style="width: 3rem; height: 3rem;" role="status">
+                     <span class="visually-hidden">Filtrando...</span>
+                 </div>
+             </div>
+         </div>
+
+         <div *ngIf="!load_data && !load_productos">
+            <ng-container *ngIf="productos.length === 0">
+              <div class="col-lg-12 col-md-5">
+                <h3 class="h6 mb-2 text-uppercase">No se encontraron productos</h3>
+                <p class="pb-lg-3">Intenta ajustar los filtros o reinícialos.</p>
+                <button style="cursor: pointer;" type="button" class="btn btn-gradient btn-hover-shadow" (click)="reset_productos()">
+                  Mostrar todos los productos
+                </button>
+              </div>
+            </ng-container>
+
+            <div *ngIf="productos.length >= 1" class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-3" data-filters-columns>
+              <div class="col pb-sm-2 mb-grid-gutter"
+                   *ngFor="let producto of productos | slice:(page-1)*(+pageSize):(page-1)*(+pageSize) + (+pageSize)">
+                <div class="card card-product mx-auto">
+                  <div class="card-product-img">
+                    <a [routerLink]="['/productos', producto._id]" class="card-img-top"> <img [src]="url + 'obtener_portada/' + producto.portada" [alt]="producto.titulo">
+                    </a>
+                    <div class="card-product-widgets-top">
+                       <div class="star-rating ml-auto">
+                        <i class="sr-star cxi-star-filled active"></i>
+                        <i class="sr-star cxi-star-filled active"></i>
+                        <i class="sr-star cxi-star-filled active"></i>
+                        <i class="sr-star cxi-star-filled active"></i>
+                        <i class="sr-star cxi-star-filled active"></i>
+                      </div>
                     </div>
-                </div>
-
-                <div *ngIf="load_data == false" class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-3"
-                    data-filters-columns>
-
-                    <!-- Item -->
-                    <ng-container *ngIf="productos.length == 0">
-                        <div class="col-lg-12 col-md-5">
-                            <h3 class="h6 mb-2 text-uppercase">No se encontraron productos</h3>
-                            <h2 class="h1 pb-lg-3">Es posible que sea un error</h2>
-
-                            <a style="cursor: pointer;" class="btn btn-gradient btn-hover-shadow"
-                                (click)="reset_productos()">Mostrar todos los
-                                productos</a>
-                        </div>
-
-                    </ng-container>
-
-                    <ng-container *ngIf="productos.length >= 1">
-                        <div class="col pb-sm-2 mb-grid-gutter"
-                            *ngFor="let producto of productos | slice:(page-1)*pageSize:(page-1)*pageSize + pageSize">
-                            <div class="card card-product mx-auto">
-                                <div class="card-product-img">
-                                    <a href="shop-single.html" class="card-img-top">
-                                        <img [src]="url + 'obtener_portada/' + producto.portada" alt="Product image">
-                                    </a>
-                                    <div class="card-product-widgets-top">
-                                        <div class="star-rating ml-auto">
-                                            <i class="sr-star cxi-star-filled active"></i>
-                                            <i class="sr-star cxi-star-filled active"></i>
-                                            <i class="sr-star cxi-star-filled active"></i>
-                                            <i class="sr-star cxi-star-filled active"></i>
-                                            <i class="sr-star cxi-star-filled active"></i>
-                                        </div>
-                                    </div>
-                                    <div class="card-product-widgets-bottom">
-                                        <a href="#" class="btn-wishlist ml-auto" data-toggle="tooltip"
-                                            data-placement="left" title="Add to wishlist"></a>
-                                    </div>
-                                </div>
-                                <div class="card-body pb-2">
-                                    <h3 class="card-product-title text-truncate mb-2">
-                                        <a href="shop-single.html" class="nav-link">{{ producto.titulo }}</a>
-                                    </h3>
-                                    <div class="d-flex align-items-center">
-                                        <span class="h5 d-inline-block mb-0">${{ producto.precio }}</span>
-                                    </div>
-                                </div>
-                                <div class="card-footer">
-                                    <div class="d-flex align-items-center mb-2 pb-1">
-                                        <div class="row">
-                                            <div class="col-12">
-                                                <a href="">{{producto.categoria}}</a>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <button type="button" class="btn btn-primary btn-block">
-                                        <i class="cxi-cart align-middle mt-n1 mr-2"></i>
-                                        Add to cart
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </ng-container>
-                </div>
-
-                <!-- Toolbar + Pagination -->
-                <div class="d-flex align-items-center pt-md-4">
-                    <div class="form-inline flex-nowrap mr-3 mr-xl-5 pt-1">
-                        <label for="sorting-bottom"
-                            class="font-weight-bold text-nowrap mr-2 pr-1 d-none d-md-block">Ordenar por</label>
-                        <select id="sorting-bottom" class="custom-select" [(ngModel)]="sort_by" (change)="orden_por()">
-                            <option value="Defecto">Defecto</option>
-                            <option value="menoramayor">Precio: Bajo a Alto</option>
-                            <option value="mayoramenor">Precio: Alto a Bajo</option>
-                            <option value="calificacionpromedio">Calificación Promedio</option>
-                            <option value="ordenarA_Z">Ordenar de la A a la Z</option>
-                            <option value="ordenarZ_A">Ordenar de la Z a la A</option>
-                        </select>
+                    <div class="card-product-widgets-bottom">
+                       <a href="#" class="btn-wishlist ml-auto" data-toggle="tooltip"
+                         data-placement="left" title="Add to wishlist"></a>
                     </div>
-                    <div class="form-inline flex-nowrap d-none d-sm-flex mr-3 mr-xl-5 pt-1">
-                        <label for="pager-bottom"
-                            class="font-weight-bold text-nowrap mr-2 pr-1 d-none d-md-block">Mostrar</label>
-                        <select id="pager-bottom" class="custom-select" [(ngModel)]="pageSize">
-                            <option>15</option>
-                            <option>30</option>
-                            <option>45</option>
-                            <option>60</option>
-                            <option>75</option>
-                        </select>
-                        <span class="font-size-sm text-muted text-nowrap ml-2 d-none d-md-block">productos por
-                            página</span>
+                  </div>
+                  <div class="card-body pb-2">
+                    <h3 class="card-product-title text-truncate mb-2">
+                      <a [routerLink]="['/productos', producto._id]" class="nav-link">{{ producto.titulo }}</a> </h3>
+                    <div class="d-flex align-items-center">
+                       <span class="h5 d-inline-block mb-0">{{ producto.precio | currency:'USD':'$' }}</span>
                     </div>
-                    <ngb-pagination [(page)]="page" [pageSize]="pageSize" [collectionSize]="productos.length">
-
-                    </ngb-pagination>
+                  </div>
+                  <div class="card-footer">
+                    <div class="d-flex align-items-center mb-2 pb-1">
+                      <div class="row">
+                        <div class="col-12">
+                           <a style="cursor: pointer;" (click)="filter_cat_producto = producto.categoria; buscar_por_categoria_handler()">{{producto.categoria}}</a>
+                        </div>
+                      </div>
+                    </div>
+                    <button type="button" class="btn btn-primary btn-block">
+                      <i class="cxi-cart align-middle mt-n1 mr-2"></i>
+                      Add to cart
+                    </button>
+                  </div>
                 </div>
-            </div>
+              </div>
+            </div> </div> <div class="d-flex align-items-center pt-md-4 mt-4" *ngIf="!load_data && productos.length > 0"> <div class="form-inline flex-nowrap mr-3 mr-xl-5 pt-1">
+               <label for="sorting-bottom" class="font-weight-bold text-nowrap mr-2 pr-1 d-none d-md-block">Ordenar por</label>
+               <select id="sorting-bottom" class="custom-select" [(ngModel)]="sort_by" (change)="orden_por_handler()">
+                   <option value="Defecto">Defecto</option>
+                   <option value="menoramayor">Precio: Bajo a Alto</option>
+                   <option value="mayoramenor">Precio: Alto a Bajo</option>
+                   <option value="calificacionpromedio">Calificación Promedio</option>
+                   <option value="ordenarA_Z">Ordenar de la A a la Z</option>
+                   <option value="ordenarZ_A">Ordenar de la Z a la A</option>
+               </select>
+           </div>
+           <div class="form-inline flex-nowrap d-none d-sm-flex mr-3 mr-xl-5 pt-1">
+               <label for="pager-bottom" class="font-weight-bold text-nowrap mr-2 pr-1 d-none d-md-block">Mostrar</label>
+               <select id="pager-bottom" class="custom-select" [(ngModel)]="pageSize">
+                   <option value="15">15</option>
+                   <option value="30">30</option>
+                   <option value="45">45</option>
+                   <option value="60">60</option>
+                   <option value="75">75</option>
+               </select>
+               <span class="font-size-sm text-muted text-nowrap ml-2 d-none d-md-block">productos por página</span>
+           </div>
+           <ngb-pagination [(page)]="page" [pageSize]="+pageSize" [collectionSize]="productos.length">
+           </ngb-pagination>
         </div>
-    </section>
+      </div> </div> </section>
 </main>
