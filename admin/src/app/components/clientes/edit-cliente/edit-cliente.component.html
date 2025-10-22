@@ -8,206 +8,271 @@
       Modificando la información de {{ cliente.nombres }} {{ cliente.apellidos }}.
     </p>
     <p class="font-size-sm font-weight-medium pl-md-4">
-        <a class="text-nowrap" [routerLink]="['/panel/clientes']"
-          >Regresar<i
-            class="cxi-angle-right font-size-base align-middle ml-1"
-          ></i
-        ></a>
-      </p>
+      <a class="text-nowrap" [routerLink]="['/panel/clientes']">
+        Regresar<i class="cxi-angle-right font-size-base align-middle ml-1"></i>
+      </a>
+    </p>
   </div>
 </div>
 
 <!-- Precargador inicial -->
 <div class="card box-shadow-sm" *ngIf="load_data">
-    <div class="card-body text-center py-5">
-      <div
-        class="spinner-border text-primary"
-        style="width: 3rem; height: 3rem"
-        role="status"
-      >
-        <span class="visually-hidden">Cargando...</span>
-      </div>
-      <p class="mt-3 text-muted">Cargando datos del cliente...</p>
+  <div class="card-body text-center py-5">
+    <div
+      class="spinner-border text-primary"
+      style="width: 3rem; height: 3rem"
+      role="status"
+    >
+      <span class="visually-hidden">Cargando...</span>
     </div>
+    <p class="mt-3 text-muted">Cargando datos del cliente...</p>
+  </div>
 </div>
-  
 
 <!-- Mensaje de cliente no encontrado -->
 <div class="card box-shadow-sm mb-4" *ngIf="!cliente && !load_data">
-    <div class="card-body text-center py-5">
-      <h3 class="mb-3">Cliente no encontrado</h3>
-      <img
-        src="assets/img/error.png"
-        alt="Error"
-        class="mb-3"
-        style="width: 150px; height: auto"
-      />
-      <p class="text-muted">El cliente que buscas no existe o fue eliminado.</p>
-      <a [routerLink]="['/panel/clientes']" class="btn btn-primary">
-        Volver a Clientes
-      </a>
-    </div>
+  <div class="card-body text-center py-5">
+    <h3 class="mb-3">Cliente no encontrado</h3>
+    <img
+      src="assets/img/error.png"
+      alt="Error"
+      class="mb-3"
+      style="width: 150px; height: auto"
+    />
+    <p class="text-muted">El cliente que buscas no existe o fue eliminado.</p>
+    <a [routerLink]="['/panel/clientes']" class="btn btn-primary">
+      Volver a Clientes
+    </a>
+  </div>
 </div>
 
 <!-- Formulario principal -->
 <form #updateForm="ngForm" (ngSubmit)="actualizar(updateForm)" *ngIf="cliente && !load_data">
-    <div class="card box-shadow-sm">
-      <div class="card-header">
-        <h5 class="mb-0">Detalles del Cliente</h5>
-      </div>
-  
-      <div class="card-body">
-        <!-- Sección de Información Personal -->
-        <h6>Información Personal</h6>
-        <hr>
-        <div class="row">
-          <!-- Nombres -->
-          <div class="col-md-6 form-group mb-4">
-            <label for="nombres" class="form-label">Nombres <span class="text-danger">*</span></label>
-            <input
-              id="nombres"
-              class="form-control"
-              type="text"
-              placeholder="Nombres del cliente"
-              required
-              name="nombres"
-              [(ngModel)]="cliente.nombres"
-              #nombres="ngModel"
-              [ngClass]="{'is-invalid': nombres.invalid && nombres.touched}"
-            />
-            <div *ngIf="nombres.invalid && nombres.touched" class="invalid-feedback">
-              Los nombres son requeridos.
-            </div>
-          </div>
-  
-          <!-- Apellidos -->
-          <div class="col-md-6 form-group mb-4">
-            <label for="apellidos" class="form-label">Apellidos <span class="text-danger">*</span></label>
-            <input
-              id="apellidos"
-              class="form-control"
-              type="text"
-              placeholder="Apellidos del cliente"
-              required
-              name="apellidos"
-              [(ngModel)]="cliente.apellidos"
-              #apellidos="ngModel"
-              [ngClass]="{'is-invalid': apellidos.invalid && apellidos.touched}"
-            />
-            <div *ngIf="apellidos.invalid && apellidos.touched" class="invalid-feedback">
-              Los apellidos son requeridos.
-            </div>
-          </div>
-  
-          <!-- Género -->
-          <div class="col-md-6 form-group mb-4">
-              <label for="genero" class="form-label">Género</label>
-              <select
-                id="genero"
-                class="form-control custom-select"
-                name="genero"
-                [(ngModel)]="cliente.genero"
-              >
-                <option value="" disabled selected>Seleccione una opción</option>
-                <option value="Masculino">Masculino</option>
-                <option value="Femenino">Femenino</option>
-                <option value="Otro">Otro</option>
-              </select>
-            </div>
-  
-          <!-- Fecha de Nacimiento -->
-          <div class="col-md-6 form-group mb-4">
-            <label for="f_nacimiento" class="form-label">Fecha de nacimiento</label>
-            <input
-              id="f_nacimiento"
-              class="form-control"
-              type="date"
-              name="f_nacimiento"
-              [(ngModel)]="cliente.f_nacimiento"
-            />
+  <div class="card box-shadow-sm">
+    <div class="card-header">
+      <h5 class="mb-0">Detalles del Cliente</h5>
+    </div>
+
+    <div class="card-body">
+      <!-- Sección de Información Personal -->
+      <h6>Información Personal</h6>
+      <hr>
+      <div class="row">
+        <!-- Nombres -->
+        <div class="col-md-6 form-group mb-4">
+          <label for="nombres" class="form-label">
+            Nombres <span class="text-danger">*</span>
+          </label>
+          <input
+            id="nombres"
+            class="form-control"
+            type="text"
+            placeholder="Nombres del cliente"
+            required
+            name="nombres"
+            [(ngModel)]="cliente.nombres"
+            (input)="validarNombre($event, 'nombres')"
+            #nombres="ngModel"
+            maxlength="50"
+            pattern="[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+"
+            [ngClass]="{'is-invalid': nombres.invalid && nombres.touched}"
+          />
+          <small class="form-text text-muted">Solo letras y espacios</small>
+          <div *ngIf="nombres.invalid && nombres.touched" class="invalid-feedback">
+            Los nombres son requeridos y solo pueden contener letras.
           </div>
         </div>
-  
-        <!-- Sección de Contacto e Identificación -->
-        <h6 class="mt-3">Información de Contacto y Ubicación</h6>
-        <hr>
-        <div class="row">
-          <!-- Email -->
-          <div class="col-md-6 form-group mb-4">
-            <label for="email" class="form-label">Correo electrónico <span class="text-danger">*</span></label>
-            <input
-              id="email"
-              class="form-control"
-              type="email"
-              placeholder="correo@ejemplo.com"
-              required
-              pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,4}$"
-              name="email"
-              [(ngModel)]="cliente.email"
-              #email="ngModel"
-              [ngClass]="{'is-invalid': email.invalid && email.touched}"
-            />
-            <div *ngIf="email.invalid && email.touched" class="invalid-feedback">
-               <span *ngIf="email.errors?.['required']">El correo es requerido.</span>
-               <span *ngIf="email.errors?.['pattern']">El formato del correo no es válido.</span>
-            </div>
-          </div>
-  
-          <!-- Teléfono -->
-          <div class="col-md-6 form-group mb-4">
-            <label for="telefono" class="form-label">Teléfono</label>
-            <input
-              id="telefono"
-              class="form-control"
-              type="text"
-              placeholder="Número de teléfono"
-              name="telefono"
-              [(ngModel)]="cliente.telefono"
-            />
-          </div>
-  
-          <!-- País -->
-          <div class="col-md-6 form-group mb-4">
-              <label for="pais" class="form-label">País</label>
-              <input
-                id="pais"
-                class="form-control"
-                type="text"
-                placeholder="País de residencia"
-                name="pais"
-                [(ngModel)]="cliente.pais"
-              />
-            </div>
-  
-          <!-- DUI -->
-          <div class="col-md-6 form-group mb-4">
-            <label for="dui" class="form-label">DUI (Documento de Identidad)</label>
-            <input
-              id="dui"
-              class="form-control"
-              type="text"
-              placeholder="00000000-0"
-              name="dui"
-              [(ngModel)]="cliente.dui"
-            />
+
+        <!-- Apellidos -->
+        <div class="col-md-6 form-group mb-4">
+          <label for="apellidos" class="form-label">
+            Apellidos <span class="text-danger">*</span>
+          </label>
+          <input
+            id="apellidos"
+            class="form-control"
+            type="text"
+            placeholder="Apellidos del cliente"
+            required
+            name="apellidos"
+            [(ngModel)]="cliente.apellidos"
+            (input)="validarNombre($event, 'apellidos')"
+            #apellidos="ngModel"
+            maxlength="50"
+            pattern="[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+"
+            [ngClass]="{'is-invalid': apellidos.invalid && apellidos.touched}"
+          />
+          <small class="form-text text-muted">Solo letras y espacios</small>
+          <div *ngIf="apellidos.invalid && apellidos.touched" class="invalid-feedback">
+            Los apellidos son requeridos y solo pueden contener letras.
           </div>
         </div>
+
+        <!-- Género -->
+        <div class="col-md-6 form-group mb-4">
+          <label for="genero" class="form-label">Género</label>
+          <select
+            id="genero"
+            class="form-control custom-select"
+            name="genero"
+            [(ngModel)]="cliente.genero"
+          >
+            <option value="" disabled>Seleccione una opción</option>
+            <option value="masculino">Masculino</option>
+            <option value="femenino">Femenino</option>
+            <option value="otro">Otro</option>
+          </select>
+        </div>
+
+        <!-- Fecha de Nacimiento -->
+        <div class="col-md-6 form-group mb-4">
+          <label for="f_nacimiento" class="form-label">Fecha de nacimiento</label>
+          <input
+            id="f_nacimiento"
+            class="form-control"
+            type="date"
+            name="f_nacimiento"
+            [(ngModel)]="cliente.f_nacimiento"
+            [max]="fecha_maxima"
+            [min]="fecha_minima"
+          />
+          <small class="form-text text-muted">Debe tener al menos 16 años</small>
+        </div>
       </div>
-  
-      <div class="card-footer d-flex justify-content-end">
+
+      <!-- Sección de Contacto e Identificación -->
+      <h6 class="mt-3">Información de Contacto y Ubicación</h6>
+      <hr>
+      <div class="row">
+        <!-- Email -->
+        <div class="col-md-6 form-group mb-4">
+          <label for="email" class="form-label">
+            Correo electrónico <span class="text-danger">*</span>
+          </label>
+          <input
+            id="email"
+            class="form-control"
+            type="email"
+            placeholder="correo@ejemplo.com"
+            required
+            pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,4}$"
+            name="email"
+            [(ngModel)]="cliente.email"
+            #email="ngModel"
+            [ngClass]="{'is-invalid': email.invalid && email.touched}"
+          />
+          <div *ngIf="email.invalid && email.touched" class="invalid-feedback">
+            <span *ngIf="email.errors?.['required']">El correo es requerido.</span>
+            <span *ngIf="email.errors?.['pattern']">El formato del correo no es válido.</span>
+          </div>
+        </div>
+
+        <!-- Contraseña -->
+        <div class="col-md-6 form-group mb-4">
+          <label for="password" class="form-label">Contraseña</label>
+          <div class="input-group">
+            <input
+              [type]="mostrarPassword ? 'text' : 'password'"
+              class="form-control"
+              id="password"
+              placeholder="Dejar vacío para no cambiar"
+              minlength="6"
+              name="password"
+              [(ngModel)]="cliente.password"
+              #password="ngModel"
+              [ngClass]="{'is-invalid': password.invalid && password.touched}"
+            />
+            <div class="input-group-append">
+              <button
+                class="btn btn-outline-secondary"
+                type="button"
+                (click)="togglePassword()">
+                <i [class]="mostrarPassword ? 'cxi-eye-off' : 'cxi-eye'"></i>
+              </button>
+            </div>
+            <div *ngIf="password.invalid && password.touched" class="invalid-feedback d-block">
+              La contraseña debe tener al menos 6 caracteres.
+            </div>
+          </div>
+          <small class="form-text text-muted">Mínimo 6 caracteres. Dejar vacío para no cambiar</small>
+        </div>
+
+        <!-- Teléfono -->
+        <div class="col-md-6 form-group mb-4">
+          <label for="telefono" class="form-label">Teléfono</label>
+          <input
+            id="telefono"
+            class="form-control"
+            type="text"
+            placeholder="0000-0000"
+            name="telefono"
+            [(ngModel)]="cliente.telefono"
+            (input)="aplicarMascaraTelefono($event)"
+            maxlength="9"
+            pattern="\d{4}-\d{4}"
+          />
+          <small class="form-text text-muted">Formato: 0000-0000</small>
+        </div>
+
+        <!-- País -->
+        <div class="col-md-6 form-group mb-4">
+          <label for="pais" class="form-label">País</label>
+          <select
+            id="pais"
+            class="form-control custom-select"
+            name="pais"
+            [(ngModel)]="cliente.pais"
+          >
+            <option value="" disabled>Seleccione un país</option>
+            <option value="el-salvador">El Salvador</option>
+            <option value="guatemala">Guatemala</option>
+            <option value="honduras">Honduras</option>
+            <option value="nicaragua">Nicaragua</option>
+            <option value="costa-rica">Costa Rica</option>
+            <option value="panama">Panamá</option>
+            <option value="otro">Otro</option>
+          </select>
+        </div>
+
+        <!-- DUI -->
+        <div class="col-md-6 form-group mb-4">
+          <label for="dui" class="form-label">DUI (Documento de Identidad)</label>
+          <input
+            id="dui"
+            class="form-control"
+            type="text"
+            placeholder="00000000-0"
+            name="dui"
+            [(ngModel)]="cliente.dui"
+            (input)="aplicarMascaraDUI($event)"
+            maxlength="10"
+            pattern="\d{8}-\d"
+          />
+          <small class="form-text text-muted">Formato: 00000000-0 (Opcional)</small>
+        </div>
+      </div>
+    </div>
+
+    <div class="card-footer d-flex justify-content-between align-items-center">
+      <div class="text-muted small">
+        <i class="cxi-info-circle mr-1"></i>
+        Los campos con <span class="text-danger">*</span> son obligatorios
+      </div>
+      <div>
         <a routerLink="/panel/clientes" class="btn btn-outline-secondary me-3">Cancelar</a>
         <button 
           class="btn btn-primary" 
           type="submit"
           [disabled]="updateForm.invalid || load_btn">
           <span *ngIf="!load_btn">
-              <i class="cxi-save me-2"></i>Actualizar Cliente
+            <i class="cxi-save me-2"></i>Actualizar Cliente
           </span>
           <span *ngIf="load_btn">
-              <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-              Actualizando...
+            <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+            Actualizando...
           </span>
         </button>
       </div>
     </div>
-  </form>
+  </div>
+</form>

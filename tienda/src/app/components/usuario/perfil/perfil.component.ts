@@ -61,13 +61,22 @@ export class PerfilComponent implements OnInit {
     this.load_data = true;
     this._clienteService.obtener_cliente_guest(this.id, this.token).subscribe(
       response => {
-        if (response.data) {
-          this.cliente = response.data;
+        console.log('Respuesta cargar cliente:', response); // Debug
+        
+        // El servidor puede devolver response.data o directamente response
+        const datosCliente = response.data || response;
+        
+        if (datosCliente && (datosCliente._id || datosCliente.email)) {
+          this.cliente = datosCliente;
           
           // Formatear fecha de nacimiento para el input date
           if (this.cliente.f_nacimiento) {
             this.cliente.f_nacimiento = this.formatearFechaParaInput(this.cliente.f_nacimiento);
           }
+          
+          // Actualizar localStorage también
+          localStorage.setItem('usuario', JSON.stringify(this.cliente));
+          localStorage.setItem('nombre_cliente', this.cliente.nombres);
           
           this.load_data = false;
         } else {
@@ -90,12 +99,17 @@ export class PerfilComponent implements OnInit {
   private formatearFechaParaInput(fecha: string): string {
     if (!fecha) return '';
     
-    const fechaObj = new Date(fecha);
-    const anio = fechaObj.getFullYear();
-    const mes = String(fechaObj.getMonth() + 1).padStart(2, '0');
-    const dia = String(fechaObj.getDate()).padStart(2, '0');
-    
-    return `${anio}-${mes}-${dia}`;
+    try {
+      const fechaObj = new Date(fecha);
+      const anio = fechaObj.getFullYear();
+      const mes = String(fechaObj.getMonth() + 1).padStart(2, '0');
+      const dia = String(fechaObj.getDate()).padStart(2, '0');
+      
+      return `${anio}-${mes}-${dia}`;
+    } catch (e) {
+      console.error('Error formateando fecha:', e);
+      return '';
+    }
   }
 
   /**
@@ -263,39 +277,62 @@ export class PerfilComponent implements OnInit {
     this.load_data = true;
     this._clienteService.actualizar_perfil_cliente_guest(this.id, datosActualizar, this.token).subscribe(
       response => {
-        if (response.data) {
-          // Actualizar localStorage
-          localStorage.setItem('usuario', JSON.stringify(response.data));
-          localStorage.setItem('nombre_cliente', response.data.nombres);
+        console.log('Respuesta actualización:', response); // Debug
+        
+        // Verificar diferentes formatos de respuesta del servidor
+        const datosActualizados = response.data || response;
+        
+        // Verificar si hay datos válidos en la respuesta
+        if (datosActualizados && (datosActualizados._id || datosActualizados.email)) {
+          // Actualización exitosa con datos completos
+          localStorage.setItem('usuario', JSON.stringify(datosActualizados));
+          localStorage.setItem('nombre_cliente', datosActualizados.nombres);
 
-          // Actualizar cliente en el componente
-          this.cliente = response.data;
+          this.cliente = datosActualizados;
           
-          // Formatear fecha de nacimiento para el input date
           if (this.cliente.f_nacimiento) {
             this.cliente.f_nacimiento = this.formatearFechaParaInput(this.cliente.f_nacimiento);
           }
 
           this.mostrarExito('Perfil actualizado correctamente');
-          this.cargarCliente();
 
-          // Limpiar campo de contraseña
           $('#input_password').val('');
           this.mostrarPassword = false;
 
-          // Recargar el navbar para actualizar el nombre
           window.dispatchEvent(new Event('storage'));
           
           this.load_data = false;
+        } else if (response.message || response.msg) {
+          // Respuesta exitosa pero sin datos completos (común al cambiar contraseña)
+          const mensaje = response.message || response.msg || 'Perfil actualizado correctamente';
+          this.mostrarExito(mensaje);
+          
+          $('#input_password').val('');
+          this.mostrarPassword = false;
+          
+          // Recargar datos del servidor para asegurar sincronización
+          this.cargarCliente();
         } else {
-          this.load_data = false;
-          this.mostrarError('No se pudo actualizar el perfil');
+          // No hay datos ni mensaje - asumir éxito si no hay error
+          this.mostrarExito('Perfil actualizado correctamente');
+          
+          $('#input_password').val('');
+          this.mostrarPassword = false;
+          
+          // Recargar datos del servidor
+          this.cargarCliente();
         }
       },
       error => {
         console.error('Error actualizando perfil:', error);
         this.load_data = false;
-        this.manejarErrorAutenticacion(error);
+        
+        // Si el error no es de autenticación, mostrar mensaje específico
+        if (error.status !== 401 && error.status !== 403) {
+          this.mostrarError(error.error?.message || error.error?.msg || 'Error al actualizar el perfil');
+        } else {
+          this.manejarErrorAutenticacion(error);
+        }
       }
     );
   }
@@ -311,7 +348,7 @@ export class PerfilComponent implements OnInit {
         this._router.navigate(['/login']);
       }, 2000);
     } else {
-      this.mostrarError(error.error?.message || 'Ocurrió un error inesperado');
+      this.mostrarError(error.error?.message || error.error?.msg || 'Ocurrió un error inesperado');
     }
   }
 

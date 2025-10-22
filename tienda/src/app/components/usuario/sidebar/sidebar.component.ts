@@ -1,43 +1,71 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
 import { ClienteService } from 'src/app/services/cliente.service';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-sidebar',
   templateUrl: './sidebar.component.html',
   styleUrls: ['./sidebar.component.css']
 })
-export class SidebarComponent implements OnInit {
+export class SidebarComponent implements OnInit, OnDestroy {
   public token: string | null;
   public id: string | null;
   public user_lc: any = undefined;
   public usuario: any = undefined;
+  private storageSubscription: Subscription | undefined;
 
   constructor(
     private _clienteService: ClienteService,
     private _router: Router
   ) {
-    this.cargarUsuario();
+    this.token = localStorage.getItem('token');
+    this.id = localStorage.getItem('_id');
   }
 
   ngOnInit(): void {
-
+    // Verificar autenticación
     if (!this.token || !this.id) {
       this._router.navigate(['/login']);
+      return;
+    }
+
+    // Cargar usuario inicial
+    this.cargarUsuario();
+
+    // Escuchar cambios en localStorage (cuando se actualiza el perfil)
+    window.addEventListener('storage', this.handleStorageChange.bind(this));
+  }
+
+  ngOnDestroy(): void {
+    // Limpiar evento
+    window.removeEventListener('storage', this.handleStorageChange.bind(this));
+  }
+
+  /**
+   * Maneja cambios en el localStorage
+   */
+  private handleStorageChange(): void {
+    const usuarioGuardado = localStorage.getItem('usuario');
+    if (usuarioGuardado) {
+      try {
+        this.user_lc = JSON.parse(usuarioGuardado);
+      } catch (e) {
+        console.error('Error parseando usuario:', e);
+      }
     }
   }
 
-
+  /**
+   * Carga el usuario desde localStorage o servidor
+   */
   private cargarUsuario(): void {
-    this.token = localStorage.getItem('token');
-    this.id = localStorage.getItem('_id');
-
     if (!this.token || !this.id) {
       this.limpiarSesion();
       return;
     }
 
-
+    // Cargar desde localStorage primero
     const usuarioGuardado = localStorage.getItem('usuario');
     if (usuarioGuardado) {
       try {
@@ -70,6 +98,9 @@ export class SidebarComponent implements OnInit {
     );
   }
 
+  /**
+   * Limpia la sesión del usuario
+   */
   private limpiarSesion(): void {
     this.usuario = undefined;
     this.user_lc = undefined;
@@ -77,5 +108,15 @@ export class SidebarComponent implements OnInit {
     localStorage.removeItem('_id');
     localStorage.removeItem('usuario');
     localStorage.removeItem('nombre_cliente');
+  }
+
+  /**
+   * Cierra sesión del usuario
+   */
+  logout(): void {
+    this.limpiarSesion();
+    this._router.navigate(['/']).then(() => {
+      window.location.reload();
+    });
   }
 }
