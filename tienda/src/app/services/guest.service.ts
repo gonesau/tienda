@@ -7,15 +7,20 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
   providedIn: 'root'
 })
 export class GuestService {
-    public url;
+  public url;
 
   constructor(private _http: HttpClient) {
     this.url = Global.url;
   }
 
-    obtener_producto_slug_publico(slug): Observable<any> {
+  obtener_producto_slug_publico(slug): Observable<any> {
     let headers = new HttpHeaders().set('Content-Type', 'application/json');
-    return this._http.get(this.url + 'obtener_producto_slug_publico/' + slug, {headers: headers});
+    return this._http.get(this.url + 'obtener_producto_slug_publico/' + slug, { headers: headers });
+  }
+
+  listar_productos_recomendados_publico(categoria): Observable<any> {
+    let headers = new HttpHeaders().set('Content-Type', 'application/json');
+    return this._http.get(this.url + 'listar_productos_recomendados_publico/' + categoria, { headers: headers });
   }
 
 }
