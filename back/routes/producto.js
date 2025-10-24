@@ -32,5 +32,7 @@ api.put('/eliminar_imagen_galeria_admin/:id', auth.auth, productoController.elim
 //Publicos
 api.get('/listar_productos_publico/:filtro', productoController.listar_productos_publico);
 api.get('/listar_productos_publico', productoController.listar_productos_publico);
+api.get('/obtener_producto_slug_publico/:slug', productoController.obtener_producto_slug_publico);
+
 
 module.exports =  api;

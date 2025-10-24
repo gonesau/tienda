@@ -1,4 +1,7 @@
 import { Component, OnInit } from '@angular/core';
+import { ActivatedRoute } from '@angular/router';
+import { Global } from 'src/app/services/global';
+import { GuestService } from 'src/app/services/guest.service';
 declare var tns;
 declare var lightGallery;
 
@@ -8,8 +11,28 @@ declare var lightGallery;
   styleUrls: ['./show-producto.component.css']
 })
 export class ShowProductoComponent implements OnInit {
+  public slug;
+  public producto: any = {};
+  public url;
 
-  constructor() { }
+  constructor(
+    private _route: ActivatedRoute,
+    private _guestService: GuestService
+  ) { 
+    this.url = Global.url;
+    this._route.params.subscribe(params => {
+      this.slug = params.slug;
+
+      this._guestService.obtener_producto_slug_publico(this.slug).subscribe(
+        response => {
+          this.producto = response.data;
+        },
+        error => {
+          console.log(error);
+        }
+      );
+    });
+  }
 
   ngOnInit(): void {
     tns({
