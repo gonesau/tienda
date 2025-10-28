@@ -96,15 +96,12 @@
                             <div class="collapse show" id="filter" aria-labelledby="filter-panel">
                                 <div class="cs-widget pl-1 pb-4 mt-n3">
                                     <div class="input-group-overlay d-lg-block d-none order-lg-3 mt-3">
-                                        <input class="form-control appended-form-control" 
-                                               type="text"
-                                               placeholder="Buscar producto" 
-                                               name="filter_producto"
-                                               [(ngModel)]="filter_producto"
-                                               (keyup.enter)="buscar_productos()" />
+                                        <input class="form-control appended-form-control" type="text"
+                                            placeholder="Buscar producto" name="filter_producto"
+                                            [(ngModel)]="filter_producto" (keyup.enter)="buscar_productos()" />
                                         <div class="input-group-append-overlay"
-                                             style="cursor: pointer; color: white !important; background-color: #17696a !important;"
-                                             (click)="buscar_productos()">
+                                            style="cursor: pointer; color: white !important; background-color: #17696a !important;"
+                                            (click)="buscar_productos()">
                                             <span class="input-group-text" style="color: white;">
                                                 <i class="cxi-search lead align-middle"></i>
                                             </span>
@@ -130,10 +127,8 @@
                                     <div class="input-group-overlay mb-3">
                                         <input type="text"
                                             class="cs-filter-search form-control form-control-sm appended-form-control"
-                                            placeholder="Buscar categoría" 
-                                            name="filter_categoria"
-                                            [(ngModel)]="filter_categoria" 
-                                            (keyup)="buscar_categorias()">
+                                            placeholder="Buscar categoría" name="filter_categoria"
+                                            [(ngModel)]="filter_categoria" (keyup)="buscar_categorias()">
                                         <div class="input-group-append-overlay">
                                             <span class="input-group-text">
                                                 <i class="cxi-search font-size-sm"></i>
@@ -145,13 +140,9 @@
 
                                         <li class="cs-filter-item">
                                             <div class="custom-control custom-checkbox">
-                                                <input type="radio" 
-                                                       (change)="buscar_por_categoria()" 
-                                                       name="group1"
-                                                       class="custom-control-input" 
-                                                       id="categoria-todos" 
-                                                       value="todos"
-                                                       [(ngModel)]="filter_cat_producto">
+                                                <input type="radio" (change)="buscar_por_categoria()" name="group1"
+                                                    class="custom-control-input" id="categoria-todos" value="todos"
+                                                    [(ngModel)]="filter_cat_producto">
                                                 <label for="categoria-todos" class="custom-control-label">
                                                     <span class="cs-filter-item-text">Todos</span>
                                                 </label>
@@ -161,13 +152,9 @@
                                         <li class="cs-filter-item"
                                             *ngFor="let item of config_global.categorias; let indice = index">
                                             <div class="custom-control custom-checkbox">
-                                                <input type="radio" 
-                                                       (change)="buscar_por_categoria()" 
-                                                       name="group1"
-                                                       class="custom-control-input" 
-                                                       id="categoria-{{indice}}"
-                                                       [value]="item.titulo" 
-                                                       [(ngModel)]="filter_cat_producto">
+                                                <input type="radio" (change)="buscar_por_categoria()" name="group1"
+                                                    class="custom-control-input" id="categoria-{{indice}}"
+                                                    [value]="item.titulo" [(ngModel)]="filter_cat_producto">
                                                 <label for="categoria-{{indice}}" class="custom-control-label">
                                                     <span class="cs-filter-item-text">{{ item.titulo }}</span>
                                                 </label>
@@ -198,8 +185,7 @@
                                                 <div class="form-group position-relative mb-0">
                                                     <input type="number"
                                                         class="form-control form-control-sm cs-range-slider-value-min"
-                                                        [value]="precio_min"
-                                                        readonly>
+                                                        [value]="precio_min" readonly>
                                                 </div>
                                             </div>
                                             <div class="mx-1 px-2 font-size-xs">—</div>
@@ -207,16 +193,14 @@
                                                 <div class="form-group position-relative mb-0">
                                                     <input type="number"
                                                         class="form-control form-control-sm cs-range-slider-value-max"
-                                                        [value]="precio_max"
-                                                        readonly>
+                                                        [value]="precio_max" readonly>
                                                 </div>
                                             </div>
                                         </div>
                                         <div class="row mt-4">
                                             <div class="col-12">
-                                                <button class="btn btn-primary btn-sm btn-block" 
-                                                        type="button"
-                                                        (click)="buscar_precios()">
+                                                <button class="btn btn-primary btn-sm btn-block" type="button"
+                                                    (click)="buscar_precios()">
                                                     Filtrar
                                                 </button>
                                             </div>
@@ -229,9 +213,8 @@
                         <!-- Resetear filtros -->
                         <div class="card">
                             <div class="card-body">
-                                <button class="btn btn-outline-primary btn-block" 
-                                        type="button"
-                                        (click)="reset_productos()">
+                                <button class="btn btn-outline-primary btn-block" type="button"
+                                    (click)="reset_productos()">
                                     <i class="cxi-reload mr-2"></i>
                                     Limpiar filtros
                                 </button>
@@ -263,8 +246,7 @@
                             <div class="text-center py-5">
                                 <h3 class="h6 mb-2 text-uppercase">No se encontraron productos</h3>
                                 <h2 class="h1 pb-lg-3">Intenta con otros filtros</h2>
-                                <button class="btn btn-gradient btn-hover-shadow"
-                                        (click)="reset_productos()">
+                                <button class="btn btn-gradient btn-hover-shadow" (click)="reset_productos()">
                                     Mostrar todos los productos
                                 </button>
                             </div>
@@ -290,13 +272,14 @@
                                         </div>
                                     </div>
                                     <div class="card-product-widgets-bottom">
-                                        <a [routerLink]="['/productos', producto.slug]" class="btn-wishlist ml-auto" data-toggle="tooltip"
-                                            data-placement="left" title="Add to wishlist"></a>
+                                        <a [routerLink]="['/productos', producto.slug]" class="btn-wishlist ml-auto"
+                                            data-toggle="tooltip" data-placement="left" title="Add to wishlist"></a>
                                     </div>
                                 </div>
                                 <div class="card-body pb-2">
                                     <h3 class="card-product-title text-truncate mb-2">
-                                        <a [routerLink]="['/productos', producto.slug]" class="nav-link">{{ producto.titulo }}</a>
+                                        <a [routerLink]="['/productos', producto.slug]" class="nav-link">{{
+                                            producto.titulo }}</a>
                                     </h3>
                                     <div class="d-flex align-items-center">
                                         <span class="h5 d-inline-block mb-0">${{ producto.precio }}</span>
@@ -306,17 +289,26 @@
                                     <div class="d-flex align-items-center mb-2 pb-1">
                                         <div class="row">
                                             <div class="col-12">
-                                                <a style="cursor: pointer;" 
-                                                   (click)="filtrar_por_categoria(producto.categoria)">
+                                                <a style="cursor: pointer;"
+                                                    (click)="filtrar_por_categoria(producto.categoria)">
                                                     {{ producto.categoria }}
                                                 </a>
                                             </div>
                                         </div>
                                     </div>
-                                    <button type="button" class="btn btn-primary btn-block">
+                                    <button type="button" class="btn btn-primary btn-block" *ngIf="!btn_cart" (click)="agregar_producto(producto)">
                                         <i class="cxi-cart align-middle mt-n1 mr-2"></i>
-                                        Add to cart
+                                        Agregar al carrito
                                     </button>
+
+
+                                    <!-- Button with growing spinner and text -->
+                                    <button type="button" class="btn btn-secondary btn-block" disabled *ngIf="btn_cart">
+                                        <span class="spinner-grow spinner-grow-sm me-2" role="status"
+                                            aria-hidden="true"></span>
+                                        Agregando...
+                                    </button>
+
                                 </div>
                             </div>
                         </div>

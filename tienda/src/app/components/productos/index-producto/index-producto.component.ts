@@ -4,6 +4,7 @@ import { ClienteService } from 'src/app/services/cliente.service';
 import { Global } from 'src/app/services/global';
 declare var noUiSlider: any;
 declare var $: any;
+declare var iziToast;
 
 @Component({
   selector: 'app-index-producto',
@@ -27,12 +28,22 @@ export class IndexProductoComponent implements OnInit, AfterViewInit {
   public slider: any;
   public precio_min = 0;
   public precio_max = 5000;
+  public carrito_data: any = {
+    variedad: '',
+    cantidad: 1,
+  };
+  public producto: any = {};
+  public token;
+
+  public btn_cart = false;
 
   constructor(
     private _clienteService: ClienteService,
-    private _route: ActivatedRoute
+    private _route: ActivatedRoute,
+
   ) {
     this.url = Global.url;
+    this.token = localStorage.getItem('token');
   }
 
   ngOnInit(): void {
@@ -40,7 +51,7 @@ export class IndexProductoComponent implements OnInit, AfterViewInit {
     this._clienteService.obtener_config_publico().subscribe(
       response => {
         this.config_global = response.data;
-      }, 
+      },
       error => {
         console.log(error);
       }
@@ -96,13 +107,13 @@ export class IndexProductoComponent implements OnInit, AfterViewInit {
    */
   cargarProductos(): void {
     this.load_data = true;
-    
+
     this._clienteService.obtener_productos_publico('').subscribe(
       response => {
         this.productos_constante = response.data;
         this.aplicarFiltros();
         this.load_data = false;
-      }, 
+      },
       error => {
         console.log(error);
         this.load_data = false;
@@ -119,8 +130,8 @@ export class IndexProductoComponent implements OnInit, AfterViewInit {
     // Filtro por búsqueda de texto
     if (this.filter_producto && this.filter_producto.trim() !== '') {
       const search = new RegExp(this.filter_producto, 'i');
-      resultado = resultado.filter(item => 
-        search.test(item.titulo) || 
+      resultado = resultado.filter(item =>
+        search.test(item.titulo) ||
         search.test(item.categoria) ||
         search.test(item.descripcion)
       );
@@ -128,26 +139,26 @@ export class IndexProductoComponent implements OnInit, AfterViewInit {
 
     // Filtro por categoría desde la ruta
     if (this.route_categoria) {
-      resultado = resultado.filter(item => 
+      resultado = resultado.filter(item =>
         item.categoria.toLowerCase() === this.route_categoria.toLowerCase()
       );
     }
 
     // Filtro por categoría desde el sidebar
     if (this.filter_cat_producto !== 'todos') {
-      resultado = resultado.filter(item => 
+      resultado = resultado.filter(item =>
         item.categoria === this.filter_cat_producto
       );
     }
 
     // Filtro por precio
-    resultado = resultado.filter(item => 
+    resultado = resultado.filter(item =>
       item.precio >= this.precio_min && item.precio <= this.precio_max
     );
 
     // Aplicar ordenamiento
     this.productos = this.aplicarOrdenamiento(resultado);
-    
+
     // Resetear página
     this.page = 1;
   }
@@ -158,7 +169,7 @@ export class IndexProductoComponent implements OnInit, AfterViewInit {
   aplicarOrdenamiento(productos: Array<any>): Array<any> {
     let resultado = [...productos];
 
-    switch(this.sort_by) {
+    switch (this.sort_by) {
       case 'menoramayor':
         resultado.sort((a, b) => a.precio - b.precio);
         break;
@@ -195,7 +206,7 @@ export class IndexProductoComponent implements OnInit, AfterViewInit {
       this._clienteService.obtener_config_publico().subscribe(
         response => {
           this.config_global = response.data;
-        }, 
+        },
         error => {
           console.log(error);
         }
@@ -244,12 +255,12 @@ export class IndexProductoComponent implements OnInit, AfterViewInit {
     this.sort_by = 'Defecto';
     this.precio_min = 0;
     this.precio_max = 5000;
-    
+
     // Resetear slider
     if (this.slider) {
       this.slider.set([0, 5000]);
     }
-    
+
     this.aplicarFiltros();
   }
 
@@ -259,4 +270,50 @@ export class IndexProductoComponent implements OnInit, AfterViewInit {
   orden_por(): void {
     this.aplicarFiltros();
   }
+
+
+
+
+  agregar_producto(producto) {
+    let data = {
+      producto: producto._id,
+      cliente: localStorage.getItem('_id'),
+      cantidad: 1,
+      variedad: producto.variedades[0].titulo,
+    }
+    this.btn_cart = true;
+    this._clienteService.agregar_carrito_cliente(data, this.token).subscribe(
+      response => {
+        if (response.data == undefined) {
+          iziToast.error({
+            title: 'Error',
+            titleColor: '#FF0000',
+            color: '#FFF',
+            class: 'text-danger',
+            position: 'topRight',
+            message: 'El producto ya se encuentra en el carrito de compras.'
+          });
+          this.btn_cart = false;
+        } else {
+          iziToast.success({
+            title: 'Éxito',
+            titleColor: '#1DC74C',
+            color: '#FFF',
+            class: 'text-success',
+            position: 'topRight',
+            message: 'Se agregó el producto al carrito de compras.'
+          });
+          this.btn_cart = false;
+        }
+      },
+      error => {
+        console.log(error);
+      }
+    );
+  }
+
+
+
+
+
 }
