@@ -1,0 +1,145 @@
+/* ============================================
+   INDEX CLIENTE - ESTILOS ESPECÍFICOS
+   ============================================ */
+
+/* --- Avatar circular --- */
+.avatar-circle {
+    width: 40px;
+    height: 40px;
+    min-width: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 0.875rem;
+    text-transform: uppercase;
+}
+
+/* --- Tabla responsiva --- */
+.table {
+    font-size: 0.9rem;
+}
+
+.table thead th {
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.8rem;
+    letter-spacing: 0.5px;
+    color: #495057;
+    border-bottom: 2px solid #dee2e6;
+}
+
+.table tbody tr {
+    transition: background-color 0.15s ease;
+}
+
+.table tbody tr:hover {
+    background-color: rgba(13, 110, 253, 0.05);
+}
+
+/* --- Badges --- */
+.badge {
+    font-weight: 500;
+    padding: 0.35em 0.65em;
+    font-size: 0.75rem;
+}
+
+/* --- Input de búsqueda --- */
+.input-group-text {
+    border-right: 0;
+}
+
+.input-group .form-control {
+    border-left: 0;
+    border-right: 0;
+}
+
+.input-group .form-control:focus {
+    box-shadow: none;
+    border-color: #ced4da;
+}
+
+.input-group .form-control:focus+.input-group-text,
+.input-group-text+.form-control:focus {
+    border-color: #0d6efd;
+}
+
+/* --- Botones de acción --- */
+.btn-group-sm .btn {
+    padding: 0.375rem 0.75rem;
+}
+
+/* --- Modal mejorado --- */
+.modal-content {
+    border: none;
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+}
+
+.modal-header {
+    padding: 1.25rem 1.5rem;
+}
+
+.modal-body {
+    padding: 1.5rem;
+}
+
+.modal-footer {
+    padding: 1rem 1.5rem;
+}
+
+/* --- Empty state --- */
+.table tbody td {
+    vertical-align: middle;
+}
+
+/* --- Paginación --- */
+::ng-deep .pagination {
+    margin-bottom: 0;
+}
+
+::ng-deep .page-link {
+    color: #0d6efd;
+}
+
+::ng-deep .page-item.active .page-link {
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+}
+
+/* --- Responsividad --- */
+@media (max-width: 767.98px) {
+    .table {
+        font-size: 0.85rem;
+    }
+
+    .avatar-circle {
+        width: 36px;
+        height: 36px;
+        min-width: 36px;
+        font-size: 0.8rem;
+    }
+
+    .btn-group-sm .btn {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.8rem;
+    }
+}
+
+/* --- Loading state --- */
+.spinner-border {
+    animation: spinner-border 0.75s linear infinite;
+}
+
+/* --- Card header actions --- */
+.card-header {
+    padding: 1rem 1.25rem;
+}
+
+.card-body {
+    padding: 0;
+}
+
+.card-footer {
+    padding: 1rem 1.25rem;
+}

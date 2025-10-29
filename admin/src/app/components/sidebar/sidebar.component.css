@@ -1,29 +1,239 @@
-/* Estilo para el enlace activo en el sidebar */
-.nav-link.active {
-    background-color: rgba(255, 255, 255, 0.08);
-    border-left: 3px solid #007bff; /* Color primario de Bootstrap */
-    color: #fff !important;
+/* ============================================
+   SIDEBAR COMPONENT - ESTILOS ESPECÍFICOS
+   ============================================ */
+
+/* --- Variables locales --- */
+:root {
+  --sidebar-width: 280px;
+  --header-height: 70px;
+  --sidebar-transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.nav-link.active i {
-    color: #0d6efd; /* Un color más brillante para el ícono activo */
+/* --- Sidebar Principal --- */
+.admin-sidebar {
+  width: var(--sidebar-width);
+  height: 100vh;
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 1040;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  overflow-x: hidden;
+  background-color: #212529 !important;
+  transition: var(--sidebar-transition);
 }
 
-/* Estilo para el avatar del usuario en el header */
+/* Sidebar en mobile (oculto por defecto) */
+@media (max-width: 991.98px) {
+  .admin-sidebar {
+    transform: translateX(-100%);
+  }
+  
+  .admin-sidebar.show {
+    transform: translateX(0);
+    box-shadow: 2px 0 10px rgba(0, 0, 0, 0.3);
+  }
+}
+
+/* --- Header del Sidebar --- */
+.sidebar-header {
+  min-height: var(--header-height);
+  flex-shrink: 0;
+}
+
+/* --- Navegación del Sidebar --- */
+.sidebar-nav {
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+/* Sección de navegación */
+.nav-section-title {
+  font-size: 0.75rem;
+  letter-spacing: 0.5px;
+}
+
+/* Links de navegación */
+.sidebar-nav .nav-link {
+  position: relative;
+  color: rgba(255, 255, 255, 0.75);
+  transition: all 0.2s ease;
+  border-radius: 0;
+  margin: 2px 0;
+  font-weight: 500;
+}
+
+.sidebar-nav .nav-link:hover {
+  color: #ffffff;
+  background-color: rgba(255, 255, 255, 0.08);
+  padding-left: 1.25rem;
+}
+
+.sidebar-nav .nav-link.active {
+  color: #ffffff;
+  background-color: rgba(13, 110, 253, 0.15);
+  border-left: 3px solid #0d6efd;
+  padding-left: calc(1rem - 3px);
+}
+
+.sidebar-nav .nav-link.active i {
+  color: #0d6efd;
+}
+
+/* Iconos del sidebar */
+.sidebar-nav .nav-link i {
+  width: 20px;
+  text-align: center;
+  transition: color 0.2s ease;
+}
+
+/* --- Footer del Sidebar --- */
+.sidebar-footer {
+  flex-shrink: 0;
+  margin-top: auto;
+}
+
+/* --- Header Superior --- */
+.admin-header {
+  height: var(--header-height);
+  position: fixed;
+  top: 0;
+  left: var(--sidebar-width);
+  right: 0;
+  z-index: 1030;
+  transition: left 0.3s ease;
+}
+
+@media (max-width: 991.98px) {
+  .admin-header {
+    left: 0;
+  }
+}
+
+/* --- Backdrop para mobile --- */
+.sidebar-backdrop {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.6);
+  z-index: 1039;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.sidebar-backdrop.show {
+  display: block;
+  opacity: 1;
+}
+
+/* --- Avatar de usuario --- */
 .user-avatar {
-    width: 35px;
-    height: 35px;
-    border-radius: 50%;
-    background-color: #007bff;
-    color: white;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: bold;
-    font-size: 14px;
-    text-transform: uppercase;
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+}
+
+/* --- Dropdown mejorado --- */
+.dropdown-menu {
+  border: none;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  border-radius: 0.375rem;
 }
 
 .dropdown-item {
-    cursor: pointer;
+  padding: 0.5rem 1rem;
+  transition: background-color 0.2s ease;
+}
+
+.dropdown-item:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.dropdown-item.text-danger:hover {
+  background-color: rgba(220, 53, 69, 0.1);
+}
+
+/* --- Utilidades adicionales --- */
+.text-white-75 {
+  color: rgba(255, 255, 255, 0.75);
+}
+
+.text-white-50 {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.letter-spacing {
+  letter-spacing: 0.5px;
+}
+
+.fs-7 {
+  font-size: 0.875rem;
+}
+
+/* --- Scrollbar del sidebar (Webkit) --- */
+.admin-sidebar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.admin-sidebar::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.admin-sidebar::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 3px;
+}
+
+.admin-sidebar::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* --- Responsividad adicional --- */
+@media (max-width: 575.98px) {
+  .admin-sidebar {
+    width: 100%;
+  }
+  
+  .sidebar-header {
+    padding: 1rem !important;
+  }
+  
+  .nav-section-title {
+    font-size: 0.7rem;
+  }
+}
+
+/* --- Animación de entrada --- */
+@keyframes slideInLeft {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+.admin-sidebar.show {
+  animation: slideInLeft 0.3s ease;
+}
+
+/* --- Accesibilidad --- */
+.admin-sidebar .nav-link:focus,
+.dropdown-toggle:focus {
+  outline: 2px solid #0d6efd;
+  outline-offset: -2px;
+}
+
+/* --- Print --- */
+@media print {
+  .admin-sidebar,
+  .admin-header,
+  .sidebar-backdrop {
+    display: none !important;
+  }
 }

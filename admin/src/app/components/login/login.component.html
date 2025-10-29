@@ -1,86 +1,114 @@
-<div class="container-fluid px-0">
-  <div class="row g-0 min-vh-100">
-    <!-- Columna de la imagen (visible en md y superior) -->
-    <div class="col-md-6 col-lg-7 d-none d-md-block">
-      <div class="bg-size-cover bg-position-center h-100" style="background-image: url('https://images.unsplash.com/photo-1556740738-b6a63e27c4df?q=80&w=2070&auto=format&fit=crop');">
+<div class="login-wrapper min-vh-100">
+  <div class="container-fluid h-100">
+    <div class="row h-100 g-0">
+      
+      <!-- Columna de Imagen (oculta en mobile) -->
+      <div class="col-md-6 col-lg-7 d-none d-md-block">
+        <div class="login-image h-100"></div>
       </div>
-    </div>
 
-    <!-- Columna del formulario -->
-    <div class="col-12 col-md-6 col-lg-5 d-flex align-items-center">
-      <div class="w-100 mx-auto px-4 px-sm-5 py-5" style="max-width: 480px;">
-        
-        <div class="text-center mb-4">
-          <h1 class="h3">Bienvenido de Nuevo</h1>
-          <p class="text-muted mb-0">Inicia sesión para administrar tu tienda.</p>
-        </div>
-
-        <form #loginForm="ngForm" (ngSubmit)="login(loginForm)">
-          <!-- Correo Electrónico -->
-          <div class="form-group mb-4">
-            <label for="email" class="form-label">Correo electrónico <span class="text-danger">*</span></label>
-            <input
-              id="email"
-              type="email"
-              class="form-control form-control-lg"
-              name="email"
-              [(ngModel)]="user.email"
-              placeholder="ejemplo@correo.com"
-              required
-              email
-              #email="ngModel"
-              [ngClass]="{'is-invalid': email.invalid && email.touched}"
-            />
-            <div *ngIf="email.invalid && email.touched" class="invalid-feedback">
-              <span *ngIf="email.errors?.['required']">El correo electrónico es requerido.</span>
-              <span *ngIf="email.errors?.['email']">Por favor, ingresa un correo electrónico válido.</span>
+      <!-- Columna de Formulario -->
+      <div class="col-12 col-md-6 col-lg-5 d-flex align-items-center justify-content-center">
+        <div class="login-form-container w-100 px-4 px-sm-5 py-5">
+          
+          <!-- Logo/Brand -->
+          <div class="text-center mb-4">
+            <div class="login-logo mb-3">
+              <i class="fas fa-store text-primary"></i>
             </div>
+            <h2 class="fw-bold mb-2">Bienvenido</h2>
+            <p class="text-muted mb-0">Ingresa a tu cuenta para continuar</p>
           </div>
 
-          <!-- Contraseña -->
-          <div class="form-group mb-4">
-            <label for="password" class="form-label">Contraseña <span class="text-danger">*</span></label>
-            <div class="input-group input-group-lg">
+          <!-- Formulario -->
+          <form #loginForm="ngForm" (ngSubmit)="login(loginForm)" novalidate class="mt-4">
+            
+            <!-- Email -->
+            <div class="mb-3">
+              <label for="email" class="form-label fw-medium">
+                Correo electrónico
+              </label>
               <input
-                id="password"
-                [type]="passwordFieldType"
+                type="email"
                 class="form-control"
-                name="password"
-                [(ngModel)]="user.password"
-                placeholder="Tu contraseña"
+                id="email"
+                name="email"
+                placeholder="correo@ejemplo.com"
+                autocomplete="email"
                 required
-                minlength="1"
-                #password="ngModel"
-                [ngClass]="{'is-invalid': password.invalid && password.touched}"
+                email
+                [(ngModel)]="user.email"
+                #email="ngModel"
+                [class.is-invalid]="email.invalid && email.touched"
               />
-              <button 
-                type="button" 
-                class="btn btn-outline-secondary" 
-                (click)="togglePasswordVisibility()">
-                <i class="fa-solid" [ngClass]="passwordFieldType === 'password' ? 'fa-eye' : 'fa-eye-slash'"></i>
-              </button>
-              <div *ngIf="password.invalid && password.touched" class="invalid-feedback">
-                  La contraseña es requerida.
+              <div class="invalid-feedback" *ngIf="email.invalid && email.touched">
+                <small *ngIf="email.errors?.['required']">El correo es requerido</small>
+                <small *ngIf="email.errors?.['email']">Ingresa un correo válido</small>
               </div>
             </div>
-          </div>
-          
-          <!-- Botón de Iniciar Sesión -->
-          <button 
-            type="submit" 
-            class="btn btn-primary btn-lg w-100"
-            [disabled]="loginForm.invalid || load_btn">
-             <span *ngIf="!load_btn">
-                <i class="cxi-sign-in me-2"></i>Iniciar sesión
-            </span>
-            <span *ngIf="load_btn">
-                <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-                Ingresando...
-            </span>
-          </button>
 
-        </form>
+            <!-- Password -->
+            <div class="mb-4">
+              <label for="password" class="form-label fw-medium">
+                Contraseña
+              </label>
+              <div class="input-group">
+                <input
+                  [type]="passwordFieldType"
+                  class="form-control"
+                  id="password"
+                  name="password"
+                  placeholder="Tu contraseña"
+                  autocomplete="current-password"
+                  required
+                  minlength="6"
+                  [(ngModel)]="user.password"
+                  #password="ngModel"
+                  [class.is-invalid]="password.invalid && password.touched"
+                />
+                <button 
+                  class="btn btn-outline-secondary" 
+                  type="button"
+                  (click)="togglePasswordVisibility()"
+                  tabindex="-1"
+                  [attr.aria-label]="passwordFieldType === 'password' ? 'Mostrar contraseña' : 'Ocultar contraseña'">
+                  <i class="fas" [ngClass]="passwordFieldType === 'password' ? 'fa-eye' : 'fa-eye-slash'"></i>
+                </button>
+              </div>
+              <div class="invalid-feedback d-block" *ngIf="password.invalid && password.touched">
+                <small *ngIf="password.errors?.['required']">La contraseña es requerida</small>
+                <small *ngIf="password.errors?.['minlength']">Mínimo 6 caracteres</small>
+              </div>
+            </div>
+
+            <!-- Botón de login -->
+            <div class="d-grid">
+              <button 
+                type="submit" 
+                class="btn btn-primary btn-lg"
+                [disabled]="loginForm.invalid || load_btn">
+                <span *ngIf="!load_btn">
+                  <i class="fas fa-sign-in-alt me-2"></i>Iniciar sesión
+                </span>
+                <span *ngIf="load_btn">
+                  <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                  Ingresando...
+                </span>
+              </button>
+            </div>
+
+          </form>
+
+          <!-- Footer -->
+          <div class="text-center mt-4 pt-4 border-top">
+            <p class="text-muted small mb-0">
+              © {{ currentYear }} Sistema de Administración
+            </p>
+          </div>
+
+        </div>
       </div>
+
     </div>
   </div>
 </div>

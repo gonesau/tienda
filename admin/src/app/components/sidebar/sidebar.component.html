@@ -1,124 +1,210 @@
-<!-- Navbar -->
-<header
-  class="navbar navbar-expand-lg navbar-light fixed-top bg-white shadow-sm px-3 px-lg-4"
-  data-scroll-header
-  data-fixed-element
->
-  <a class="navbar-brand d-flex align-items-center" [routerLink]="['/']">
-    <img src="assets/img/components/logo/logo-dark.svg" alt="Logo" width="130" />
-  </a>
-
-  <button
-    class="navbar-toggler ml-auto"
-    type="button"
-    data-toggle="offcanvas"
-    data-target="#componentsNav"
-    aria-controls="componentsNav"
-    aria-expanded="false"
-    aria-label="Toggle navigation"
-  >
-    <span class="navbar-toggler-icon"></span>
-  </button>
-
-  <!-- Menú de usuario a la derecha -->
-  <ul class="navbar-nav ml-auto align-items-center">
-    <li class="nav-item dropdown">
-      <a
-        class="nav-link dropdown-toggle d-flex align-items-center"
-        href="#"
-        id="userDropdown"
-        role="button"
-        data-toggle="dropdown"
-        aria-haspopup="true"
-        aria-expanded="false"
-      >
-        <div class="user-avatar">
-          <i class="fa-solid fa-user"></i>
-        </div>
-        <span class="d-none d-sm-inline-block ml-2">Admin</span>
-      </a>
-      <div class="dropdown-menu dropdown-menu-right shadow-sm" aria-labelledby="userDropdown">
-        <a class="dropdown-item" [routerLink]="['/panel/configuraciones']">
-          <i class="fa-solid fa-gear me-2"></i>Configuración
-        </a>
-        <div class="dropdown-divider"></div>
-        <button class="dropdown-item text-danger" (click)="logout()">
-          <i class="fa-solid fa-arrow-right-from-bracket me-2"></i>Cerrar sesión
-        </button>
-      </div>
-    </li>
-  </ul>
-</header>
-
 <!-- Sidebar -->
-<aside
-  class="cs-offcanvas cs-offcanvas-expand bg-dark"
-  id="componentsNav"
->
-  <div class="cs-offcanvas-cap d-flex align-items-center justify-content-between py-3 px-4 border-bottom border-secondary">
-    <div class="d-flex align-items-center">
-      <img src="assets/img/components/logo/logo-white.svg" alt="Logo" width="120" class="mr-2" />
-      <span class="badge badge-success">Admin</span>
+<aside 
+  class="admin-sidebar bg-dark text-white" 
+  [class.show]="sidebarOpen"
+  data-simplebar>
+  
+  <!-- Header del Sidebar -->
+  <div class="sidebar-header d-flex align-items-center justify-content-between p-3 border-bottom border-secondary">
+    <div class="d-flex align-items-center gap-2">
+      <i class="fas fa-store text-primary fs-4"></i>
+      <span class="fw-bold fs-5">Admin Panel</span>
     </div>
-    <button class="close text-light d-lg-none" type="button" data-dismiss="offcanvas" aria-label="Close">
-      <span aria-hidden="true">&times;</span>
+    <button 
+      class="btn btn-link text-white p-0 d-lg-none" 
+      type="button"
+      (click)="toggleSidebar()"
+      aria-label="Cerrar menú">
+      <i class="fas fa-times fs-4"></i>
     </button>
   </div>
 
-  <!-- Navegación -->
-  <div class="cs-offcanvas-body px-0 pt-4 pb-4" data-simplebar data-simplebar-inverse>
-    <h6 class="text-uppercase text-light opacity-50 px-4 mb-3">Principal</h6>
-    <nav class="nav flex-column nav-light">
-      <a
-        class="nav-link d-flex align-items-center px-4 py-2"
-        [routerLink]="['/inicio']"
-        routerLinkActive="active"
-      >
-        <i class="fa-solid fa-house fa-fw me-3"></i> Inicio
-      </a>
-    </nav>
-
-    <hr class="border-secondary my-3">
-
-    <h6 class="text-uppercase text-light opacity-50 px-4 mb-3">Gestión de Tienda</h6>
-    <nav class="nav flex-column nav-light">
-       <a
-        class="nav-link d-flex align-items-center px-4 py-2"
-        [routerLink]="['/panel/clientes']"
-        routerLinkActive="active"
-      >
-        <i class="fa-solid fa-users fa-fw me-3"></i> Clientes
-      </a>
-
-      <a
-        class="nav-link d-flex align-items-center px-4 py-2"
-        [routerLink]="['/panel/productos']"
-        routerLinkActive="active"
-      >
-        <i class="fa-solid fa-box-open fa-fw me-3"></i> Productos
-      </a>
-      
-      <a
-        class="nav-link d-flex align-items-center px-4 py-2"
-        [routerLink]="['/panel/cupones']"
-        routerLinkActive="active"
-      >
-        <i class="fa-solid fa-ticket fa-fw me-3"></i> Cupones
-      </a>
-    </nav>
+  <!-- Navegación Principal -->
+  <nav class="sidebar-nav flex-grow-1 py-3">
     
-    <hr class="border-secondary my-3">
+    <!-- Sección: Principal -->
+    <div class="nav-section mb-3">
+      <h6 class="nav-section-title text-uppercase text-white-50 px-3 mb-2 fs-7 fw-semibold letter-spacing">
+        Principal
+      </h6>
+      <ul class="nav flex-column">
+        <li class="nav-item">
+          <a 
+            class="nav-link d-flex align-items-center px-3 py-2 text-white-75"
+            [routerLink]="['/inicio']"
+            routerLinkActive="active"
+            (click)="closeSidebarOnMobile()">
+            <i class="fas fa-home fa-fw me-3"></i>
+            <span>Inicio</span>
+          </a>
+        </li>
+      </ul>
+    </div>
 
-    <h6 class="text-uppercase text-light opacity-50 px-4 mb-3">Sistema</h6>
-     <nav class="nav flex-column nav-light">
-        <a
-            class="nav-link d-flex align-items-center px-4 py-2"
+    <!-- Divider -->
+    <hr class="border-secondary opacity-50 my-2">
+
+    <!-- Sección: Gestión de Tienda -->
+    <div class="nav-section mb-3">
+      <h6 class="nav-section-title text-uppercase text-white-50 px-3 mb-2 fs-7 fw-semibold letter-spacing">
+        Gestión de Tienda
+      </h6>
+      <ul class="nav flex-column">
+        <li class="nav-item">
+          <a 
+            class="nav-link d-flex align-items-center px-3 py-2 text-white-75"
+            [routerLink]="['/panel/clientes']"
+            routerLinkActive="active"
+            (click)="closeSidebarOnMobile()">
+            <i class="fas fa-users fa-fw me-3"></i>
+            <span>Clientes</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a 
+            class="nav-link d-flex align-items-center px-3 py-2 text-white-75"
+            [routerLink]="['/panel/productos']"
+            routerLinkActive="active"
+            (click)="closeSidebarOnMobile()">
+            <i class="fas fa-box-open fa-fw me-3"></i>
+            <span>Productos</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a 
+            class="nav-link d-flex align-items-center px-3 py-2 text-white-75"
+            [routerLink]="['/panel/cupones']"
+            routerLinkActive="active"
+            (click)="closeSidebarOnMobile()">
+            <i class="fas fa-ticket fa-fw me-3"></i>
+            <span>Cupones</span>
+          </a>
+        </li>
+      </ul>
+    </div>
+
+    <!-- Divider -->
+    <hr class="border-secondary opacity-50 my-2">
+
+    <!-- Sección: Sistema -->
+    <div class="nav-section mb-3">
+      <h6 class="nav-section-title text-uppercase text-white-50 px-3 mb-2 fs-7 fw-semibold letter-spacing">
+        Sistema
+      </h6>
+      <ul class="nav flex-column">
+        <li class="nav-item">
+          <a 
+            class="nav-link d-flex align-items-center px-3 py-2 text-white-75"
             [routerLink]="['/panel/configuraciones']"
             routerLinkActive="active"
-        >
-            <i class="fa-solid fa-gear fa-fw me-3"></i> Configuración
-        </a>
-     </nav>
+            (click)="closeSidebarOnMobile()">
+            <i class="fas fa-cog fa-fw me-3"></i>
+            <span>Configuración</span>
+          </a>
+        </li>
+      </ul>
+    </div>
+  </nav>
+
+  <!-- Footer del Sidebar (Usuario) -->
+  <div class="sidebar-footer border-top border-secondary p-3">
+    <div class="dropdown dropup">
+      <button 
+        class="btn btn-dark w-100 d-flex align-items-center justify-content-between text-start"
+        type="button"
+        id="userDropdownSidebar"
+        data-bs-toggle="dropdown"
+        aria-expanded="false">
+        <div class="d-flex align-items-center gap-2">
+          <div class="user-avatar bg-primary rounded-circle d-flex align-items-center justify-content-center"
+               style="width: 36px; height: 36px;">
+            <i class="fas fa-user text-white"></i>
+          </div>
+          <div class="d-flex flex-column">
+            <span class="fw-semibold text-white small">Administrador</span>
+            <span class="text-white-50" style="font-size: 0.75rem;">admin@sistema.com</span>
+          </div>
+        </div>
+        <i class="fas fa-chevron-up text-white-50"></i>
+      </button>
+      <ul class="dropdown-menu dropdown-menu-dark w-100" aria-labelledby="userDropdownSidebar">
+        <li>
+          <a class="dropdown-item" [routerLink]="['/panel/configuraciones']" (click)="closeSidebarOnMobile()">
+            <i class="fas fa-cog fa-fw me-2"></i>Configuración
+          </a>
+        </li>
+        <li><hr class="dropdown-divider"></li>
+        <li>
+          <button class="dropdown-item text-danger" (click)="logout()">
+            <i class="fas fa-sign-out-alt fa-fw me-2"></i>Cerrar sesión
+          </button>
+        </li>
+      </ul>
+    </div>
   </div>
 </aside>
 
+<!-- Header (Navbar Superior) -->
+<header class="admin-header d-flex align-items-center justify-content-between px-3 px-lg-4 bg-white shadow-sm">
+  <!-- Toggle Sidebar (Mobile) -->
+  <button 
+    class="btn btn-link text-dark p-0 d-lg-none"
+    type="button"
+    (click)="toggleSidebar()"
+    aria-label="Abrir menú">
+    <i class="fas fa-bars fs-4"></i>
+  </button>
+
+  <!-- Logo/Brand (visible en desktop) -->
+  <div class="d-none d-lg-block">
+    <a class="navbar-brand d-flex align-items-center gap-2" [routerLink]="['/']">
+      <i class="fas fa-store text-primary fs-4"></i>
+      <span class="fw-bold">Mi Tienda Admin</span>
+    </a>
+  </div>
+
+  <!-- Espaciador -->
+  <div class="flex-grow-1"></div>
+
+  <!-- User Menu (Desktop) -->
+  <div class="dropdown d-none d-lg-block">
+    <button 
+      class="btn btn-link text-dark text-decoration-none d-flex align-items-center gap-2"
+      type="button"
+      id="userDropdownHeader"
+      data-bs-toggle="dropdown"
+      aria-expanded="false">
+      <div class="user-avatar bg-primary rounded-circle d-flex align-items-center justify-content-center"
+           style="width: 36px; height: 36px;">
+        <i class="fas fa-user text-white"></i>
+      </div>
+      <span class="d-none d-xl-inline-block fw-semibold">Administrador</span>
+      <i class="fas fa-chevron-down"></i>
+    </button>
+    <ul class="dropdown-menu dropdown-menu-end shadow-sm" aria-labelledby="userDropdownHeader">
+      <li>
+        <h6 class="dropdown-header">
+          <i class="fas fa-user-circle me-2"></i>Administrador
+        </h6>
+      </li>
+      <li><hr class="dropdown-divider"></li>
+      <li>
+        <a class="dropdown-item" [routerLink]="['/panel/configuraciones']">
+          <i class="fas fa-cog fa-fw me-2"></i>Configuración
+        </a>
+      </li>
+      <li><hr class="dropdown-divider"></li>
+      <li>
+        <button class="dropdown-item text-danger" (click)="logout()">
+          <i class="fas fa-sign-out-alt fa-fw me-2"></i>Cerrar sesión
+        </button>
+      </li>
+    </ul>
+  </div>
+</header>
+
+<!-- Backdrop para cerrar sidebar en mobile -->
+<div 
+  class="sidebar-backdrop" 
+  [class.show]="sidebarOpen"
+  (click)="closeSidebar()"></div>
