@@ -3,9 +3,9 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { AdminService } from 'src/app/services/admin.service';
 import { Global } from 'src/app/services/global';
 import { ProductoService } from 'src/app/services/producto.service';
+import { NgForm } from '@angular/forms';
+
 declare var iziToast: any;
-declare var jQuery: any;
-declare var $: any;
 
 @Component({
   selector: 'app-update-producto',
@@ -13,15 +13,17 @@ declare var $: any;
   styleUrls: ['./update-producto.component.css'],
 })
 export class UpdateProductoComponent implements OnInit {
-  public producto: any = {};
+  
+  public producto: any = null;
   public config: any = {};
   public imgSelect: any | ArrayBuffer;
   public load_btn = false;
-  public id;
-  public token;
-  public url;
-  public file: File = undefined;
-  public config_global: any = {};
+  public load_data = true;
+  public id: string = '';
+  public token: string;
+  public url: string;
+  public file: File | undefined;
+  public config_global: any = { categorias: [] };
 
   constructor(
     private _route: ActivatedRoute,
@@ -29,6 +31,7 @@ export class UpdateProductoComponent implements OnInit {
     private _adminService: AdminService,
     private _router: Router
   ) {
+    // Configuración de TinyMCE
     this.config = {
       height: 500,
       menubar: true,
@@ -38,165 +41,191 @@ export class UpdateProductoComponent implements OnInit {
         'insertdatetime media table paste code help wordcount',
       ],
       toolbar:
-        'undo redo | formatselect | ' +
-        'bold italic backcolor | alignleft aligncenter ' +
-        'alignright alignjustify | bullist numlist outdent indent | ' +
-        'removeformat | help',
+        'undo redo | formatselect | bold italic backcolor | ' +
+        'alignleft aligncenter alignright alignjustify | ' +
+        'bullist numlist outdent indent | removeformat | help',
       content_style:
         'body { font-family:Helvetica,Arial,sans-serif; font-size:14px }',
     };
 
-    this.token = localStorage.getItem('token');
+    this.token = localStorage.getItem('token') || '';
     this.url = Global.url;
 
-        this._adminService.obtener_config_publico().subscribe(
-      response => {
-        this.config_global = response.data;
-      }, error => { 
-        console.log(error) 
-      }
-    );
-
+    if (!this.token) {
+      this._router.navigate(['/login']);
+    }
   }
 
   ngOnInit(): void {
+    this.cargar_config();
+    
     this._route.params.subscribe((params) => {
       this.id = params['id'];
-      this._productoService
-        .obtener_producto_admin(this.id, this.token)
-        .subscribe(
-          (response) => {
-            if (response.data == undefined) {
-              this.producto = undefined;
-            } else {
-              this.producto = response.data;
-              this.imgSelect =
-                this.url + 'obtener_portada/' + this.producto.portada;
-            }
-          },
-          (error) => {
-            console.log(error);
-          }
-        );
+      if (this.id) {
+        this.init_data();
+      } else {
+        this.load_data = false;
+        this.mostrarError('ID de producto no válido');
+        this._router.navigate(['/panel/productos']);
+      }
     });
   }
 
-  actualizar(actualizarForm) {
-    if (actualizarForm.valid) {
-      var data: any = {};
-      if (this.file != undefined) {
-        data.portada = this.file;
+  /**
+   * Carga la configuración global (categorías)
+   */
+  cargar_config(): void {
+    this._adminService.obtener_config_publico().subscribe(
+      response => {
+        this.config_global = response.data || { categorias: [] };
+      },
+      error => {
+        console.error('Error al cargar configuración:', error);
       }
-      data.titulo = this.producto.titulo;
-      data.stock = this.producto.stock;
-      data.precio = this.producto.precio;
-      data.categoria = this.producto.categoria;
-      data.descripcion = this.producto.descripcion;
-      data.contenido = this.producto.contenido;
-
-      this.load_btn = true;
-      this._productoService
-        .actualizar_producto_admin(data, this.id, this.token)
-        .subscribe(
-          (response) => {
-            iziToast.show({
-              title: 'Éxito',
-              message: 'Producto actualizado correctamente',
-              position: 'topRight',
-              class: 'text-success',
-              titleColor: '#1DC74C',
-            });
-            this.load_btn = false;
-            this._router.navigate(['/panel/productos']);
-          },
-          (error) => {
-            iziToast.show({
-              title: 'Error',
-              titleColor: '#FF0000',
-              color: '#FFF',
-              class: 'text-danger',
-              position: 'topRight',
-              message: 'Error al actualizar el producto',
-            });
-            this.load_btn = false;
-            this._router.navigate(['/panel/productos']);
-          }
-        );
-    } else {
-      iziToast.show({
-        title: 'Error',
-        titleColor: '#FF0000',
-        color: '#FFF',
-        class: 'text-danger',
-        position: 'topRight',
-        message: 'Los datos del formulario no son válidos',
-      });
-      this.load_btn = false;
-    }
+    );
   }
 
-  fileChangeEvent(event: any): void {
-    var file;
-
-    if (event.target.files && event.target.files[0]) {
-      file = <File>event.target.files[0];
-      console.log(file);
-    } else {
-      iziToast.show({
-        title: 'Error',
-        titleColor: '#FF0000',
-        color: '#FFF',
-        class: 'text-danger',
-        position: 'topRight',
-        message: 'No hay una imagen seleccionada',
-      });
-
-      $('#input-portada').text('Seleccionar imagen');
-      this.imgSelect = 'assets/img/01.png';
-      this.file = undefined;
-    }
-
-    // Validación tamaño
-    if (file.size <= 5000000) {
-      // Validación tipo
-      if (
-        file.type == 'image/png' ||
-        file.type == 'image/webp' ||
-        file.type == 'image/jpg' ||
-        file.type == 'image/jpeg'
-      ) {
-        const reader = new FileReader();
-        reader.onload = (e) => (this.imgSelect = reader.result);
-        reader.readAsDataURL(file);
-
-        $('#input-portada').text(file.name);
-
-        this.file = file;
-      } else {
-        iziToast.show({
-          title: 'Error',
-          titleColor: '#FF0000',
-          color: '#FFF',
-          class: 'text-danger',
-          position: 'topRight',
-          message: 'La imagen debe ser png, webp, jpg o jpeg',
-        });
-        $('#input-portada').text('Seleccionar imagen');
-        this.imgSelect = 'assets/img/01.png';
-        this.file = undefined;
+  /**
+   * Carga los datos del producto
+   */
+  init_data(): void {
+    this.load_data = true;
+    
+    this._productoService.obtener_producto_admin(this.id, this.token).subscribe(
+      (response) => {
+        const datosProducto = response.data || response;
+        
+        if (datosProducto && datosProducto._id) {
+          this.producto = datosProducto;
+          this.imgSelect = this.url + 'obtener_portada/' + this.producto.portada;
+          this.load_data = false;
+        } else {
+          this.producto = null;
+          this.load_data = false;
+          this.mostrarError('Producto no encontrado');
+        }
+      },
+      (error) => {
+        console.error('Error al obtener producto:', error);
+        this.producto = null;
+        this.load_data = false;
+        this.mostrarError('Error al cargar los datos del producto');
       }
-    } else {
-      iziToast.show({
-        title: 'Error',
-        titleColor: '#FF0000',
-        color: '#FFF',
-        class: 'text-danger',
-        position: 'topRight',
-        message: 'La imagen no puede superar los 5MB',
-      });
-      $('#input-portada').text('Seleccionar imagen');
-      this.imgSelect = 'assets/img/01.png';
-      this.file = undefined;
+    );
+  }
+
+  /**
+   * Maneja el cambio de archivo
+   */
+  fileChangeEvent(event: any): void {
+    const files = event.target.files;
+    
+    if (!files || !files[0]) {
+      return;
     }
+
+    const file = <File>files[0];
+
+    // Validar tamaño (máx 5MB)
+    if (file.size > 5000000) {
+      this.mostrarError('La imagen no puede superar los 5MB');
+      this.file = undefined;
+      event.target.value = '';
+      return;
+    }
+
+    // Validar tipo
+    const validTypes = ['image/png', 'image/webp', 'image/jpg', 'image/jpeg'];
+    if (!validTypes.includes(file.type)) {
+      this.mostrarError('Formato inválido. Usa PNG, JPG, JPEG o WEBP');
+      this.file = undefined;
+      event.target.value = '';
+      return;
+    }
+
+    // Archivo válido
+    this.file = file;
+
+    // Generar preview
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      this.imgSelect = reader.result;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  /**
+   * Actualiza el producto
+   */
+  actualizar(actualizarForm: NgForm): void {
+    // Validar formulario
+    if (actualizarForm.invalid) {
+      Object.keys(actualizarForm.controls).forEach(key => {
+        actualizarForm.controls[key].markAsTouched();
+      });
+      this.mostrarError('Por favor, completa todos los campos requeridos correctamente.');
+      return;
+    }
+
+    // Validar stock y precio
+    if (this.producto.stock < 0) {
+      this.mostrarError('El stock no puede ser negativo');
+      return;
+    }
+
+    if (this.producto.precio <= 0) {
+      this.mostrarError('El precio debe ser mayor a 0');
+      return;
+    }
+
+    // Preparar datos
+    const data: any = {
+      titulo: this.producto.titulo,
+      stock: this.producto.stock,
+      precio: this.producto.precio,
+      categoria: this.producto.categoria,
+      descripcion: this.producto.descripcion,
+      contenido: this.producto.contenido
+    };
+
+    // Agregar portada solo si se cambió
+    if (this.file) {
+      data.portada = this.file;
+    }
+
+    this.load_btn = true;
+
+    this._productoService.actualizar_producto_admin(data, this.id, this.token).subscribe(
+      (response) => {
+        iziToast.success({
+          title: 'Éxito',
+          message: 'Producto actualizado correctamente',
+          position: 'topRight',
+        });
+        
+        this.load_btn = false;
+        
+        setTimeout(() => {
+          this._router.navigate(['/panel/productos']);
+        }, 1000);
+      },
+      (error) => {
+        console.error('Error al actualizar:', error);
+        const errorMsg = error.error?.message || 'Error al actualizar el producto';
+        this.mostrarError(errorMsg);
+        this.load_btn = false;
+      }
+    );
+  }
+
+  /**
+   * Muestra mensaje de error
+   */
+  private mostrarError(mensaje: string): void {
+    iziToast.error({
+      title: 'Error',
+      message: mensaje,
+      position: 'topRight',
+    });
   }
 }
