@@ -1,292 +1,438 @@
-<app-sidebar> </app-sidebar>
+<app-sidebar></app-sidebar>
 
-<!-- Page title-->
-<div class="border-bottom pt-5 mt-2 mb-5">
-  <h1 class="mt-2 mt-md-4 mb-3 pt-5">Inventario de Productos</h1>
-  <div class="d-flex flex-wrap flex-md-nowrap justify-content-between">
-    <p class="text-muted">
-      Aquí puedes administrar el inventario de productos de la tienda.
-    </p>
-    <p class="font-size-sm font-weight-medium pl-md-4">
-      <a class="text-nowrap" [routerLink]="['/panel/productos']"
-        >Regresar<i class="cxi-angle-right font-size-base align-middle ml-1"></i
-      ></a>
-    </p>
-  </div>
-</div>
-
-<!-- Mensaje de producto no encontrado -->
-<div class="card box-shadow-sm mb-4" *ngIf="producto == undefined && !load_data">
-  <div class="card-body text-center py-5">
-    <h3 class="mb-3">Producto no encontrado</h3>
-    <img
-      src="assets/img/error.png"
-      alt="Error"
-      class="mb-3"
-      style="width: 150px; height: auto"
-    />
-    <p class="text-muted">El producto que buscas no existe o fue eliminado.</p>
-    <a [routerLink]="['/panel/productos']" class="btn btn-primary">
-      Volver a Productos
-    </a>
-  </div>
-</div>
-
-<!-- Precargador inicial -->
-<div class="card box-shadow-sm" *ngIf="load_data">
-  <div class="card-body text-center py-5">
-    <div
-      class="spinner-border text-primary"
-      style="width: 3rem; height: 3rem"
-      role="status"
-    >
-      <span class="visually-hidden">Cargando...</span>
+<main class="admin-content">
+  <div class="admin-main">
+    
+    <!-- Page Header -->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-4 pb-3 border-bottom">
+      <div class="mb-3 mb-md-0">
+        <h1 class="h2 mb-2">Gestión de Inventario</h1>
+        <p class="text-muted mb-0">Administra las entradas de inventario del producto</p>
+      </div>
+      <a class="btn btn-outline-secondary" [routerLink]="['/panel/productos']">
+        <i class="fas fa-arrow-left me-2"></i>Volver
+      </a>
     </div>
-    <p class="mt-3 text-muted">Cargando información del inventario...</p>
-  </div>
-</div>
 
-<!-- Contenido principal del inventario -->
-<div class="card box-shadow-sm" *ngIf="producto && !load_data">
-  <div class="card-header">
-    <div class="d-flex flex-wrap justify-content-between align-items-center">
-      <h5 class="mb-0">Inventario de {{ producto.titulo }}</h5>
-      <span class="badge bg-primary">Stock actual: {{ producto.stock }}</span>
+    <!-- Loading State -->
+    <div class="card" *ngIf="load_data">
+      <div class="card-body text-center py-5">
+        <div class="spinner-border text-primary mb-3" role="status" style="width: 3rem; height: 3rem;">
+          <span class="visually-hidden">Cargando...</span>
+        </div>
+        <p class="text-muted mb-0">Cargando inventario...</p>
+      </div>
     </div>
-  </div>
 
-  <!-- Formulario de registro de inventario -->
-  <div class="card-header bg-light">
-    <h6 class="mb-3">Agregar nuevo registro de inventario</h6>
-    <form #inventarioForm="ngForm" (ngSubmit)="registro_inventario(inventarioForm)">
-      <div class="row g-3">
-        <div class="col-12 col-md-4">
-          <label for="cantidad" class="form-label">Cantidad <span class="text-danger">*</span></label>
-          <input
-            type="number"
-            class="form-control"
-            id="cantidad"
-            name="cantidad"
-            placeholder="Ej: 50"
-            [(ngModel)]="inventario.cantidad"
-            required
-            min="1"
-            [class.is-invalid]="cantidad.invalid && cantidad.touched"
-            #cantidad="ngModel"
-          />
-          <div class="invalid-feedback" *ngIf="cantidad.invalid && cantidad.touched">
-            <span *ngIf="cantidad.errors?.['required']">La cantidad es requerida</span>
-            <span *ngIf="cantidad.errors?.['min']">La cantidad debe ser mayor a 0</span>
+    <!-- Producto no encontrado -->
+    <div class="card" *ngIf="!producto && !load_data">
+      <div class="card-body text-center py-5">
+        <i class="fas fa-box-open text-muted mb-3" style="font-size: 4rem; display: block;"></i>
+        <h4 class="mb-3">Producto no encontrado</h4>
+        <p class="text-muted mb-4">El producto que buscas no existe o fue eliminado</p>
+        <a class="btn btn-primary" [routerLink]="['/panel/productos']">
+          <i class="fas fa-arrow-left me-2"></i>Volver a Productos
+        </a>
+      </div>
+    </div>
+
+    <!-- Contenido Principal -->
+    <div *ngIf="producto && !load_data">
+
+      <!-- Card del Producto -->
+      <div class="card mb-4">
+        <div class="card-body">
+          <div class="row align-items-center">
+            <div class="col-auto">
+              <img
+                [src]="url + 'obtener_portada/' + producto.portada"
+                [alt]="producto.titulo"
+                class="rounded"
+                style="width: 100px; height: 100px; object-fit: cover;"
+                onerror="this.src='assets/img/no-image.png'"
+              />
+            </div>
+            <div class="col">
+              <h3 class="mb-2">{{ producto.titulo }}</h3>
+              <p class="text-muted mb-2">{{ producto.descripcion }}</p>
+              <div class="d-flex gap-3 flex-wrap">
+                <span class="badge bg-primary fs-6">
+                  <i class="fas fa-dollar-sign me-1"></i>
+                  {{ producto.precio | currency:'USD' }}
+                </span>
+                <span 
+                  class="badge fs-6"
+                  [ngClass]="{
+                    'bg-success': producto.stock > 10,
+                    'bg-warning text-dark': producto.stock > 0 && producto.stock <= 10,
+                    'bg-danger': producto.stock === 0
+                  }">
+                  <i class="fas fa-boxes me-1"></i>
+                  Stock: {{ producto.stock }}
+                </span>
+                <span class="badge bg-info fs-6">
+                  <i class="fas fa-tag me-1"></i>
+                  {{ producto.categoria }}
+                </span>
+              </div>
+            </div>
           </div>
-        </div>
-
-        <div class="col-12 col-md-4">
-          <label for="proveedor" class="form-label">Proveedor <span class="text-danger">*</span></label>
-          <input
-            type="text"
-            class="form-control"
-            id="proveedor"
-            name="proveedor"
-            placeholder="Nombre del proveedor"
-            [(ngModel)]="inventario.proveedor"
-            required
-            minlength="3"
-            [class.is-invalid]="proveedor.invalid && proveedor.touched"
-            #proveedor="ngModel"
-          />
-          <div class="invalid-feedback" *ngIf="proveedor.invalid && proveedor.touched">
-            <span *ngIf="proveedor.errors?.['required']">El proveedor es requerido</span>
-            <span *ngIf="proveedor.errors?.['minlength']">Mínimo 3 caracteres</span>
-          </div>
-        </div>
-
-        <div class="col-12 col-md-4 d-flex align-items-end">
-          <button 
-            type="submit" 
-            class="btn btn-primary w-100"
-            [disabled]="load_btn || inventarioForm.invalid"
-          >
-            <span *ngIf="!load_btn">
-              <i class="cxi-check-circle me-1"></i> Ingresar Inventario
-            </span>
-            <span *ngIf="load_btn">
-              <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-              Guardando...
-            </span>
-          </button>
         </div>
       </div>
-    </form>
-  </div>
 
-  <!-- Botón de exportación -->
-  <div class="card-header d-flex justify-content-between align-items-center flex-wrap">
-    <h6 class="mb-2 mb-md-0">Registros de inventario ({{ inventarios.length }})</h6>
-    <button 
-      class="btn btn-success btn-sm" 
-      (click)="download_excel()"
-      [disabled]="inventarios.length == 0">
-      <i class="cxi-download"></i> Exportar a Excel
-    </button>
-  </div>
+      <div class="row g-4">
 
-  <!-- Tabla de inventarios -->
-  <div class="card-body">
-    <div class="table-responsive">
-      <table class="table table-hover table-bordered align-middle">
-        <thead class="table-dark">
-          <tr>
-            <th class="text-center" style="width: 50px;">#</th>
-            <th>Administrador</th>
-            <th class="text-center" style="width: 100px;">Cantidad</th>
-            <th>Proveedor</th>
-            <th class="text-center" style="width: 120px;">Fecha</th>
-            <th class="text-center" style="width: 100px;">Acciones</th>
-          </tr>
-        </thead>
+        <!-- Columna Principal -->
+        <div class="col-lg-8">
 
-        <!-- Sin registros -->
-        <tbody *ngIf="inventarios.length == 0 && !load_data">
-          <tr>
-            <td colspan="6" class="text-center py-5">
-              <div class="text-muted">
-                <i class="cxi-package" style="font-size: 3rem;"></i>
-                <p class="mt-2 mb-0">No hay registros de inventario</p>
-                <small>Agrega el primer registro usando el formulario superior</small>
-              </div>
-            </td>
-          </tr>
-        </tbody>
+          <!-- Formulario de Nuevo Ingreso -->
+          <div class="card mb-4">
+            <div class="card-header bg-light">
+              <h5 class="mb-0">
+                <i class="fas fa-plus-circle me-2 text-success"></i>Registrar Ingreso de Inventario
+              </h5>
+            </div>
+            <div class="card-body">
+              <form #inventarioForm="ngForm" (ngSubmit)="registro_inventario(inventarioForm)" novalidate>
+                <div class="row g-3">
+                  
+                  <!-- Cantidad -->
+                  <div class="col-md-6">
+                    <label for="cantidad" class="form-label">
+                      Cantidad <span class="text-danger">*</span>
+                    </label>
+                    <div class="input-group">
+                      <span class="input-group-text">
+                        <i class="fas fa-boxes text-muted"></i>
+                      </span>
+                      <input
+                        type="number"
+                        class="form-control"
+                        id="cantidad"
+                        name="cantidad"
+                        placeholder="Ej: 50"
+                        required
+                        min="1"
+                        [(ngModel)]="inventario.cantidad"
+                        #cantidad="ngModel"
+                        [class.is-invalid]="cantidad.invalid && cantidad.touched"
+                      />
+                    </div>
+                    <div class="invalid-feedback d-block" *ngIf="cantidad.invalid && cantidad.touched">
+                      <small *ngIf="cantidad.errors?.['required']">La cantidad es requerida</small>
+                      <small *ngIf="cantidad.errors?.['min']">Debe ser mayor a 0</small>
+                    </div>
+                  </div>
 
-        <!-- Registros con paginación -->
-        <tbody *ngIf="inventarios.length > 0">
-          <tr *ngFor="let item of inventarios | slice: (page - 1) * pageSize : (page - 1) * pageSize + pageSize; let i = index">
-            <td class="text-center">{{ (page - 1) * pageSize + i + 1 }}</td>
-            <td>
-              <div class="d-flex align-items-center">
-                <div class="bg-secondary rounded-circle d-flex align-items-center justify-content-center me-2" 
-                     style="width: 35px; height: 35px; min-width: 35px;">
-                  <span class="text-white fw-bold">
-                    {{ item.admin.nombres.charAt(0) }}{{ item.admin.apellidos.charAt(0) }}
-                  </span>
+                  <!-- Proveedor -->
+                  <div class="col-md-6">
+                    <label for="proveedor" class="form-label">
+                      Proveedor <span class="text-danger">*</span>
+                    </label>
+                    <div class="input-group">
+                      <span class="input-group-text">
+                        <i class="fas fa-truck text-muted"></i>
+                      </span>
+                      <input
+                        type="text"
+                        class="form-control"
+                        id="proveedor"
+                        name="proveedor"
+                        placeholder="Nombre del proveedor"
+                        required
+                        minlength="3"
+                        [(ngModel)]="inventario.proveedor"
+                        #proveedor="ngModel"
+                        [class.is-invalid]="proveedor.invalid && proveedor.touched"
+                      />
+                    </div>
+                    <div class="invalid-feedback d-block" *ngIf="proveedor.invalid && proveedor.touched">
+                      <small *ngIf="proveedor.errors?.['required']">El proveedor es requerido</small>
+                      <small *ngIf="proveedor.errors?.['minlength']">Mínimo 3 caracteres</small>
+                    </div>
+                  </div>
+
+                  <!-- Botón -->
+                  <div class="col-12">
+                    <button
+                      type="submit"
+                      class="btn btn-success"
+                      [disabled]="inventarioForm.invalid || load_btn">
+                      <span *ngIf="!load_btn">
+                        <i class="fas fa-check-circle me-2"></i>Registrar Ingreso
+                      </span>
+                      <span *ngIf="load_btn">
+                        <span class="spinner-border spinner-border-sm me-2"></span>
+                        Guardando...
+                      </span>
+                    </button>
+                  </div>
+
                 </div>
-                <div>
-                  <div class="fw-semibold">{{ item.admin.nombres }} {{ item.admin.apellidos }}</div>
-                  <small class="text-muted">{{ item.admin.email || 'Sin email' }}</small>
-                </div>
-              </div>
-            </td>
-            <td class="text-center">
-              <span class="badge bg-info text-dark">{{ item.cantidad }} unidades</span>
-            </td>
-            <td>
-              <span *ngIf="item.proveedor">{{ item.proveedor }}</span>
-              <span *ngIf="!item.proveedor" class="text-muted fst-italic">Sin proveedor</span>
-            </td>
-            <td class="text-center">
-              <small>{{ item.createdAt ? (item.createdAt | date: 'dd/MM/yyyy HH:mm') : 'N/A' }}</small>
-            </td>
-            <td class="text-center">
-              <button
-                class="btn btn-danger btn-sm"
-                data-toggle="modal"
-                [attr.data-target]="'#delete-' + item._id"
-                title="Eliminar registro"
-              >
-                <i class="fa-solid fa-trash"></i>
+              </form>
+            </div>
+          </div>
+
+          <!-- Historial de Inventario -->
+          <div class="card">
+            <div class="card-header bg-light d-flex justify-content-between align-items-center">
+              <h5 class="mb-0">
+                <i class="fas fa-history me-2 text-primary"></i>
+                Historial de Ingresos ({{ inventarios.length }})
+              </h5>
+              <button 
+                class="btn btn-success btn-sm"
+                (click)="download_excel()"
+                [disabled]="inventarios.length === 0">
+                <i class="fas fa-file-excel me-1"></i>Exportar
               </button>
+            </div>
+            <div class="card-body p-0">
+              <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                  <thead class="table-light">
+                    <tr>
+                      <th class="text-center" style="width: 60px;">#</th>
+                      <th>Administrador</th>
+                      <th class="text-center">Cantidad</th>
+                      <th class="d-none d-md-table-cell">Proveedor</th>
+                      <th class="text-center d-none d-lg-table-cell">Fecha</th>
+                      <th class="text-center" style="width: 100px;">Acciones</th>
+                    </tr>
+                  </thead>
 
-              <!-- Modal de confirmación de eliminación -->
-              <div
-                class="modal fade"
-                id="delete-{{ item._id }}"
-                tabindex="-1"
-                aria-hidden="true"
-              >
-                <div class="modal-dialog modal-dialog-centered">
-                  <div class="modal-content">
-                    <div class="modal-header bg-danger text-white">
-                      <h5 class="modal-title">
-                        <i class="cxi-close-circle me-2"></i>Confirmar Eliminación
-                      </h5>
-                      <button
-                        class="btn-close btn-close-white"
-                        type="button"
-                        data-dismiss="modal"
-                        aria-label="Close"
-                      ></button>
-                    </div>
-                    <div class="modal-body">
-                      <div class="alert alert-warning" role="alert">
-                        <i class="cxi-alert-triangle me-2"></i>
-                        <strong>¡Atención!</strong> Esta acción no se puede deshacer.
-                      </div>
-                      <p class="mb-2">¿Estás seguro de que deseas eliminar este registro de inventario?</p>
-                      <div class="bg-light p-3 rounded">
-                        <p class="mb-1"><strong>Producto:</strong> {{ producto.titulo }}</p>
-                        <p class="mb-1"><strong>Cantidad:</strong> {{ item.cantidad }} unidades</p>
-                        <p class="mb-0"><strong>Proveedor:</strong> {{ item.proveedor || 'Sin proveedor' }}</p>
-                      </div>
-                    </div>
-                    <div class="modal-footer">
-                      <button
-                        class="btn btn-secondary"
-                        type="button"
-                        data-dismiss="modal"
-                      >
-                        <i class="cxi-close me-1"></i> Cancelar
-                      </button>
-                      <button
-                        *ngIf="!load_btn"
-                        class="btn btn-danger"
-                        type="button"
-                        (click)="eliminar(item._id)"
-                      >
-                        <i class="cxi-trash me-1"></i> Sí, eliminar
-                      </button>
-                      <button
-                        *ngIf="load_btn"
-                        type="button"
-                        class="btn btn-danger"
-                        disabled
-                      >
-                        <span
-                          class="spinner-border spinner-border-sm me-2"
-                          role="status"
-                          aria-hidden="true"
-                        ></span>
-                        Eliminando...
-                      </button>
-                    </div>
+                  <!-- Empty State -->
+                  <tbody *ngIf="inventarios.length === 0">
+                    <tr>
+                      <td colspan="6" class="text-center py-5">
+                        <i class="fas fa-clipboard-list text-muted mb-3" style="font-size: 3rem; display: block;"></i>
+                        <h5 class="text-muted mb-2">No hay registros de inventario</h5>
+                        <p class="text-muted small mb-0">Registra el primer ingreso usando el formulario superior</p>
+                      </td>
+                    </tr>
+                  </tbody>
+
+                  <!-- Data Rows -->
+                  <tbody *ngIf="inventarios.length > 0">
+                    <tr *ngFor="let item of inventarios | slice: (page - 1) * pageSize : page * pageSize; let i = index">
+                      <!-- # -->
+                      <td class="text-center text-muted small">
+                        {{ (page - 1) * pageSize + i + 1 }}
+                      </td>
+
+                      <!-- Administrador -->
+                      <td>
+                        <div class="d-flex align-items-center">
+                          <div class="avatar-circle bg-primary text-white me-2">
+                            {{ item.admin.nombres?.charAt(0) || 'A' }}{{ item.admin.apellidos?.charAt(0) || 'D' }}
+                          </div>
+                          <div>
+                            <div class="fw-semibold small">{{ item.admin.nombres }} {{ item.admin.apellidos }}</div>
+                            <small class="text-muted">{{ item.admin.email }}</small>
+                          </div>
+                        </div>
+                      </td>
+
+                      <!-- Cantidad -->
+                      <td class="text-center">
+                        <span class="badge bg-success">
+                          +{{ item.cantidad }}
+                        </span>
+                      </td>
+
+                      <!-- Proveedor -->
+                      <td class="d-none d-md-table-cell">
+                        <span *ngIf="item.proveedor">{{ item.proveedor }}</span>
+                        <span *ngIf="!item.proveedor" class="text-muted">Sin proveedor</span>
+                      </td>
+
+                      <!-- Fecha -->
+                      <td class="text-center d-none d-lg-table-cell">
+                        <small>{{ item.createdAt | date: 'dd/MM/yyyy HH:mm' }}</small>
+                      </td>
+
+                      <!-- Acciones -->
+                      <td class="text-center">
+                        <button
+                          class="btn btn-sm btn-outline-danger"
+                          type="button"
+                          (click)="abrirModalEliminar(item)"
+                          title="Eliminar">
+                          <i class="fas fa-trash-alt"></i>
+                        </button>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- Paginación -->
+            <div class="card-footer bg-light" *ngIf="inventarios.length > pageSize">
+              <div class="d-flex flex-column flex-md-row justify-content-between align-items-center gap-3">
+                <div class="text-muted small">
+                  Mostrando {{ (page - 1) * pageSize + 1 }} - 
+                  {{ page * pageSize > inventarios.length ? inventarios.length : page * pageSize }} 
+                  de {{ inventarios.length }} registros
+                </div>
+                <ngb-pagination
+                  [(page)]="page"
+                  [pageSize]="pageSize"
+                  [collectionSize]="inventarios.length"
+                  [maxSize]="5"
+                  [rotate]="true"
+                  [boundaryLinks]="true"
+                  size="sm">
+                </ngb-pagination>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Columna Lateral -->
+        <div class="col-lg-4">
+
+          <!-- Resumen -->
+          <div class="card mb-4">
+            <div class="card-header bg-light">
+              <h5 class="mb-0">
+                <i class="fas fa-chart-pie me-2 text-primary"></i>Resumen
+              </h5>
+            </div>
+            <div class="card-body">
+              <div class="mb-3">
+                <div class="d-flex justify-content-between mb-2">
+                  <span class="text-muted">Stock Actual:</span>
+                  <span class="fw-bold fs-4 text-primary">{{ producto.stock }}</span>
+                </div>
+                <div class="progress" style="height: 10px;">
+                  <div 
+                    class="progress-bar"
+                    [ngClass]="{
+                      'bg-success': producto.stock > 50,
+                      'bg-warning': producto.stock > 0 && producto.stock <= 50,
+                      'bg-danger': producto.stock === 0
+                    }"
+                    [style.width.%]="producto.stock > 100 ? 100 : producto.stock"
+                    role="progressbar">
                   </div>
                 </div>
               </div>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
 
-  <!-- Paginación -->
-  <div class="card-footer" *ngIf="inventarios.length > pageSize">
-    <div class="d-flex justify-content-between align-items-center flex-wrap">
-      <div class="mb-2 mb-md-0">
-        <span class="text-muted">
-          Mostrando {{ (page - 1) * pageSize + 1 }} - 
-          {{ page * pageSize > inventarios.length ? inventarios.length : page * pageSize }} 
-          de {{ inventarios.length }} registros
-        </span>
+              <hr>
+
+              <div class="small">
+                <div class="d-flex justify-content-between mb-2">
+                  <span class="text-muted">Total Ingresos:</span>
+                  <span class="fw-semibold">{{ inventarios.length }}</span>
+                </div>
+                <div class="d-flex justify-content-between mb-2">
+                  <span class="text-muted">Suma Total:</span>
+                  <span class="fw-semibold">{{ calcularTotalIngresado() }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Enlaces Rápidos -->
+          <div class="card">
+            <div class="card-header bg-light">
+              <h5 class="mb-0">
+                <i class="fas fa-link me-2 text-primary"></i>Enlaces Rápidos
+              </h5>
+            </div>
+            <div class="card-body">
+              <div class="d-grid gap-2">
+                <a 
+                  class="btn btn-outline-primary btn-sm"
+                  [routerLink]="['/panel/productos', producto._id]">
+                  <i class="fas fa-edit me-2"></i>Editar Producto
+                </a>
+                <a 
+                  class="btn btn-outline-primary btn-sm"
+                  [routerLink]="['/panel/productos/variedades', producto._id]">
+                  <i class="fas fa-sliders-h me-2"></i>Variedades
+                </a>
+                <a 
+                  class="btn btn-outline-primary btn-sm"
+                  [routerLink]="['/panel/productos/galeria', producto._id]">
+                  <i class="fas fa-images me-2"></i>Galería
+                </a>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
       </div>
-      <ngb-pagination
-        [(page)]="page"
-        [pageSize]="pageSize"
-        [collectionSize]="inventarios.length"
-        [maxSize]="5"
-        [rotate]="true"
-        [boundaryLinks]="true"
-      >
-      </ngb-pagination>
+
+    </div>
+
+  </div>
+</main>
+
+<!-- Modal de Confirmación -->
+<div 
+  class="modal fade" 
+  id="deleteModal" 
+  tabindex="-1" 
+  aria-labelledby="deleteModalLabel"
+  aria-hidden="true"
+  data-bs-backdrop="static"
+  data-bs-keyboard="false">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content" *ngIf="inventarioAEliminar">
+      <div class="modal-header border-0">
+        <h5 class="modal-title" id="deleteModalLabel">
+          <i class="fas fa-exclamation-triangle text-danger me-2"></i>
+          Confirmar Eliminación
+        </h5>
+        <button 
+          type="button" 
+          class="btn-close" 
+          (click)="cerrarModal()"
+          [disabled]="load_btn"
+          aria-label="Close">
+        </button>
+      </div>
+      <div class="modal-body">
+        <p class="mb-3">¿Estás seguro de eliminar este registro de inventario?</p>
+        <div class="alert alert-warning mb-0">
+          <div class="small">
+            <strong>Producto:</strong> {{ producto.titulo }}<br>
+            <strong>Cantidad:</strong> {{ inventarioAEliminar.cantidad }} unidades<br>
+            <strong>Proveedor:</strong> {{ inventarioAEliminar.proveedor || 'Sin proveedor' }}<br>
+            <strong>Fecha:</strong> {{ inventarioAEliminar.createdAt | date: 'dd/MM/yyyy HH:mm' }}
+          </div>
+        </div>
+        <div class="alert alert-danger mt-3 mb-0">
+          <i class="fas fa-exclamation-circle me-2"></i>
+          <small><strong>Nota:</strong> Esto reducirá el stock del producto en {{ inventarioAEliminar.cantidad }} unidades.</small>
+        </div>
+      </div>
+      <div class="modal-footer border-0">
+        <button 
+          type="button" 
+          class="btn btn-secondary" 
+          (click)="cerrarModal()"
+          [disabled]="load_btn">
+          Cancelar
+        </button>
+        <button 
+          type="button" 
+          class="btn btn-danger"
+          (click)="confirmarEliminacion()"
+          [disabled]="load_btn">
+          <span *ngIf="!load_btn">
+            <i class="fas fa-trash-alt me-1"></i>Eliminar
+          </span>
+          <span *ngIf="load_btn">
+            <span class="spinner-border spinner-border-sm me-1"></span>
+            Eliminando...
+          </span>
+        </button>
+      </div>
     </div>
   </div>
 </div>

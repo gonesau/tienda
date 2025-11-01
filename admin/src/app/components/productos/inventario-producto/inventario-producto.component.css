@@ -1,0 +1,100 @@
+/* ============================================
+   INVENTARIO PRODUCTO - ESTILOS ESPECÍFICOS
+   ============================================ */
+
+/* --- Avatar circle --- */
+.avatar-circle {
+    width: 32px;
+    height: 32px;
+    min-width: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+}
+
+/* --- Input groups --- */
+.input-group-text {
+    background-color: #f8f9fa;
+    border-right: 0;
+}
+
+.input-group .form-control {
+    border-left: 0;
+}
+
+.input-group .form-control:focus {
+    border-color: #ced4da;
+    box-shadow: none;
+}
+
+.input-group:focus-within .input-group-text,
+.input-group:focus-within .form-control {
+    border-color: #0d6efd;
+}
+
+/* --- Progress bar personalizado --- */
+.progress {
+    background-color: #e9ecef;
+    border-radius: 0.25rem;
+}
+
+/* --- Tabla --- */
+.table {
+    font-size: 0.9rem;
+}
+
+.table thead th {
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.8rem;
+    letter-spacing: 0.5px;
+    color: #495057;
+    border-bottom: 2px solid #dee2e6;
+}
+
+.table tbody tr {
+    transition: background-color 0.15s ease;
+}
+
+.table tbody tr:hover {
+    background-color: rgba(13, 110, 253, 0.05);
+}
+
+/* --- Badges --- */
+.badge {
+    font-weight: 500;
+    padding: 0.35em 0.65em;
+    font-size: 0.75rem;
+}
+
+/* --- Paginación --- */
+::ng-deep .pagination {
+    margin-bottom: 0;
+}
+
+::ng-deep .page-link {
+    color: #0d6efd;
+}
+
+::ng-deep .page-item.active .page-link {
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+}
+
+/* --- Responsividad --- */
+@media (max-width: 767.98px) {
+    .table {
+        font-size: 0.85rem;
+    }
+
+    .avatar-circle {
+        width: 28px;
+        height: 28px;
+        min-width: 28px;
+        font-size: 0.7rem;
+    }
+}

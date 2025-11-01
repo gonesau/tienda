@@ -1,9 +1,9 @@
 import { Component, OnInit } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { ProductoService } from 'src/app/services/producto.service';
-declare var iziToast;
-declare var jQuery: any;
-declare var $: any;
+import { Global } from 'src/app/services/global';
+
+declare var iziToast: any;
 
 @Component({
   selector: 'app-variedad-producto',
@@ -11,108 +11,177 @@ declare var $: any;
   styleUrls: ['./variedad-producto.component.css']
 })
 export class VariedadProductoComponent implements OnInit {
-  public producto: any = {};
-  public id;
-  public token;
+  
+  public producto: any = null;
+  public id: string = '';
+  public token: string;
   public nueva_variedad = '';
-  public load_data = false;
+  public load_data = true;
   public load_btn = false;
-  public url;
+  public url: string;
 
   constructor(
     private _route: ActivatedRoute,
+    private _router: Router,
     private _productoService: ProductoService
   ) {
-    this.token = localStorage.getItem('token');
-    this.url = this._productoService.url;
-    this._route.params.subscribe((params) => {
-      this.id = params['id'];
-      this._productoService
-        .obtener_producto_admin(this.id, this.token)
-        .subscribe(
-          (response) => {
-            if (response.data == undefined) {
-              this.producto = undefined;
-            } else {
-              this.producto = response.data;
-
-            }
-            console.log(this.producto);
-          },
-          (error) => {
-            console.log(error);
-          }
-        );
-    });
+    this.token = localStorage.getItem('token') || '';
+    this.url = Global.url;
+    
+    if (!this.token) {
+      this._router.navigate(['/login']);
+    }
   }
 
   ngOnInit(): void {
-  }
-
-  agregar_variedad() {
-    if (this.nueva_variedad) {
-      this.producto.variedades.push({ titulo: this.nueva_variedad });
-      this.nueva_variedad = '';
-    } else {
-      iziToast.show({
-        title: 'Error',
-        titleColor: '#FF0000',
-        color: '#FFF',
-        class: 'text-danger',
-        position: 'topRight',
-        message: 'El campo de la variedad está vacío',
-      });
-    }
-  }
-
-  eliminar_variedad(idx) {
-    this.producto.variedades.splice(idx, 1);
-  }
-
-  actualizar() {
-    if (this.producto.titulo_variedad) {
-      //Actualizar
-      this.load_btn = true;
-      if (this.producto.variedades.length > 0) {
-        this._productoService.actualizar_producto_variedades_admin({
-          titulo_variedad: this.producto.titulo_variedad,
-          variedades: this.producto.variedades
-        }, this.id, this.token).subscribe(
-          response => {
-            iziToast.show({
-              title: 'Success',
-              titleColor: '#1DC74C',
-              color: '#FFF',
-              class: 'text-success',
-              position: 'topRight',
-              message: 'Se actualizó la información del producto.',
-            });
-            this.load_btn = false;
-            this.producto.titulo_variedad = '';
-            
-          }, error => {
-            console.log(error);
-            this.load_btn = false;
-          });
-      } else {
-        iziToast.show({
-          title: 'Error',
-          titleColor: '#FF0000',
-          color: '#FFF',
-          class: 'text-danger',
-          position: 'topRight',
-          message: 'Debe agregar al menos una variedad',
-        });
+    this._route.params.subscribe((params) => {
+      this.id = params['id'];
+      
+      if (!this.id) {
+        this.load_data = false;
+        this.mostrarError('ID de producto no válido');
+        this._router.navigate(['/panel/productos']);
+        return;
       }
-    } else {
-      iziToast.show({
-        title: 'Error',
-        titleColor: '#FF0000',
-        color: '#FFF',
-        class: 'text-danger',
+      
+      this.init_data();
+    });
+  }
+
+  /**
+   * Carga los datos del producto
+   */
+  init_data(): void {
+    this.load_data = true;
+    
+    this._productoService.obtener_producto_admin(this.id, this.token).subscribe(
+      (response) => {
+        const datosProducto = response.data || response;
+        
+        if (!datosProducto || !datosProducto._id) {
+          this.producto = null;
+          this.load_data = false;
+          this.mostrarError('Producto no encontrado');
+          return;
+        }
+        
+        this.producto = datosProducto;
+        
+        // Inicializar variedades si no existen
+        if (!this.producto.variedades) {
+          this.producto.variedades = [];
+        }
+        
+        this.load_data = false;
+      },
+      (error) => {
+        console.error('Error al cargar producto:', error);
+        this.producto = null;
+        this.load_data = false;
+        this.mostrarError('Error al cargar el producto');
+      }
+    );
+  }
+
+  /**
+   * Agrega una nueva variedad
+   */
+  agregar_variedad(): void {
+    if (!this.nueva_variedad || this.nueva_variedad.trim() === '') {
+      this.mostrarError('Ingresa un valor para la variedad');
+      return;
+    }
+
+    // Verificar duplicados
+    const existe = this.producto.variedades.some(
+      (v: any) => v.titulo.toLowerCase() === this.nueva_variedad.trim().toLowerCase()
+    );
+
+    if (existe) {
+      this.mostrarError('Esta variedad ya existe');
+      return;
+    }
+
+    // Agregar la nueva variedad
+    this.producto.variedades.push({
+      titulo: this.nueva_variedad.trim()
+    });
+
+    this.nueva_variedad = '';
+
+    iziToast.success({
+      title: 'Agregado',
+      message: 'Variedad agregada. No olvides guardar los cambios.',
+      position: 'topRight',
+      timeout: 2000
+    });
+  }
+
+  /**
+   * Elimina una variedad
+   */
+  eliminar_variedad(index: number): void {
+    if (index >= 0 && index < this.producto.variedades.length) {
+      this.producto.variedades.splice(index, 1);
+      
+      iziToast.info({
+        title: 'Eliminado',
+        message: 'Variedad eliminada. No olvides guardar los cambios.',
         position: 'topRight',
-        message: 'Debe ingresar el título de la variedad',
+        timeout: 2000
       });
     }
+  }
+
+  /**
+   * Actualiza las variedades del producto
+   */
+  actualizar(): void {
+    // Validar que tenga título de variedad
+    if (!this.producto.titulo_variedad || this.producto.titulo_variedad.trim() === '') {
+      this.mostrarError('Debes ingresar el nombre del grupo de variedades');
+      return;
+    }
+
+    // Validar que tenga al menos una variedad
+    if (!this.producto.variedades || this.producto.variedades.length === 0) {
+      this.mostrarError('Debes agregar al menos una variedad');
+      return;
+    }
+
+    this.load_btn = true;
+
+    const data = {
+      titulo_variedad: this.producto.titulo_variedad.trim(),
+      variedades: this.producto.variedades
+    };
+
+    this._productoService.actualizar_producto_variedades_admin(data, this.id, this.token).subscribe(
+      (response) => {
+        iziToast.success({
+          title: 'Éxito',
+          message: 'Variedades actualizadas correctamente',
+          position: 'topRight',
+        });
+        this.load_btn = false;
+      },
+      (error) => {
+        console.error('Error al actualizar:', error);
+        const errorMsg = error.error?.message || 'Error al actualizar las variedades';
+        this.mostrarError(errorMsg);
+        this.load_btn = false;
+      }
+    );
+  }
+
+  /**
+   * Muestra mensaje de error
+   */
+  private mostrarError(mensaje: string): void {
+    iziToast.error({
+      title: 'Error',
+      message: mensaje,
+      position: 'topRight',
+    });
   }
 }
