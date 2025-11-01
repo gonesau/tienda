@@ -1,0 +1,94 @@
+/* ============================================
+   INDEX CUPON - ESTILOS ESPECÍFICOS
+   ============================================ */
+
+/* --- Icono del cupón --- */
+.cupon-icon {
+    width: 40px;
+    height: 40px;
+    min-width: 40px;
+    border-radius: 0.375rem;
+    background-color: #e7f3ff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #0d6efd;
+    font-size: 1.25rem;
+}
+
+/* --- Tabla --- */
+.table {
+    font-size: 0.9rem;
+}
+
+.table thead th {
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.8rem;
+    letter-spacing: 0.5px;
+    color: #495057;
+    border-bottom: 2px solid #dee2e6;
+}
+
+.table tbody tr {
+    transition: background-color 0.15s ease;
+}
+
+.table tbody tr:hover {
+    background-color: rgba(13, 110, 253, 0.05);
+}
+
+/* --- Badges --- */
+.badge {
+    font-weight: 500;
+    padding: 0.35em 0.65em;
+    font-size: 0.75rem;
+}
+
+/* --- Input de búsqueda --- */
+.input-group-text {
+    border-right: 0;
+}
+
+.input-group .form-control {
+    border-left: 0;
+    border-right: 0;
+}
+
+.input-group .form-control:focus {
+    box-shadow: none;
+    border-color: #ced4da;
+}
+
+.input-group:focus-within .input-group-text,
+.input-group:focus-within .form-control {
+    border-color: #0d6efd;
+}
+
+/* --- Responsividad --- */
+@media (max-width: 767.98px) {
+    .table {
+        font-size: 0.85rem;
+    }
+
+    .cupon-icon {
+        width: 36px;
+        height: 36px;
+        min-width: 36px;
+        font-size: 1.1rem;
+    }
+}
+
+/* --- Paginación --- */
+::ng-deep .pagination {
+    margin-bottom: 0;
+}
+
+::ng-deep .page-link {
+    color: #0d6efd;
+}
+
+::ng-deep .page-item.active .page-link {
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+}

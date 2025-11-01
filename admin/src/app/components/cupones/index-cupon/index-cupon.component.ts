@@ -3,7 +3,7 @@ import { Router } from '@angular/router';
 import { CuponService } from 'src/app/services/cupon.service';
 
 declare var iziToast: any;
-declare var $: any;
+declare var bootstrap: any;
 
 @Component({
   selector: 'app-index-cupon',
@@ -23,85 +23,129 @@ export class IndexCuponComponent implements OnInit {
   public page = 1;
   public pageSize = 10;
 
+  // Control del modal
+  public cuponAEliminar: any = null;
+  public modalInstance: any = null;
+
   constructor(
     private _cuponService: CuponService,
     private _router: Router
   ) {
     this.token = localStorage.getItem('token') || '';
+    
+    if (!this.token) {
+      this._router.navigate(['/login']);
+    }
   }
 
   ngOnInit(): void {
-    if (!this.token) {
-      this._router.navigate(['/login']);
-      return;
-    }
     this.cargar_datos();
   }
 
-  cargar_datos() {
+  ngOnDestroy(): void {
+    if (this.modalInstance) {
+      this.modalInstance.dispose();
+    }
+  }
+
+  /**
+   * Carga los cupones
+   */
+  cargar_datos(): void {
     this.load_data = true;
+    
     this._cuponService.listar_cupones_admin(this.filtro, this.token).subscribe(
-        response => {
-          if (response.data) {
-            this.cupones = response.data;
-          } else {
-            this.cupones = [];
-          }
-          this.load_data = false;
-        },
-        error => {
-          console.error('Error al cargar cupones:', error);
-          this.mostrarError('Error en el servidor, no se pudieron cargar los cupones.');
-          this.load_data = false;
-        }
-      );
-  }
-
-  filtrar() {
-    this.cargar_datos();
-  }
-
-  resetear() {
-    this.filtro = '';
-    this.cargar_datos();
-  }
-
-  eliminar(id: string) {
-    if (!id) {
-        this.mostrarError('ID de cupón no válido.');
-        return;
-    }
-
-    this.load_btn = true;
-    this._cuponService.eliminar_cupon_admin(id, this.token).subscribe(
       response => {
-        if (response.data) {
-          iziToast.success({
-            title: 'ÉXITO',
-            message: 'Cupón eliminado correctamente.',
-            position: 'topRight',
-          });
-
-          $('#delete-' + id).modal('hide');
-          $('.modal-backdrop').removeClass('show');
-          $('body').removeClass('modal-open');
-
-          this.cargar_datos();
-        } else {
-          this.mostrarError(response.message || 'No se pudo eliminar el cupón.');
-        }
-        this.load_btn = false;
+        this.cupones = response.data || [];
+        this.load_data = false;
       },
       error => {
-        console.error('Error al eliminar cupón:', error);
-        const errorMsg = error.error?.message || 'Ocurrió un problema con el servidor.';
-        this.mostrarError(errorMsg);
-        this.load_btn = false;
+        console.error('Error al cargar cupones:', error);
+        this.cupones = [];
+        this.load_data = false;
+        this.mostrarError('Error al cargar cupones. Intenta nuevamente.');
       }
     );
   }
 
-  // Método auxiliar para mostrar errores
+  /**
+   * Filtra cupones
+   */
+  filtrar(): void {
+    this.page = 1;
+    this.cargar_datos();
+  }
+
+  /**
+   * Resetea filtros
+   */
+  resetear(): void {
+    this.filtro = '';
+    this.page = 1;
+    this.cargar_datos();
+  }
+
+  /**
+   * Abre modal de confirmación
+   */
+  abrirModalEliminar(cupon: any): void {
+    this.cuponAEliminar = cupon;
+    
+    const modalElement = document.getElementById('deleteModal');
+    if (modalElement) {
+      this.modalInstance = new bootstrap.Modal(modalElement, {
+        backdrop: 'static',
+        keyboard: false
+      });
+      this.modalInstance.show();
+    }
+  }
+
+  /**
+   * Cierra modal
+   */
+  cerrarModal(): void {
+    if (this.modalInstance) {
+      this.modalInstance.hide();
+    }
+    this.cuponAEliminar = null;
+    this.load_btn = false;
+  }
+
+  /**
+   * Confirma eliminación
+   */
+  confirmarEliminacion(): void {
+    if (!this.cuponAEliminar || !this.cuponAEliminar._id) {
+      this.mostrarError('No se pudo identificar el cupón.');
+      return;
+    }
+
+    this.load_btn = true;
+
+    this._cuponService.eliminar_cupon_admin(this.cuponAEliminar._id, this.token).subscribe(
+      (response) => {
+        iziToast.success({
+          title: 'Éxito',
+          message: 'Cupón eliminado correctamente',
+          position: 'topRight',
+        });
+
+        this.cerrarModal();
+        this.cargar_datos();
+      },
+      (error) => {
+        console.error('Error al eliminar:', error);
+        this.load_btn = false;
+        const errorMsg = error.error?.message || 'No se pudo eliminar el cupón';
+        this.mostrarError(errorMsg);
+      }
+    );
+  }
+
+  /**
+   * Muestra mensaje de error
+   */
   private mostrarError(mensaje: string): void {
     iziToast.error({
       title: 'Error',

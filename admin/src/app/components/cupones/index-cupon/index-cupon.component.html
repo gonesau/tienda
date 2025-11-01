@@ -1,198 +1,291 @@
-<app-sidebar> </app-sidebar>
+<app-sidebar></app-sidebar>
 
-<!-- Page title-->
-<div class="border-bottom pt-5 mt-2 mb-5">
-  <h1 class="mt-2 mt-md-4 mb-3 pt-5">Cupones de Descuento</h1>
-  <div class="d-flex flex-wrap flex-md-nowrap justify-content-between">
-    <p class="text-muted">Administra los cupones de descuento de la tienda.</p>
-    <p class="font-size-sm font-weight-medium pl-md-4">
-      <a class="text-nowrap" [routerLink]="['/panel/cupones/registro']"
-        >Registrar nuevo<i
-          class="cxi-angle-right font-size-base align-middle ml-1"
-        ></i
-      ></a>
-    </p>
-  </div>
-</div>
-
-<!-- Precargador inicial -->
-<div class="card box-shadow-sm" *ngIf="load_data">
-  <div class="card-body text-center py-5">
-    <div
-      class="spinner-border text-primary"
-      style="width: 3rem; height: 3rem"
-      role="status"
-    >
-      <span class="visually-hidden">Cargando...</span>
+<main class="admin-content">
+  <div class="admin-main">
+    
+    <!-- Page Header -->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-4 pb-3 border-bottom">
+      <div class="mb-3 mb-md-0">
+        <h1 class="h2 mb-2">Cupones de Descuento</h1>
+        <p class="text-muted mb-0">Administra los cupones y promociones de tu tienda</p>
+      </div>
+      <a class="btn btn-primary" [routerLink]="['/panel/cupones/registro']">
+        <i class="fas fa-plus me-2"></i>Nuevo Cupón
+      </a>
     </div>
-    <p class="mt-3 text-muted">Cargando lista de cupones...</p>
-  </div>
-</div>
 
-<!-- Contenido principal -->
-<div class="card box-shadow-sm" *ngIf="!load_data">
-  <!-- Filtro y acciones -->
-  <div class="card-header bg-light">
-    <div class="d-flex flex-wrap justify-content-between align-items-center">
-      <div class="input-group" style="max-width: 600px;">
-        <input
-          class="form-control"
-          type="text"
-          placeholder="Buscar por código de cupón..."
-          name="filtro"
-          [(ngModel)]="filtro"
-          (keyup.enter)="filtrar()"
-        />
-        <button class="btn btn-primary" type="button" (click)="filtrar()">
-          <i class="cxi-search"></i> Buscar
-        </button>
-        <button class="btn btn-secondary" type="button" (click)="resetear()">
-          <i class="cxi-delete-alt"></i> Limpiar
-        </button>
+    <!-- Loading State -->
+    <div class="card" *ngIf="load_data">
+      <div class="card-body text-center py-5">
+        <div class="spinner-border text-primary mb-3" role="status" style="width: 3rem; height: 3rem;">
+          <span class="visually-hidden">Cargando...</span>
+        </div>
+        <p class="text-muted mb-0">Cargando cupones...</p>
       </div>
     </div>
-  </div>
 
-  <!-- Tabla de cupones -->
-  <div class="card-body">
-    <div class="table-responsive">
-      <table class="table table-hover table-bordered align-middle">
-        <thead class="table-dark">
-          <tr>
-            <th class="text-center" style="width: 50px;">#</th>
-            <th>Código</th>
-            <th class="text-center">Tipo</th>
-            <th class="text-center">Valor</th>
-            <th class="text-center">Límite</th>
-            <th class="text-center" style="width: 120px;">Acciones</th>
-          </tr>
-        </thead>
-        
-        <!-- Sin registros -->
-        <tbody *ngIf="cupones.length == 0">
-          <tr>
-            <td colspan="6" class="text-center py-5">
-              <div class="text-muted">
-                <i class="cxi-gift" style="font-size: 3rem;"></i>
-                <p class="mt-2 mb-0">No se encontraron cupones</p>
-                <small *ngIf="filtro">Intenta con otro código o limpia el filtro.</small>
-                <small *ngIf="!filtro">Puedes registrar un nuevo cupón para comenzar.</small>
-              </div>
-            </td>
-          </tr>
-        </tbody>
-        
-        <!-- Registros -->
-        <tbody *ngIf="cupones.length > 0">
-          <tr *ngFor="let item of cupones | slice: (page - 1) * pageSize : (page - 1) * pageSize + pageSize; let i = index">
-            <td class="text-center">{{ (page - 1) * pageSize + i + 1 }}</td>
-            <td>
-                <span class="fw-semibold text-primary">{{ item.codigo }}</span>
-            </td>
-            <td class="text-center">
-              <span *ngIf="item.tipo === 'Porcentaje'" class="badge bg-info">{{ item.tipo }}</span>
-              <span *ngIf="item.tipo === 'Valor fijo'" class="badge bg-success">{{ item.tipo }}</span>
-            </td>
-            <td class="text-center fw-bold">
-                <span *ngIf="item.tipo === 'Porcentaje'">{{ item.valor }}%</span>
-                <span *ngIf="item.tipo === 'Valor fijo'">{{ item.valor | currency:'USD' }}</span>
-            </td>
-            <td class="text-center">
-                <span *ngIf="item.limite > 0" class="badge bg-secondary">{{ item.limite }} restantes</span>
-                <span *ngIf="item.limite == 0" class="badge bg-danger">Agotado</span>
-            </td>
-            <td class="text-center">
-              <div class="btn-group dropdown">
-                <button
-                  class="btn btn-outline-primary btn-sm dropdown-toggle"
-                  type="button"
-                  data-toggle="dropdown"
-                  aria-haspopup="true"
-                  aria-expanded="false"
-                >
-                  Opciones
-                </button>
-                <div class="dropdown-menu dropdown-menu-end">
-                  <a class="dropdown-item" [routerLink]="['/panel/cupones', item._id]"><i class="cxi-pencil me-2"></i>Editar</a>
-                  <div class="dropdown-divider"></div>
-                  <a
-                    class="dropdown-item text-danger"
-                    style="cursor: pointer"
-                    data-toggle="modal"
-                    [attr.data-target]="'#delete-' + item._id"
-                  >
-                    <i class="cxi-trash me-2"></i>Eliminar
+    <!-- Main Content -->
+    <div class="card" *ngIf="!load_data">
+      
+      <!-- Filters & Actions -->
+      <div class="card-header bg-light">
+        <div class="row g-3 align-items-center">
+          <!-- Buscador -->
+          <div class="col-12 col-lg-8">
+            <div class="input-group">
+              <span class="input-group-text bg-white">
+                <i class="fas fa-search text-muted"></i>
+              </span>
+              <input
+                type="text"
+                class="form-control"
+                placeholder="Buscar por código de cupón..."
+                name="filtro"
+                [(ngModel)]="filtro"
+                (keyup.enter)="filtrar()"
+              />
+              <button class="btn btn-primary" type="button" (click)="filtrar()">
+                Buscar
+              </button>
+              <button 
+                class="btn btn-outline-secondary" 
+                type="button" 
+                (click)="resetear()"
+                *ngIf="filtro">
+                <i class="fas fa-times"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tabla -->
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+              <tr>
+                <th class="text-center" style="width: 60px;">#</th>
+                <th>Código</th>
+                <th class="text-center">Tipo</th>
+                <th class="text-center">Descuento</th>
+                <th class="text-center d-none d-md-table-cell">Límite</th>
+                <th class="text-center d-none d-lg-table-cell">Estado</th>
+                <th class="text-center" style="width: 120px;">Acciones</th>
+              </tr>
+            </thead>
+
+            <!-- Empty State -->
+            <tbody *ngIf="cupones.length === 0">
+              <tr>
+                <td colspan="7" class="text-center py-5">
+                  <i class="fas fa-ticket-alt text-muted mb-3" style="font-size: 3rem; display: block;"></i>
+                  <h5 class="text-muted mb-2">No hay cupones registrados</h5>
+                  <p class="text-muted small mb-3" *ngIf="filtro">
+                    No se encontraron resultados para "{{ filtro }}"
+                  </p>
+                  <p class="text-muted small mb-3" *ngIf="!filtro">
+                    Comienza creando tu primer cupón de descuento
+                  </p>
+                  <button 
+                    class="btn btn-outline-secondary btn-sm" 
+                    (click)="resetear()" 
+                    *ngIf="filtro">
+                    <i class="fas fa-times me-1"></i>Limpiar filtro
+                  </button>
+                  <a 
+                    class="btn btn-primary btn-sm" 
+                    [routerLink]="['/panel/cupones/registro']"
+                    *ngIf="!filtro">
+                    <i class="fas fa-plus me-1"></i>Crear Cupón
                   </a>
-                </div>
-              </div>
+                </td>
+              </tr>
+            </tbody>
 
-              <!-- Modal de confirmación de eliminación -->
-              <div class="modal fade" id="delete-{{ item._id }}" tabindex="-1" aria-hidden="true">
-                <div class="modal-dialog modal-dialog-centered">
-                  <div class="modal-content">
-                    <div class="modal-header bg-danger text-white">
-                      <h5 class="modal-title">
-                        <i class="cxi-close-circle me-2"></i>Confirmar Eliminación
-                      </h5>
-                      <button
-                        class="btn-close btn-close-white"
-                        type="button"
-                        data-dismiss="modal"
-                        aria-label="Close"
-                      ></button>
+            <!-- Data Rows -->
+            <tbody *ngIf="cupones.length > 0">
+              <tr *ngFor="let item of cupones | slice: (page - 1) * pageSize : page * pageSize; let i = index">
+                <!-- # -->
+                <td class="text-center text-muted small">
+                  {{ (page - 1) * pageSize + i + 1 }}
+                </td>
+
+                <!-- Código -->
+                <td>
+                  <div class="d-flex align-items-center">
+                    <div class="cupon-icon me-2">
+                      <i class="fas fa-ticket-alt"></i>
                     </div>
-                    <div class="modal-body">
-                      <div class="alert alert-warning" role="alert">
-                        <i class="cxi-alert-triangle me-2"></i>
-                        <strong>¡Atención!</strong> Esta acción es irreversible.
-                      </div>
-                      <p>¿Estás seguro de que deseas eliminar el cupón <strong>"{{ item.codigo }}"</strong>?</p>
-                    </div>
-                    <div class="modal-footer">
-                      <button class="btn btn-secondary" type="button" data-dismiss="modal">
-                        <i class="cxi-close me-1"></i> Cancelar
-                      </button>
-                      <button *ngIf="!load_btn" class="btn btn-danger" type="button" (click)="eliminar(item._id)">
-                        <i class="cxi-trash me-1"></i> Sí, eliminar
-                      </button>
-                      <button *ngIf="load_btn" type="button" class="btn btn-danger" disabled>
-                        <span
-                          class="spinner-border spinner-border-sm me-2"
-                          role="status"
-                          aria-hidden="true"
-                        ></span>
-                        Eliminando...
-                      </button>
+                    <div>
+                      <div class="fw-bold text-primary">{{ item.codigo }}</div>
+                      <small class="text-muted">Cupón de descuento</small>
                     </div>
                   </div>
-                </div>
-              </div>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
-  
-  <!-- Paginación -->
-  <div class="card-footer" *ngIf="cupones.length > pageSize">
-    <div class="d-flex justify-content-between align-items-center flex-wrap">
-      <div class="mb-2 mb-md-0">
-        <span class="text-muted">
-          Mostrando {{ (page - 1) * pageSize + 1 }} - 
-          {{ page * pageSize > cupones.length ? cupones.length : page * pageSize }} 
-          de {{ cupones.length }} registros
-        </span>
+                </td>
+
+                <!-- Tipo -->
+                <td class="text-center">
+                  <span 
+                    class="badge"
+                    [ngClass]="{
+                      'bg-info': item.tipo === 'Porcentaje',
+                      'bg-success': item.tipo === 'Valor fijo'
+                    }">
+                    {{ item.tipo }}
+                  </span>
+                </td>
+
+                <!-- Descuento -->
+                <td class="text-center fw-bold">
+                  <span *ngIf="item.tipo === 'Porcentaje'">{{ item.valor }}%</span>
+                  <span *ngIf="item.tipo === 'Valor fijo'">{{ item.valor | currency:'USD' }}</span>
+                </td>
+
+                <!-- Límite -->
+                <td class="text-center d-none d-md-table-cell">
+                  <span 
+                    class="badge"
+                    [ngClass]="{
+                      'bg-success': item.limite > 10,
+                      'bg-warning text-dark': item.limite > 0 && item.limite <= 10,
+                      'bg-danger': item.limite === 0
+                    }">
+                    {{ item.limite }} restantes
+                  </span>
+                </td>
+
+                <!-- Estado -->
+                <td class="text-center d-none d-lg-table-cell">
+                  <span 
+                    class="badge"
+                    [ngClass]="{
+                      'bg-success': item.limite > 0,
+                      'bg-secondary': item.limite === 0
+                    }">
+                    <i class="fas fa-circle me-1" style="font-size: 0.5rem;"></i>
+                    {{ item.limite > 0 ? 'Activo' : 'Agotado' }}
+                  </span>
+                </td>
+
+                <!-- Acciones -->
+                <td class="text-center">
+                  <div class="btn-group btn-group-sm">
+                    <a 
+                      class="btn btn-outline-primary"
+                      [routerLink]="['/panel/cupones', item._id]"
+                      title="Editar">
+                      <i class="fas fa-edit"></i>
+                    </a>
+                    <button
+                      class="btn btn-outline-danger"
+                      type="button"
+                      (click)="abrirModalEliminar(item)"
+                      title="Eliminar">
+                      <i class="fas fa-trash-alt"></i>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </div>
-      <ngb-pagination
-        [(page)]="page"
-        [pageSize]="pageSize"
-        [collectionSize]="cupones.length"
-        [maxSize]="5"
-        [rotate]="true"
-        [boundaryLinks]="true"
-      >
-      </ngb-pagination>
+
+      <!-- Paginación -->
+      <div class="card-footer bg-light" *ngIf="cupones.length > pageSize">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-center gap-3">
+          <div class="text-muted small">
+            Mostrando {{ (page - 1) * pageSize + 1 }} - 
+            {{ page * pageSize > cupones.length ? cupones.length : page * pageSize }} 
+            de {{ cupones.length }} cupones
+          </div>
+          <ngb-pagination
+            [(page)]="page"
+            [pageSize]="pageSize"
+            [collectionSize]="cupones.length"
+            [maxSize]="5"
+            [rotate]="true"
+            [boundaryLinks]="true"
+            size="sm">
+          </ngb-pagination>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+</main>
+
+<!-- Modal de Confirmación -->
+<div 
+  class="modal fade" 
+  id="deleteModal" 
+  tabindex="-1" 
+  aria-labelledby="deleteModalLabel"
+  aria-hidden="true"
+  data-bs-backdrop="static"
+  data-bs-keyboard="false">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content" *ngIf="cuponAEliminar">
+      <div class="modal-header border-0">
+        <h5 class="modal-title" id="deleteModalLabel">
+          <i class="fas fa-exclamation-triangle text-danger me-2"></i>
+          Confirmar Eliminación
+        </h5>
+        <button 
+          type="button" 
+          class="btn-close" 
+          (click)="cerrarModal()"
+          [disabled]="load_btn"
+          aria-label="Close">
+        </button>
+      </div>
+      <div class="modal-body">
+        <p class="mb-3">¿Estás seguro de eliminar este cupón?</p>
+        <div class="alert alert-warning mb-0">
+          <div class="d-flex align-items-start">
+            <i class="fas fa-ticket-alt fa-2x text-warning me-3 mt-1"></i>
+            <div>
+              <strong class="text-uppercase">{{ cuponAEliminar.codigo }}</strong><br>
+              <small class="text-muted">
+                Tipo: {{ cuponAEliminar.tipo }}<br>
+                Descuento: 
+                <span *ngIf="cuponAEliminar.tipo === 'Porcentaje'">{{ cuponAEliminar.valor }}%</span>
+                <span *ngIf="cuponAEliminar.tipo === 'Valor fijo'">{{ cuponAEliminar.valor | currency:'USD' }}</span>
+                <br>
+                Usos restantes: {{ cuponAEliminar.limite }}
+              </small>
+            </div>
+          </div>
+        </div>
+        <div class="alert alert-danger mt-3 mb-0">
+          <i class="fas fa-exclamation-circle me-2"></i>
+          <small><strong>Advertencia:</strong> Los clientes no podrán usar este cupón una vez eliminado.</small>
+        </div>
+      </div>
+      <div class="modal-footer border-0">
+        <button 
+          type="button" 
+          class="btn btn-secondary" 
+          (click)="cerrarModal()"
+          [disabled]="load_btn">
+          Cancelar
+        </button>
+        <button 
+          type="button" 
+          class="btn btn-danger"
+          (click)="confirmarEliminacion()"
+          [disabled]="load_btn">
+          <span *ngIf="!load_btn">
+            <i class="fas fa-trash-alt me-1"></i>Eliminar
+          </span>
+          <span *ngIf="load_btn">
+            <span class="spinner-border spinner-border-sm me-1"></span>
+            Eliminando...
+          </span>
+        </button>
+      </div>
     </div>
   </div>
 </div>
