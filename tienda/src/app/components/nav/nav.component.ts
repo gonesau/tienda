@@ -15,12 +15,16 @@ export class NavComponent implements OnInit {
   public user_lc: any = undefined;
   public config_global: any = {};
   public op_cart: boolean = false;
+  public carrito_compras: Array<any> = [];
+  public url;
+  public subtotal = 0;
   
   constructor(
     private _clienteService: ClienteService,
     private _router: Router,
   ) {
     this.cargarUsuario();
+    this.url = this._clienteService.url;
 
     this._clienteService.obtener_config_publico().subscribe(
       response => {
@@ -51,6 +55,7 @@ export class NavComponent implements OnInit {
       if (usuarioGuardado) {
         try {
           this.user_lc = JSON.parse(usuarioGuardado);
+          
         } catch (e) {
           console.error('Error parseando usuario de localStorage:', e);
           this.user_lc = undefined;
@@ -64,6 +69,18 @@ export class NavComponent implements OnInit {
             this.usuario = response.data;
             this.user_lc = response.data;
             localStorage.setItem('usuario', JSON.stringify(this.usuario));
+
+            this._clienteService.obtener_carrito_cliente(this.usuario._id, this.token).subscribe(
+              response => {
+                this.carrito_compras = response.data;
+                this.subtotal = 0;
+                this.calcular_carrito();
+              },
+              error => {
+                console.error('Error obteniendo carrito:', error);
+              }
+            );
+
           } else {
             this.limpiarSesion();
           }
@@ -115,9 +132,11 @@ export class NavComponent implements OnInit {
     }
   }
 
-
-
-
+  calcular_carrito(){
+    this.carrito_compras.forEach(element => {
+      this.subtotal += element.producto.precio * element.cantidad;
+    });
+  }
 
 
 
