@@ -1,5 +1,5 @@
 /* ============================================
-   LOGIN COMPONENT - VERSIÓN MINIMALISTA
+   LOGIN COMPONENT - VERSIÓN MEJORADA
    ============================================ */
 
 /* --- Wrapper principal --- */
@@ -12,12 +12,12 @@
 .login-image {
     background-image: url('https://images.unsplash.com/photo-1556740738-b6a63e27c4df?q=80&w=2070&auto=format&fit=crop');
     background-size: cover;
-    background-position: center;
+    background-position: center center;
     background-repeat: no-repeat;
     position: relative;
 }
 
-/* Overlay oscuro sobre la imagen */
+/* Overlay más sutil (opcional - puedes comentar todo este bloque si no quieres overlay) */
 .login-image::before {
     content: '';
     position: absolute;
@@ -25,7 +25,14 @@
     left: 0;
     right: 0;
     bottom: 0;
-    background: linear-gradient(135deg, rgba(13, 110, 253, 0.7) 0%, rgba(108, 117, 125, 0.7) 100%);
+    /* Opción 1: Overlay muy sutil */
+    background: rgba(0, 0, 0, 0.15);
+    
+    /* Opción 2: Sin overlay - comenta la línea anterior y descomenta esta */
+    /* background: transparent; */
+    
+    /* Opción 3: Gradiente sutil desde abajo - comenta línea "background: rgba..." y descomenta esta */
+    /* background: linear-gradient(to top, rgba(0, 0, 0, 0.3) 0%, transparent 50%); */
 }
 
 /* --- Contenedor del formulario --- */
@@ -45,12 +52,18 @@
     background-color: rgba(13, 110, 253, 0.1);
     border-radius: 50%;
     color: #0d6efd;
+    transition: transform 0.3s ease;
+}
+
+.login-logo:hover i {
+    transform: scale(1.05);
 }
 
 /* --- Títulos --- */
 .login-form-container h2 {
     color: #212529;
     font-size: 1.75rem;
+    font-weight: 700;
 }
 
 .login-form-container .text-muted {
@@ -61,6 +74,7 @@
 .form-label {
     color: #495057;
     margin-bottom: 0.5rem;
+    font-weight: 500;
 }
 
 .form-control {
@@ -164,7 +178,17 @@
     border-color: #e9ecef !important;
 }
 
-/* --- Responsividad --- */
+/* --- Responsividad MEJORADA --- */
+
+/* Tablets y pantallas pequeñas */
+@media (max-width: 991.98px) {
+    .login-image {
+        min-height: 300px;
+        background-position: center center;
+    }
+}
+
+/* Mobile */
 @media (max-width: 767.98px) {
     .login-form-container {
         padding-left: 1.5rem !important;
@@ -185,20 +209,65 @@
     .btn {
         font-size: 0.9rem;
     }
+    
+    .login-image {
+        min-height: 250px;
+        background-position: center center;
+    }
 }
 
+/* Pantallas muy pequeñas */
 @media (max-width: 575.98px) {
     .login-form-container {
         padding-left: 1rem !important;
         padding-right: 1rem !important;
     }
+    
+    .login-image {
+        min-height: 200px;
+        background-position: center 40%; /* Ajuste fino para móviles */
+    }
 }
 
-/* --- Altura mínima --- */
-@media (min-height: 700px) {
+/* --- Altura mínima para desktop --- */
+@media (min-height: 700px) and (min-width: 768px) {
     .login-wrapper {
         display: flex;
         align-items: center;
+    }
+    
+    .login-image {
+        background-attachment: fixed; /* Efecto parallax sutil en desktop */
+    }
+}
+
+/* --- Ajustes específicos para la imagen en diferentes tamaños --- */
+
+/* Desktop grande */
+@media (min-width: 1400px) {
+    .login-image {
+        background-position: center center;
+    }
+}
+
+/* Desktop normal */
+@media (min-width: 992px) and (max-width: 1399.98px) {
+    .login-image {
+        background-position: center center;
+    }
+}
+
+/* Tablet horizontal */
+@media (min-width: 768px) and (max-width: 991.98px) {
+    .login-image {
+        background-position: center 45%;
+    }
+}
+
+/* Tablet vertical */
+@media (min-width: 576px) and (max-width: 767.98px) {
+    .login-image {
+        background-position: center 50%;
     }
 }
 
@@ -258,5 +327,20 @@ button,
 @media print {
     .login-wrapper {
         display: none !important;
+    }
+}
+
+/* --- Mejora para pantallas ultra anchas --- */
+@media (min-width: 1920px) {
+    .login-image {
+        background-size: cover;
+        background-position: center center;
+    }
+}
+
+/* --- Ajuste para pantallas muy altas (verticales) --- */
+@media (min-aspect-ratio: 1/2) and (max-aspect-ratio: 9/16) {
+    .login-image {
+        background-position: center 35%;
     }
 }

@@ -14,7 +14,10 @@ export class CreateCuponComponent implements OnInit {
 
   public token: string;
   public cupon: any = {
+    codigo: '',
     tipo: '',
+    valor: null,
+    limite: null
   };
   public load_btn = false;
 
@@ -23,40 +26,88 @@ export class CreateCuponComponent implements OnInit {
     private _router: Router
   ) {
     this.token = localStorage.getItem('token') || '';
+    
+    if (!this.token) {
+      this._router.navigate(['/login']);
+    }
   }
 
   ngOnInit(): void {
+    // Verificar autenticación
     if (!this.token) {
-        this._router.navigate(['/login']);
+      this._router.navigate(['/login']);
     }
   }
 
-
-  registro(registroForm: NgForm) {
+  /**
+   * Registra un nuevo cupón
+   */
+  registro(registroForm: NgForm): void {
+    // Validar formulario
     if (registroForm.invalid) {
-        // Marcar todos los campos como "touched" para que se muestren los mensajes de error
-        Object.keys(registroForm.controls).forEach(key => {
-            registroForm.controls[key].markAsTouched();
-        });
-        this.mostrarError('Por favor, completa todos los campos requeridos.');
-        return;
+      Object.keys(registroForm.controls).forEach(key => {
+        registroForm.controls[key].markAsTouched();
+      });
+      this.mostrarError('Por favor, completa todos los campos requeridos correctamente.');
+      return;
     }
 
+    // Validar código
+    if (!this.cupon.codigo || this.cupon.codigo.trim() === '') {
+      this.mostrarError('El código del cupón es requerido');
+      return;
+    }
+
+    // Validar tipo
+    if (!this.cupon.tipo || this.cupon.tipo.trim() === '') {
+      this.mostrarError('Debes seleccionar el tipo de descuento');
+      return;
+    }
+
+    // Validar valor
+    if (!this.cupon.valor || this.cupon.valor <= 0) {
+      this.mostrarError('El valor del descuento debe ser mayor a 0');
+      return;
+    }
+
+    // Validar porcentaje máximo
+    if (this.cupon.tipo === 'Porcentaje' && this.cupon.valor > 100) {
+      this.mostrarError('El porcentaje no puede ser mayor a 100');
+      return;
+    }
+
+    // Validar límite
+    if (!this.cupon.limite || this.cupon.limite < 1) {
+      this.mostrarError('El límite debe ser al menos 1 uso');
+      return;
+    }
+
+    // Preparar datos
+    const dataCupon = {
+      codigo: this.cupon.codigo.trim().toUpperCase(),
+      tipo: this.cupon.tipo,
+      valor: parseFloat(this.cupon.valor),
+      limite: parseInt(this.cupon.limite)
+    };
+
     this.load_btn = true;
-    this._cuponService.registro_cupon_admin(this.cupon, this.token).subscribe(
+
+    this._cuponService.registro_cupon_admin(dataCupon, this.token).subscribe(
       response => {
         if (response.data) {
-             iziToast.success({
-                title: 'ÉXITO',
-                message: 'Cupón registrado correctamente.',
-                position: 'topRight',
-            });
-            this.load_btn = false;
+          iziToast.success({
+            title: 'Éxito',
+            message: 'Cupón registrado correctamente',
+            position: 'topRight',
+          });
+          
+          setTimeout(() => {
             this._router.navigate(['/panel/cupones']);
+          }, 500);
         } else {
-            this.mostrarError(response.message || 'No se pudo crear el cupón.');
-            this.load_btn = false;
+          this.mostrarError(response.message || 'No se pudo crear el cupón.');
         }
+        this.load_btn = false;
       }, 
       error => {
         console.error('Error en el servidor:', error);
@@ -67,7 +118,9 @@ export class CreateCuponComponent implements OnInit {
     );
   }
 
-  // Método auxiliar para mostrar errores
+  /**
+   * Muestra mensaje de error
+   */
   private mostrarError(mensaje: string): void {
     iziToast.error({
       title: 'Error',
