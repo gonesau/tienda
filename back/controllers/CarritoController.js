@@ -29,7 +29,20 @@ const obtener_carrito_cliente = async function (req, res) {
     }
 }
 
+const eliminar_carrito_cliente = async function (req, res) {
+    if (req.user) {
+        let id = req.params['id'];
+        let carrito_cliente = await carrito.findByIdAndDelete({ _id: id });
+        res.status(200).send({ data: carrito_cliente });
+
+    } else {
+        res.status(500).send({ message: 'No autorizado' });
+    }
+}
+
+
 module.exports = {
     agregar_carrito_cliente,
-    obtener_carrito_cliente
+    obtener_carrito_cliente,
+    eliminar_carrito_cliente
 }

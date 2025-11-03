@@ -139,5 +139,16 @@ export class NavComponent implements OnInit {
   }
 
 
+  eliminar_item(id){
+    this._clienteService.eliminar_carrito_cliente(id, this.token).subscribe(
+      response => {
+        this.subtotal = 0;
+        this.cargarUsuario();
+      },
+      error => {
+        console.error('Error eliminando item del carrito:', error);
+      }
+    );
+  }
 
 }
