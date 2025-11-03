@@ -1,7 +1,9 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { ClienteService } from 'src/app/services/cliente.service';
+import { io } from "socket.io-client";
 declare var $: any;
+declare var iziToast;
 
 @Component({
   selector: 'app-nav',
@@ -18,7 +20,8 @@ export class NavComponent implements OnInit {
   public carrito_compras: Array<any> = [];
   public url;
   public subtotal = 0;
-  
+  public socket = io('http://localhost:4201');
+
   constructor(
     private _clienteService: ClienteService,
     private _router: Router,
@@ -37,9 +40,19 @@ export class NavComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    // Recargar usuario al inicializar
-    this.cargarUsuario();
+    this.socket.on('new-carrito', function (data) {
+      this.cargarUsuario();
+      console.log(data);
+    }.bind(this));
+
+
+    this.socket.on('new-carrito-add', function (data) {
+      this.cargarUsuario();
+      console.log(data);
+    }.bind(this));
+
   }
+
 
   /**
    * Carga la información del usuario desde localStorage o el servidor
@@ -55,7 +68,7 @@ export class NavComponent implements OnInit {
       if (usuarioGuardado) {
         try {
           this.user_lc = JSON.parse(usuarioGuardado);
-          
+
         } catch (e) {
           console.error('Error parseando usuario de localStorage:', e);
           this.user_lc = undefined;
@@ -122,8 +135,8 @@ export class NavComponent implements OnInit {
   }
 
 
-  op_modalcart(){
-    if(this.op_cart == false){
+  op_modalcart() {
+    if (this.op_cart == false) {
       this.op_cart = true;
       $('#cart').modal('show');
     } else {
@@ -132,17 +145,28 @@ export class NavComponent implements OnInit {
     }
   }
 
-  calcular_carrito(){
+  calcular_carrito() {
     this.carrito_compras.forEach(element => {
       this.subtotal += element.producto.precio * element.cantidad;
     });
   }
 
 
-  eliminar_item(id){
+  eliminar_item(id) {
     this._clienteService.eliminar_carrito_cliente(id, this.token).subscribe(
       response => {
-        this.subtotal = 0;
+
+        iziToast.success({
+          title: 'Éxito',
+          titleColor: '#1DC74C',
+          color: '#FFF',
+          class: 'text-success',
+          position: 'topRight',
+          message: 'Se eliminó el producto del carrito de compras.'
+        });
+
+
+        this.socket.emit('delete-carrito', { data: response.data });
         this.cargarUsuario();
       },
       error => {

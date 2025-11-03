@@ -2,6 +2,8 @@ import { Component, OnInit, AfterViewInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { ClienteService } from 'src/app/services/cliente.service';
 import { Global } from 'src/app/services/global';
+
+import { io } from "socket.io-client";
 declare var noUiSlider: any;
 declare var $: any;
 declare var iziToast;
@@ -36,6 +38,9 @@ export class IndexProductoComponent implements OnInit, AfterViewInit {
   public token;
 
   public btn_cart = false;
+
+  public socket = io('http://localhost:4201');
+
 
   constructor(
     private _clienteService: ClienteService,
@@ -303,6 +308,7 @@ export class IndexProductoComponent implements OnInit, AfterViewInit {
             position: 'topRight',
             message: 'Se agregó el producto al carrito de compras.'
           });
+          this.socket.emit('add-carrito-add', { data: response.data });
           this.btn_cart = false;
         }
       },

@@ -6,6 +6,28 @@ var bodyParser = require('body-parser');
 var mongoose = require('mongoose');
 var port = process.env.PORT || 4201;
 
+var server = require('http').createServer(app);
+var io = require('socket.io')(server, {
+    cors: {
+        origin: '*',
+    }
+});
+
+io.on('connection', (socket) => {
+    socket.on('delete-carrito', function(data) {
+        io.emit('new-carrito', data);
+        console.log(data);
+    });
+
+    socket.on('add-carrito-add', function(data) {
+        io.emit('new-carrito-add', data);
+        console.log(data);
+    });
+
+});
+
+
+
 // Middleware
 var cliente_route = require('./routes/cliente');
 var admin_route = require('./routes/admin');
@@ -21,7 +43,7 @@ mongoose.connect('mongodb://localhost:27017/tienda', {useUnifiedTopology: true, 
     console.log('Conectado a la base de datos');
 
     // Iniciar servidor
-    app.listen(port, () => {
+    server.listen(port, () => {
       console.log(`Servidor corriendo en http://localhost:${port}`);
     });
   })
