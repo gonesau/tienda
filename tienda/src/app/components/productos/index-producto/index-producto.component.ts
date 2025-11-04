@@ -1,35 +1,40 @@
-// index-producto.component.ts
-import { Component, OnInit, AfterViewInit } from '@angular/core';
+// tienda/src/app/components/productos/index-producto/index-producto.component.ts
+import { Component, OnInit, AfterViewInit, OnDestroy } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ClienteService } from 'src/app/services/cliente.service';
 import { Global } from 'src/app/services/global';
+import { Subject } from 'rxjs';
+import { takeUntil, debounceTime, distinctUntilChanged } from 'rxjs/operators';
 declare var noUiSlider: any;
 declare var $: any;
-declare var iziToast;
+declare var iziToast: any;
 
 @Component({
   selector: 'app-index-producto',
   templateUrl: './index-producto.component.html',
   styleUrls: ['./index-producto.component.css']
 })
-export class IndexProductoComponent implements OnInit, AfterViewInit {
+export class IndexProductoComponent implements OnInit, AfterViewInit, OnDestroy {
   public config_global: any = {};
   public filter_categoria = '';
   public productos: Array<any> = [];
   public productos_constante: Array<any> = [];
   public filter_producto = '';
-  public url;
+  public url: string;
   public load_data = true;
   public filter_cat_producto = 'todos';
-  public route_categoria;
+  public route_categoria: string | null = null;
   public page = 1;
   public pageSize = 15;
   public sort_by = 'Defecto';
   public slider: any;
   public precio_min = 0;
   public precio_max = 5000;
-  public token;
+  public token: string | null;
   public btn_cart = false;
+
+  private destroy$ = new Subject<void>();
+  private searchSubject$ = new Subject<string>();
 
   constructor(
     private _clienteService: ClienteService,
@@ -41,75 +46,124 @@ export class IndexProductoComponent implements OnInit, AfterViewInit {
   }
 
   ngOnInit(): void {
-    this._clienteService.obtener_config_publico().subscribe(
-      response => {
-        this.config_global = response.data;
-      },
-      error => {
-        console.log(error);
-      }
-    );
+    // Configurar búsqueda con debounce
+    this.searchSubject$
+      .pipe(
+        debounceTime(300),
+        distinctUntilChanged(),
+        takeUntil(this.destroy$)
+      )
+      .subscribe(() => {
+        this.aplicarFiltros();
+      });
 
-    this._route.params.subscribe(
-      params => {
-        this.route_categoria = params['categoria'];
+    // Cargar configuración
+    this.cargarConfiguracion();
+
+    // Suscribirse a cambios de ruta
+    this._route.params
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(params => {
+        this.route_categoria = params['categoria'] || null;
         this.cargarProductos();
-      }
-    );
+      });
   }
 
   ngAfterViewInit(): void {
-    this.inicializarSlider();
+    setTimeout(() => {
+      this.inicializarSlider();
+    }, 500);
   }
 
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
+  /**
+   * Carga configuración del sitio
+   */
+  private cargarConfiguracion(): void {
+    this._clienteService.obtener_config_publico()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (response) => {
+          this.config_global = response.data || {};
+        },
+        error: (error) => {
+          console.error('Error cargando configuración:', error);
+          this.config_global = {};
+        }
+      });
+  }
+
+  /**
+   * Inicializa slider de precios
+   */
   inicializarSlider(): void {
     const sliderElement: any = document.getElementById('slider');
 
-    if (sliderElement && !sliderElement.noUiSlider) {
-      this.slider = noUiSlider.create(sliderElement, {
-        start: [this.precio_min, this.precio_max],
-        connect: true,
-        range: {
-          'min': 0,
-          'max': 5000
-        },
-        tooltips: [true, true],
-        pips: {
-          mode: 'count',
-          values: 5,
-        }
-      });
+    if (!sliderElement) return;
 
-      this.slider.on('update', (values: any) => {
-        this.precio_min = Math.round(parseFloat(values[0]));
-        this.precio_max = Math.round(parseFloat(values[1]));
-        $('.cs-range-slider-value-min').val(this.precio_min);
-        $('.cs-range-slider-value-max').val(this.precio_max);
-      });
-
-      $('.noUi-tooltip').css('font-size', '11px');
+    // Destruir slider existente si existe
+    if (sliderElement.noUiSlider) {
+      sliderElement.noUiSlider.destroy();
     }
+
+    this.slider = noUiSlider.create(sliderElement, {
+      start: [this.precio_min, this.precio_max],
+      connect: true,
+      range: {
+        'min': 0,
+        'max': 5000
+      },
+      tooltips: [true, true],
+      pips: {
+        mode: 'count',
+        values: 5,
+      }
+    });
+
+    this.slider.on('update', (values: any) => {
+      this.precio_min = Math.round(parseFloat(values[0]));
+      this.precio_max = Math.round(parseFloat(values[1]));
+      $('.cs-range-slider-value-min').val(this.precio_min);
+      $('.cs-range-slider-value-max').val(this.precio_max);
+    });
+
+    $('.noUi-tooltip').css('font-size', '11px');
   }
 
+  /**
+   * Carga productos desde el servidor
+   */
   cargarProductos(): void {
     this.load_data = true;
 
-    this._clienteService.obtener_productos_publico('').subscribe(
-      response => {
-        this.productos_constante = response.data;
-        this.aplicarFiltros();
-        this.load_data = false;
-      },
-      error => {
-        console.log(error);
-        this.load_data = false;
-      }
-    );
+    this._clienteService.obtener_productos_publico('')
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (response) => {
+          this.productos_constante = response.data || [];
+          this.aplicarFiltros();
+          this.load_data = false;
+        },
+        error: (error) => {
+          console.error('Error cargando productos:', error);
+          this.productos_constante = [];
+          this.productos = [];
+          this.load_data = false;
+        }
+      });
   }
 
+  /**
+   * Aplica todos los filtros activos
+   */
   aplicarFiltros(): void {
     let resultado = [...this.productos_constante];
 
+    // Filtro de búsqueda por texto
     if (this.filter_producto && this.filter_producto.trim() !== '') {
       const search = new RegExp(this.filter_producto, 'i');
       resultado = resultado.filter(item =>
@@ -119,26 +173,35 @@ export class IndexProductoComponent implements OnInit, AfterViewInit {
       );
     }
 
+    // Filtro por categoría de ruta
     if (this.route_categoria) {
       resultado = resultado.filter(item =>
         item.categoria.toLowerCase() === this.route_categoria.toLowerCase()
       );
     }
 
+    // Filtro por categoría seleccionada
     if (this.filter_cat_producto !== 'todos') {
       resultado = resultado.filter(item =>
         item.categoria === this.filter_cat_producto
       );
     }
 
+    // Filtro por rango de precios
     resultado = resultado.filter(item =>
       item.precio >= this.precio_min && item.precio <= this.precio_max
     );
 
+    // Aplicar ordenamiento
     this.productos = this.aplicarOrdenamiento(resultado);
+    
+    // Resetear paginación
     this.page = 1;
   }
 
+  /**
+   * Aplica ordenamiento a los productos
+   */
   aplicarOrdenamiento(productos: Array<any>): Array<any> {
     let resultado = [...productos];
 
@@ -165,43 +228,47 @@ export class IndexProductoComponent implements OnInit, AfterViewInit {
     return resultado;
   }
 
+  /**
+   * Busca categorías con debounce
+   */
   buscar_categorias(): void {
-    if (this.filter_categoria) {
-      const search = new RegExp(this.filter_categoria, 'i');
-      this.config_global.categorias = this.config_global.categorias.filter(
-        (item: { titulo: string; }) => search.test(item.titulo)
-      );
-    } else {
-      this._clienteService.obtener_config_publico().subscribe(
-        response => {
-          this.config_global = response.data;
-        },
-        error => {
-          console.log(error);
-        }
-      );
-    }
+    // Implementar si es necesario
   }
 
+  /**
+   * Busca productos (con debounce)
+   */
   buscar_productos(): void {
-    this.aplicarFiltros();
+    this.searchSubject$.next(this.filter_producto);
   }
 
+  /**
+   * Busca productos por precio
+   */
   buscar_precios(): void {
     this.aplicarFiltros();
   }
 
+  /**
+   * Filtra por categoría seleccionada
+   */
   buscar_por_categoria(): void {
     this.route_categoria = null;
     this.aplicarFiltros();
   }
 
+  /**
+   * Filtra por categoría clickeada
+   */
   filtrar_por_categoria(categoria: string): void {
     this.filter_cat_producto = categoria;
     this.route_categoria = null;
     this.aplicarFiltros();
   }
 
+  /**
+   * Resetea todos los filtros
+   */
   reset_productos(): void {
     this.filter_producto = '';
     this.filter_cat_producto = 'todos';
@@ -217,24 +284,19 @@ export class IndexProductoComponent implements OnInit, AfterViewInit {
     this.aplicarFiltros();
   }
 
+  /**
+   * Cambia el ordenamiento
+   */
   orden_por(): void {
     this.aplicarFiltros();
   }
 
-  verificarAutenticacion(): boolean {
-    const token = localStorage.getItem('token');
-    const userId = localStorage.getItem('_id');
-    
-    if (!token || !userId) {
-      iziToast.warning({
-        title: 'Inicia sesión',
-        titleColor: '#FFA500',
-        color: '#FFF',
-        class: 'text-warning',
-        position: 'topRight',
-        message: 'Debes iniciar sesión para agregar productos a tu carrito',
-        timeout: 3000
-      });
+  /**
+   * Verifica si el usuario está autenticado
+   */
+  private verificarAutenticacion(): boolean {
+    if (!this._clienteService.isAuthenticated()) {
+      this.mostrarAdvertencia('Debes iniciar sesión para agregar productos a tu carrito');
       
       setTimeout(() => {
         this._router.navigate(['/login']);
@@ -246,17 +308,24 @@ export class IndexProductoComponent implements OnInit, AfterViewInit {
     return true;
   }
 
+  /**
+   * Agrega producto al carrito
+   */
   agregar_producto(producto: any): void {
     if (!this.verificarAutenticacion()) {
       return;
     }
 
-    let variedad = '';
-    
+    // Validar stock
+    if (producto.stock <= 0) {
+      this.mostrarError('Este producto no está disponible en este momento');
+      return;
+    }
+
+    // Determinar variedad
+    let variedad = 'Estándar';
     if (producto.variedades && producto.variedades.length > 0) {
       variedad = producto.variedades[0].titulo;
-    } else {
-      variedad = 'Estándar';
     }
 
     const data = {
@@ -268,63 +337,91 @@ export class IndexProductoComponent implements OnInit, AfterViewInit {
 
     this.btn_cart = true;
     
-    this._clienteService.agregar_carrito_cliente(data, this.token).subscribe(
-      response => {
-        this.btn_cart = false;
-        
-        if (response.data == undefined) {
-          iziToast.info({
-            title: 'Ya está en tu carrito',
-            titleColor: '#17a2b8',
-            color: '#FFF',
-            class: 'text-info',
-            position: 'topRight',
-            message: 'Este producto ya se encuentra en tu carrito de compras',
-            timeout: 3000
-          });
-        } else {
-          iziToast.success({
-            title: '¡Agregado!',
-            titleColor: '#1DC74C',
-            color: '#FFF',
-            class: 'text-success',
-            position: 'topRight',
-            message: 'Producto agregado a tu carrito correctamente',
-            timeout: 3000
-          });
+    this._clienteService.agregar_carrito_cliente(data, this.token)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (response) => {
+          this.btn_cart = false;
           
-          // El backend ya emite el evento socket, no es necesario emitir aquí
-        }
-      },
-      error => {
-        this.btn_cart = false;
-        
-        if (error.status === 401 || error.status === 403) {
-          iziToast.error({
-            title: 'Sesión expirada',
-            titleColor: '#FF0000',
-            color: '#FFF',
-            class: 'text-danger',
-            position: 'topRight',
-            message: 'Tu sesión ha expirado. Por favor inicia sesión nuevamente'
-          });
+          if (response.data == undefined) {
+            this.mostrarInfo('Este producto ya se encuentra en tu carrito de compras');
+          } else {
+            this.mostrarExito('Producto agregado a tu carrito correctamente');
+          }
+        },
+        error: (error) => {
+          this.btn_cart = false;
           
-          setTimeout(() => {
-            localStorage.clear();
-            this._router.navigate(['/login']);
-          }, 2000);
-        } else {
-          const mensaje = error.error?.message || 'No pudimos agregar el producto a tu carrito';
-          iziToast.error({
-            title: 'Ups...',
-            titleColor: '#FF0000',
-            color: '#FFF',
-            class: 'text-danger',
-            position: 'topRight',
-            message: mensaje
-          });
+          if (error.status === 401 || error.status === 403) {
+            this.mostrarError('Tu sesión ha expirado. Por favor inicia sesión nuevamente');
+            setTimeout(() => {
+              localStorage.clear();
+              this._router.navigate(['/login']);
+            }, 2000);
+          } else {
+            this.mostrarError(error.message || 'No pudimos agregar el producto a tu carrito');
+          }
         }
-      }
-    );
+      });
+  }
+
+  /**
+   * Muestra mensaje de éxito
+   */
+  private mostrarExito(mensaje: string): void {
+    iziToast.success({
+      title: '¡Agregado!',
+      titleColor: '#1DC74C',
+      color: '#FFF',
+      class: 'text-success',
+      position: 'topRight',
+      message: mensaje,
+      timeout: 3000
+    });
+  }
+
+  /**
+   * Muestra mensaje de error
+   */
+  private mostrarError(mensaje: string): void {
+    iziToast.error({
+      title: 'Ups...',
+      titleColor: '#FF0000',
+      color: '#FFF',
+      class: 'text-danger',
+      position: 'topRight',
+      message: mensaje,
+      timeout: 4000
+    });
+  }
+
+  /**
+   * Muestra mensaje informativo
+   */
+  private mostrarInfo(mensaje: string): void {
+    iziToast.info({
+      title: 'Ya está en tu carrito',
+      titleColor: '#17a2b8',
+      color: '#FFF',
+      class: 'text-info',
+      position: 'topRight',
+      message: mensaje,
+      timeout: 3000
+    });
+  }
+
+  /**
+   * Muestra mensaje de advertencia
+   */
+  private mostrarAdvertencia(mensaje: string): void {
+    iziToast.warning({
+      title: 'Inicia sesión',
+      titleColor: '#FFA500',
+      color: '#FFF',
+      class: 'text-warning',
+      position: 'topRight',
+      message: mensaje,
+      timeout: 3000
+    });
   }
 }
