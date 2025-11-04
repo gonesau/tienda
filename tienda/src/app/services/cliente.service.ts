@@ -314,4 +314,12 @@ export class ClienteService {
         catchError(this.handleError.bind(this))
       );
   }
+
+  registro_direccion_cliente(data: any, token?: string): Observable<any> {
+    let headers = new HttpHeaders({'Content-Type': 'application/json', 'Authorization': token || this.getToken() || ''});
+    return this._http.post(this.url + 'registro_direccion_cliente', data, {headers: headers}).pipe(
+      catchError(this.handleError.bind(this))
+    );
+  }
+
 }
