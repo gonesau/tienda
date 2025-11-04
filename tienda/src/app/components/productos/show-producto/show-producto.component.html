@@ -266,18 +266,15 @@
         <div class="col-lg-7 col-md-8 mb-md-0 mb-4" [innerHTML]="producto.contenido">
 
         </div>
+        <!-- Card lateral derecha (Segunda aparición - después de las reseñas) -->
         <div class="col-md-4 offset-lg-1">
-
-          <!-- Product card carousel -->
+          <!-- Product card -->
           <div class="card card-product">
             <div class="card-product-img">
-              <div class="cs-carousel cs-controls-onhover">
-                <a class="cs-carousel-inner">
-                  <div><img class="card-img-top" [src]="url + 'obtener_portada/' + producto.portada"
-                      alt="Product image"></div>
-
-                </a>
-              </div>
+              <a [routerLink]="['/productos', producto.slug]" class="card-img-top d-block">
+                <img class="rounded" [src]="url + 'obtener_portada/' + producto.portada" [alt]="producto.titulo"
+                  style="width: 100%; height: auto;">
+              </a>
               <div class="card-product-widgets-top">
                 <div class="ml-auto star-rating">
                   <i class="sr-star cxi-star-filled active"></i>
@@ -288,21 +285,30 @@
                 </div>
               </div>
               <div class="card-product-widgets-bottom">
-                <a class="btn-wishlist ml-auto" href="#" data-toggle="tooltip" data-placement="left"
-                  title="Add to wishlist"></a>
+                <a class="btn-wishlist ml-auto" href="javascript:void(0)" data-toggle="tooltip" data-placement="left"
+                  title="Agregar a favoritos"></a>
               </div>
             </div>
             <div class="card-body pb-2" style="background-color: white;">
               <h3 class="card-product-title text-truncate mb-2">
-                <a href="#" class="nav-link">{{producto.titulo}}</a>
+                <a [routerLink]="['/productos', producto.slug]" class="nav-link">{{ producto.titulo }}</a>
               </h3>
               <div class="d-flex align-items-center mb-3">
-                <span class="h5 d-inline-block text-danger mb-0">{{producto.precio | currency}}</span>
-                <del class="d-inline-block ml-2 pl-1 text-muted">$100</del>
+                <span class="h5 d-inline-block text-danger mb-0">{{ producto.precio | currency }}</span>
+                <del class="d-inline-block ml-2 pl-1 text-muted" *ngIf="producto.precio_antes">
+                  {{ producto.precio_antes | currency }}
+                </del>
               </div>
-              <button type="button" class="btn btn-primary btn-block" style="margin-bottom: 1rem;">
-                <i class="cxi-cart align-middle mt-n1 mr-2"></i>
-                Agregar al carrito
+              <button type="button" class="btn btn-primary btn-block" style="margin-bottom: 1rem;"
+                (click)="agregar_producto()" [disabled]="btn_cart">
+                <span *ngIf="!btn_cart">
+                  <i class="cxi-cart align-middle mt-n1 mr-2"></i>
+                  Agregar al carrito
+                </span>
+                <span *ngIf="btn_cart">
+                  <span class="spinner-border spinner-border-sm mr-2" role="status" aria-hidden="true"></span>
+                  Agregando...
+                </span>
               </button>
             </div>
           </div>
@@ -580,18 +586,15 @@
           </ul>
         </nav>
       </div>
+      <!-- Card lateral derecha (Primera aparición - después del contenido) -->
       <div class="col-md-4 offset-lg-1">
-
-        <!-- Product card carousel -->
+        <!-- Product card -->
         <div class="card card-product">
           <div class="card-product-img">
-            <div class="cs-carousel cs-controls-onhover">
-              <a class="cs-carousel-inner">
-                <div><img class="card-img-top" [src]="url + 'obtener_portada/' + producto.portada" alt="Product image">
-                </div>
-
-              </a>
-            </div>
+            <a [routerLink]="['/productos', producto.slug]" class="card-img-top d-block">
+              <img class="rounded" [src]="url + 'obtener_portada/' + producto.portada" [alt]="producto.titulo"
+                style="width: 100%; height: auto;">
+            </a>
             <div class="card-product-widgets-top">
               <div class="ml-auto star-rating">
                 <i class="sr-star cxi-star-filled active"></i>
@@ -602,21 +605,30 @@
               </div>
             </div>
             <div class="card-product-widgets-bottom">
-              <a class="btn-wishlist ml-auto" href="#" data-toggle="tooltip" data-placement="left"
-                title="Add to wishlist"></a>
+              <a class="btn-wishlist ml-auto" href="javascript:void(0)" data-toggle="tooltip" data-placement="left"
+                title="Agregar a favoritos"></a>
             </div>
           </div>
           <div class="card-body pb-2" style="background-color: white;">
             <h3 class="card-product-title text-truncate mb-2">
-              <a href="#" class="nav-link">{{producto.titulo}}</a>
+              <a [routerLink]="['/productos', producto.slug]" class="nav-link">{{ producto.titulo }}</a>
             </h3>
             <div class="d-flex align-items-center mb-3">
-              <span class="h5 d-inline-block text-danger mb-0">{{producto.precio | currency}}</span>
-              <del class="d-inline-block ml-2 pl-1 text-muted">$100</del>
+              <span class="h5 d-inline-block text-danger mb-0">{{ producto.precio | currency }}</span>
+              <del class="d-inline-block ml-2 pl-1 text-muted" *ngIf="producto.precio_antes">
+                {{ producto.precio_antes | currency }}
+              </del>
             </div>
-            <button type="button" class="btn btn-primary btn-block" style="margin-bottom: 1rem;">
-              <i class="cxi-cart align-middle mt-n1 mr-2"></i>
-              Agregar al carrito
+            <button type="button" class="btn btn-primary btn-block" style="margin-bottom: 1rem;"
+              (click)="agregar_producto()" [disabled]="btn_cart">
+              <span *ngIf="!btn_cart">
+                <i class="cxi-cart align-middle mt-n1 mr-2"></i>
+                Agregar al carrito
+              </span>
+              <span *ngIf="btn_cart">
+                <span class="spinner-border spinner-border-sm mr-2" role="status" aria-hidden="true"></span>
+                Agregando...
+              </span>
             </button>
           </div>
         </div>

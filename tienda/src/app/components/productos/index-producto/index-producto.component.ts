@@ -1,8 +1,7 @@
 import { Component, OnInit, AfterViewInit } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { ClienteService } from 'src/app/services/cliente.service';
 import { Global } from 'src/app/services/global';
-
 import { io } from "socket.io-client";
 declare var noUiSlider: any;
 declare var $: any;
@@ -18,7 +17,7 @@ export class IndexProductoComponent implements OnInit, AfterViewInit {
   public config_global: any = {};
   public filter_categoria = '';
   public productos: Array<any> = [];
-  public productos_constante: Array<any> = []; // Array que mantiene todos los productos sin filtrar
+  public productos_constante: Array<any> = [];
   public filter_producto = '';
   public url;
   public load_data = true;
@@ -36,19 +35,24 @@ export class IndexProductoComponent implements OnInit, AfterViewInit {
   };
   public producto: any = {};
   public token;
-
   public btn_cart = false;
-
-  public socket = io('http://localhost:4201');
-
+  public socket = io('http://localhost:4201', {
+    transports: ['websocket', 'polling'],
+    reconnection: true,
+    reconnectionAttempts: 5,
+    reconnectionDelay: 1000
+  });
 
   constructor(
     private _clienteService: ClienteService,
     private _route: ActivatedRoute,
-
+    private _router: Router
   ) {
     this.url = Global.url;
     this.token = localStorage.getItem('token');
+    
+    // Configurar eventos de socket
+    this.setupSocketListeners();
   }
 
   ngOnInit(): void {
@@ -73,6 +77,23 @@ export class IndexProductoComponent implements OnInit, AfterViewInit {
 
   ngAfterViewInit(): void {
     this.inicializarSlider();
+  }
+
+  /**
+   * Configura los listeners de Socket.IO
+   */
+  private setupSocketListeners(): void {
+    this.socket.on('connect', () => {
+      console.log('✅ Socket conectado:', this.socket.id);
+    });
+
+    this.socket.on('disconnect', (reason) => {
+      console.log('❌ Socket desconectado:', reason);
+    });
+
+    this.socket.on('connect_error', (error) => {
+      console.error('⚠️ Error de conexión socket:', error);
+    });
   }
 
   /**
@@ -237,7 +258,7 @@ export class IndexProductoComponent implements OnInit, AfterViewInit {
    * Ejecuta filtro por categoría
    */
   buscar_por_categoria(): void {
-    this.route_categoria = null; // Limpiar filtro de ruta
+    this.route_categoria = null;
     this.aplicarFiltros();
   }
 
@@ -276,19 +297,69 @@ export class IndexProductoComponent implements OnInit, AfterViewInit {
     this.aplicarFiltros();
   }
 
+  /**
+   * Verifica si el usuario está autenticado
+   */
+  verificarAutenticacion(): boolean {
+    const token = localStorage.getItem('token');
+    const userId = localStorage.getItem('_id');
+    
+    if (!token || !userId) {
+      iziToast.warning({
+        title: 'Autenticación requerida',
+        titleColor: '#FFA500',
+        color: '#FFF',
+        class: 'text-warning',
+        position: 'topRight',
+        message: 'Debes iniciar sesión para agregar productos al carrito',
+        timeout: 3000
+      });
+      
+      // Redirigir al login después de mostrar el mensaje
+      setTimeout(() => {
+        this._router.navigate(['/login']);
+      }, 1500);
+      
+      return false;
+    }
+    
+    return true;
+  }
 
+  /**
+   * Agrega producto al carrito desde el índice
+   * Maneja productos con y sin variedades
+   */
+  agregar_producto(producto: any): void {
+    // Verificar autenticación primero
+    if (!this.verificarAutenticacion()) {
+      return;
+    }
 
+    // Verificar si el producto tiene variedades
+    let variedad = '';
+    
+    if (producto.variedades && producto.variedades.length > 0) {
+      // Si tiene variedades, usar la primera
+      variedad = producto.variedades[0].titulo;
+    } else {
+      // Si no tiene variedades, usar valor por defecto
+      variedad = 'Estándar';
+    }
 
-  agregar_producto(producto) {
-    let data = {
+    const data = {
       producto: producto._id,
       cliente: localStorage.getItem('_id'),
       cantidad: 1,
-      variedad: producto.variedades[0].titulo,
-    }
+      variedad: variedad
+    };
+
     this.btn_cart = true;
+    
     this._clienteService.agregar_carrito_cliente(data, this.token).subscribe(
       response => {
+        this.btn_cart = false;
+        
         if (response.data == undefined) {
           iziToast.error({
             title: 'Error',
@@ -298,7 +369,6 @@ export class IndexProductoComponent implements OnInit, AfterViewInit {
             position: 'topRight',
             message: 'El producto ya se encuentra en el carrito de compras.'
           });
-          this.btn_cart = false;
         } else {
           iziToast.success({
             title: 'Éxito',
@@ -308,18 +378,41 @@ export class IndexProductoComponent implements OnInit, AfterViewInit {
             position: 'topRight',
             message: 'Se agregó el producto al carrito de compras.'
           });
+          
+          // Emitir evento de socket para actualizar el carrito en tiempo real
+          console.log('📤 Emitiendo evento add-carrito-add');
           this.socket.emit('add-carrito-add', { data: response.data });
-          this.btn_cart = false;
         }
       },
       error => {
-        console.log(error);
+        this.btn_cart = false;
+        console.error('Error agregando producto:', error);
+        
+        if (error.status === 401 || error.status === 403) {
+          iziToast.error({
+            title: 'Sesión expirada',
+            titleColor: '#FF0000',
+            color: '#FFF',
+            class: 'text-danger',
+            position: 'topRight',
+            message: 'Tu sesión ha expirado. Por favor inicia sesión nuevamente.'
+          });
+          
+          setTimeout(() => {
+            localStorage.clear();
+            this._router.navigate(['/login']);
+          }, 2000);
+        } else {
+          iziToast.error({
+            title: 'Error',
+            titleColor: '#FF0000',
+            color: '#FFF',
+            class: 'text-danger',
+            position: 'topRight',
+            message: 'No se pudo agregar el producto al carrito.'
+          });
+        }
       }
     );
   }
-
-
-
-
-
 }
