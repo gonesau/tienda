@@ -1,3 +1,4 @@
+// tienda/src/app/services/cliente.service.ts
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { Global } from './global';
@@ -53,7 +54,6 @@ export class ClienteService {
     try {
       const helper = new JwtHelperService();
       var decodedToken = helper.decodeToken(token);
-      console.log(decodedToken);
 
       if (helper.isTokenExpired(token)) {
         localStorage.clear();
@@ -96,4 +96,8 @@ export class ClienteService {
     return this._http.delete(this.url + 'eliminar_carrito_cliente/' + id, { headers: headers });
   }
 
+  actualizar_cantidad_carrito(id, data, token): Observable<any> {
+    let headers = new HttpHeaders({'Content-Type': 'application/json', Authorization: token });
+    return this._http.put(this.url + 'actualizar_cantidad_carrito/' + id, data, { headers: headers });
+  }
 }

@@ -26,6 +26,26 @@ io.on('connection', (socket) => {
 
 });
 
+// Middleware para compartir io en todas las rutas
+app.use((req, res, next) => {
+    req.io = io;
+    next();
+});
+
+
+// Socket.IO
+io.on('connection', (socket) => {
+    console.log('Usuario conectado:', socket.id);
+
+    socket.on('disconnect', () => {
+        console.log('Usuario desconectado:', socket.id);
+    });
+});
+
+server.listen(port, () => {
+    console.log('Servidor corriendo en el puerto ' + port);
+});
+
 
 
 // Middleware

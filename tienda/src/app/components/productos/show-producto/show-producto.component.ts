@@ -3,7 +3,6 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { ClienteService } from 'src/app/services/cliente.service';
 import { Global } from 'src/app/services/global';
 import { GuestService } from 'src/app/services/guest.service';
-import { io } from "socket.io-client";
 declare var tns;
 declare var lightGallery;
 declare var iziToast;
@@ -24,12 +23,6 @@ export class ShowProductoComponent implements OnInit {
     cantidad: 1,
   };
   public btn_cart = false;
-  public socket = io('http://localhost:4201', {
-    transports: ['websocket', 'polling'],
-    reconnection: true,
-    reconnectionAttempts: 5,
-    reconnectionDelay: 1000
-  });
 
   constructor(
     private _route: ActivatedRoute,
@@ -39,9 +32,6 @@ export class ShowProductoComponent implements OnInit {
   ) {
     this.token = localStorage.getItem('token');
     this.url = Global.url;
-    
-    // Configurar eventos de socket
-    this.setupSocketListeners();
   }
 
   ngOnInit(): void {
@@ -52,15 +42,12 @@ export class ShowProductoComponent implements OnInit {
         response => {
           this.producto = response.data;
 
-          // Si el producto tiene variedades, seleccionar la primera por defecto
           if (this.producto.variedades && this.producto.variedades.length > 0) {
             this.carrito_data.variedad = this.producto.variedades[0].titulo;
           } else {
-            // Si no tiene variedades, usar un valor por defecto
             this.carrito_data.variedad = 'Estándar';
           }
 
-          // Cargar productos recomendados
           this._guestService.listar_productos_recomendados_publico(this.producto.categoria).subscribe(
             response => {
               this.productos_recomendados = response.data;
@@ -70,7 +57,6 @@ export class ShowProductoComponent implements OnInit {
             }
           );
 
-          // Inicializar carruseles después de cargar el producto
           setTimeout(() => {
             this.inicializarCarruseles();
           }, 500);
@@ -82,29 +68,8 @@ export class ShowProductoComponent implements OnInit {
     });
   }
 
-  /**
-   * Configura los listeners de Socket.IO
-   */
-  private setupSocketListeners(): void {
-    this.socket.on('connect', () => {
-      console.log('✅ Socket conectado:', this.socket.id);
-    });
-
-    this.socket.on('disconnect', (reason) => {
-      console.log('❌ Socket desconectado:', reason);
-    });
-
-    this.socket.on('connect_error', (error) => {
-      console.error('⚠️ Error de conexión socket:', error);
-    });
-  }
-
-  /**
-   * Inicializa todos los carruseles de la página
-   */
   inicializarCarruseles(): void {
     try {
-      // Carrusel principal de galería
       if (document.querySelector('.cs-carousel-inner')) {
         tns({
           container: '.cs-carousel-inner',
@@ -121,7 +86,6 @@ export class ShowProductoComponent implements OnInit {
         });
       }
 
-      // Inicializar lightGallery
       var e = document.querySelectorAll(".cs-gallery");
       if (e.length) {
         for (var t = 0; t < e.length; t++) {
@@ -135,7 +99,6 @@ export class ShowProductoComponent implements OnInit {
         }
       }
 
-      // Carrusel de productos recomendados
       if (document.querySelector('.cs-carousel-inner-two')) {
         tns({
           container: '.cs-carousel-inner-two',
@@ -173,25 +136,21 @@ export class ShowProductoComponent implements OnInit {
     }
   }
 
-  /**
-   * Verifica si el usuario está autenticado
-   */
   verificarAutenticacion(): boolean {
     const token = localStorage.getItem('token');
     const userId = localStorage.getItem('_id');
     
     if (!token || !userId) {
       iziToast.warning({
-        title: 'Autenticación requerida',
+        title: 'Inicia sesión',
         titleColor: '#FFA500',
         color: '#FFF',
         class: 'text-warning',
         position: 'topRight',
-        message: 'Debes iniciar sesión para agregar productos al carrito',
+        message: 'Debes iniciar sesión para agregar productos a tu carrito',
         timeout: 3000
       });
       
-      // Redirigir al login después de mostrar el mensaje
       setTimeout(() => {
         this._router.navigate(['/login']);
       }, 1500);
@@ -202,51 +161,42 @@ export class ShowProductoComponent implements OnInit {
     return true;
   }
 
-  /**
-   * Agrega el producto al carrito
-   * Maneja productos con y sin variedades
-   */
   agregar_producto(): void {
-    // Verificar autenticación primero
     if (!this.verificarAutenticacion()) {
       return;
     }
 
-    // Validar variedad solo si el producto tiene variedades definidas
     if (this.producto.variedades && this.producto.variedades.length > 0) {
       if (!this.carrito_data.variedad) {
         iziToast.error({
-          title: 'Error',
+          title: 'Ups...',
           titleColor: '#FF0000',
           color: '#FFF',
           class: 'text-danger',
           position: 'topRight',
-          message: 'Por favor seleccione una variedad'
+          message: 'Por favor selecciona una variedad'
         });
         return;
       }
     } else {
-      // Si no tiene variedades, asignar valor por defecto
       this.carrito_data.variedad = 'Estándar';
     }
 
-    // Validar stock
     if (this.carrito_data.cantidad > this.producto.stock) {
       iziToast.error({
-        title: 'Error',
+        title: 'Stock insuficiente',
         titleColor: '#FF0000',
         color: '#FFF',
         class: 'text-danger',
         position: 'topRight',
-        message: 'La cantidad máxima disponible en stock es ' + this.producto.stock
+        message: `Solo hay ${this.producto.stock} unidades disponibles`
       });
       return;
     }
 
-    // Validar cantidad mínima
     if (this.carrito_data.cantidad < 1) {
       iziToast.error({
-        title: 'Error',
+        title: 'Cantidad inválida',
         titleColor: '#FF0000',
         color: '#FFF',
         class: 'text-danger',
@@ -270,32 +220,31 @@ export class ShowProductoComponent implements OnInit {
         this.btn_cart = false;
         
         if (response.data == undefined) {
-          iziToast.error({
-            title: 'Error',
-            titleColor: '#FF0000',
+          iziToast.info({
+            title: 'Ya está en tu carrito',
+            titleColor: '#17a2b8',
             color: '#FFF',
-            class: 'text-danger',
+            class: 'text-info',
             position: 'topRight',
-            message: 'El producto ya se encuentra en el carrito de compras.'
+            message: 'Este producto ya se encuentra en tu carrito de compras',
+            timeout: 3000
           });
         } else {
           iziToast.success({
-            title: 'Éxito',
+            title: '¡Agregado!',
             titleColor: '#1DC74C',
             color: '#FFF',
             class: 'text-success',
             position: 'topRight',
-            message: 'Se agregó el producto al carrito de compras.'
+            message: 'Producto agregado a tu carrito correctamente',
+            timeout: 3000
           });
           
-          // Emitir evento de socket para actualizar el carrito en tiempo real
-          console.log('📤 Emitiendo evento add-carrito-add');
-          this.socket.emit('add-carrito-add', { data: response.data });
+          // El backend ya emite el evento socket, no es necesario emitir aquí
         }
       },
       error => {
         this.btn_cart = false;
-        console.error('Error agregando producto:', error);
         
         if (error.status === 401 || error.status === 403) {
           iziToast.error({
@@ -304,7 +253,7 @@ export class ShowProductoComponent implements OnInit {
             color: '#FFF',
             class: 'text-danger',
             position: 'topRight',
-            message: 'Tu sesión ha expirado. Por favor inicia sesión nuevamente.'
+            message: 'Tu sesión ha expirado. Por favor inicia sesión nuevamente'
           });
           
           setTimeout(() => {
@@ -312,13 +261,14 @@ export class ShowProductoComponent implements OnInit {
             this._router.navigate(['/login']);
           }, 2000);
         } else {
+          const mensaje = error.error?.message || 'No pudimos agregar el producto a tu carrito';
           iziToast.error({
-            title: 'Error',
+            title: 'Ups...',
             titleColor: '#FF0000',
             color: '#FFF',
             class: 'text-danger',
             position: 'topRight',
-            message: 'No se pudo agregar el producto al carrito.'
+            message: mensaje
           });
         }
       }
