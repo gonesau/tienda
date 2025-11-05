@@ -251,8 +251,18 @@ const actualizar_perfil_cliente_guest = async function (req, res) {
 const registro_direccion_cliente = async function (req, res) {
   if (req.user) {
     var data = req.body;
-    var reg = await direccion.create(data);
+
+    if(data.principal){
+      // Si la nueva dirección es principal, actualizar las demás direcciones a no principal
+      await direccion.updateMany(
+        { cliente: req.user.sub },
+        { $set: { principal: false } }
+      );
+    }
+
+    let reg = await direccion.create(data);
     res.status(200).send({ data: reg });
+
   } else {
     res.status(500).send({ message: "No autorizado" });
   }
