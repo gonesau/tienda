@@ -1,3 +1,4 @@
+<!-- direcciones.component.html -->
 <app-nav></app-nav>
 
 <main class="cs-page-wrapper">
@@ -19,6 +20,7 @@
     <section class="container pt-3 pt-lg-4 pb-5 pb-lg-6">
         <div class="row pb-2 pb-lg-0">
 
+            <!-- Sidebar -->
             <aside class="col-xl-3 col-lg-4 pb-3 mb-4 mb-lg-0">
                 <app-sidebar></app-sidebar>
             </aside>
@@ -26,19 +28,25 @@
             <!-- Content -->
             <div class="col-lg-8 ml-auto">
                 <div class="d-flex align-items-center justify-content-between mb-4 pb-1 pb-sm-3">
-                    <h1 class="h2 mb-0" >Mis Direcciones</h1>
+                    <h1 class="h2 mb-0">Mis Direcciones</h1>
+                    <span class="badge badge-primary badge-pill">{{ direcciones.length }}</span>
                 </div>
 
                 <!-- Alerta informativa -->
                 <div class="alert alert-info mb-4" role="alert">
-                    <i class="cxi-info-circle mr-2"></i>
-                    <strong>Gestiona tus direcciones de envío.</strong> Puedes agregar, editar o eliminar direcciones. La dirección marcada como principal se usará por defecto en tus pedidos.
+                    <div class="d-flex">
+                        <i class="cxi-info-circle mr-3 font-size-lg"></i>
+                        <div>
+                            <strong>Gestiona tus direcciones de envío</strong>
+                            <p class="mb-0 mt-1">Puedes agregar, editar o eliminar direcciones. La dirección marcada como principal se usará por defecto en tus pedidos.</p>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Formulario de nueva dirección -->
-                <div class="card mb-5">
+                <div class="card border-primary mb-5">
                     <div class="card-header bg-primary text-white">
-                        <h3 class="h5 mb-0" style="color: #ffffff;">
+                        <h3 class="h5 mb-0 text-white">
                             <i class="cxi-location mr-2"></i>
                             Agregar Nueva Dirección
                         </h3>
@@ -47,7 +55,7 @@
                         <form #registroForm="ngForm" (ngSubmit)="guardar_direccion(registroForm)">
                             <div class="row">
                                 <!-- Destinatario -->
-                                <div class="col-sm-6 form-group">
+                                <div class="col-md-6 form-group">
                                     <label for="destinatario">
                                         Destinatario <span class="text-danger">*</span>
                                     </label>
@@ -61,13 +69,12 @@
                                         (input)="validarSoloLetras($event, 'destinatario')"
                                         required
                                         minlength="3"
-                                        maxlength="100"
-                                        pattern="[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+">
+                                        maxlength="100">
                                     <small class="form-text text-muted">Solo letras y espacios</small>
                                 </div>
 
                                 <!-- DUI -->
-                                <div class="col-sm-6 form-group">
+                                <div class="col-md-6 form-group">
                                     <label for="dui">
                                         DUI <span class="text-danger">*</span>
                                     </label>
@@ -80,13 +87,30 @@
                                         name="dui"
                                         (input)="aplicarMascaraDUI($event)"
                                         required
-                                        maxlength="10"
-                                        pattern="\d{8}-\d">
+                                        maxlength="10">
                                     <small class="form-text text-muted">Formato: 00000000-0</small>
                                 </div>
 
+                                <!-- Teléfono -->
+                                <div class="col-md-6 form-group">
+                                    <label for="telefono">
+                                        Teléfono <span class="text-danger">*</span>
+                                    </label>
+                                    <input 
+                                        type="text" 
+                                        class="form-control" 
+                                        id="telefono"
+                                        placeholder="0000-0000"
+                                        [(ngModel)]="direccion.telefono" 
+                                        name="telefono"
+                                        (input)="aplicarMascaraTelefono($event)"
+                                        required
+                                        maxlength="9">
+                                    <small class="form-text text-muted">Formato: 0000-0000</small>
+                                </div>
+
                                 <!-- Código Postal -->
-                                <div class="col-sm-6 form-group">
+                                <div class="col-md-6 form-group">
                                     <label for="zip">
                                         Código Postal <span class="text-danger">*</span>
                                     </label>
@@ -103,45 +127,8 @@
                                     <small class="form-text text-muted">Entre 4 y 10 caracteres</small>
                                 </div>
 
-                                <!-- Teléfono -->
-                                <div class="col-sm-6 form-group">
-                                    <label for="telefono">
-                                        Teléfono <span class="text-danger">*</span>
-                                    </label>
-                                    <input 
-                                        type="text" 
-                                        class="form-control" 
-                                        id="telefono"
-                                        placeholder="0000-0000"
-                                        [(ngModel)]="direccion.telefono" 
-                                        name="telefono"
-                                        (input)="aplicarMascaraTelefono($event)"
-                                        required
-                                        maxlength="9"
-                                        pattern="\d{4}-\d{4}">
-                                    <small class="form-text text-muted">Formato: 0000-0000</small>
-                                </div>
-
-                                <!-- Dirección completa -->
-                                <div class="col-12 form-group">
-                                    <label for="direccion">
-                                        Dirección Completa <span class="text-danger">*</span>
-                                    </label>
-                                    <textarea 
-                                        class="form-control" 
-                                        id="direccion"
-                                        rows="3"
-                                        placeholder="Ingrese la dirección completa (calle, número, colonia, referencias)"
-                                        [(ngModel)]="direccion.direccion" 
-                                        name="direccion"
-                                        required
-                                        minlength="10"
-                                        maxlength="500"></textarea>
-                                    <small class="form-text text-muted">Mínimo 10 caracteres, máximo 500</small>
-                                </div>
-
                                 <!-- País -->
-                                <div class="col-sm-6 form-group">
+                                <div class="col-md-6 form-group">
                                     <label for="pais">
                                         País <span class="text-danger">*</span>
                                     </label>
@@ -162,8 +149,8 @@
                                     </select>
                                 </div>
 
-                                <!-- Departamento (solo El Salvador) -->
-                                <div class="col-sm-6 form-group">
+                                <!-- Departamento -->
+                                <div class="col-md-6 form-group">
                                     <label for="departamento">
                                         Departamento 
                                         <span class="text-danger" *ngIf="direccion.pais === 'El Salvador'">*</span>
@@ -186,8 +173,8 @@
                                     </small>
                                 </div>
 
-                                <!-- Municipio (solo El Salvador) -->
-                                <div class="col-sm-6 form-group">
+                                <!-- Municipio -->
+                                <div class="col-md-6 form-group">
                                     <label for="municipio">
                                         Municipio 
                                         <span class="text-danger" *ngIf="direccion.pais === 'El Salvador'">*</span>
@@ -209,6 +196,24 @@
                                     </small>
                                 </div>
 
+                                <!-- Dirección completa -->
+                                <div class="col-12 form-group">
+                                    <label for="direccion">
+                                        Dirección Completa <span class="text-danger">*</span>
+                                    </label>
+                                    <textarea 
+                                        class="form-control" 
+                                        id="direccion"
+                                        rows="3"
+                                        placeholder="Calle, número, colonia, referencias..."
+                                        [(ngModel)]="direccion.direccion" 
+                                        name="direccion"
+                                        required
+                                        minlength="10"
+                                        maxlength="500"></textarea>
+                                    <small class="form-text text-muted">Mínimo 10 caracteres, máximo 500</small>
+                                </div>
+
                                 <!-- Dirección principal -->
                                 <div class="col-12 form-group">
                                     <div class="custom-control custom-checkbox">
@@ -219,7 +224,7 @@
                                             name="principal"
                                             [(ngModel)]="direccion.principal">
                                         <label class="custom-control-label" for="principal">
-                                            <strong>Establecer como dirección principal de envío</strong>
+                                            <strong>Establecer como dirección principal</strong>
                                             <br>
                                             <small class="text-muted">Esta dirección se usará por defecto en tus pedidos</small>
                                         </label>
@@ -227,31 +232,29 @@
                                 </div>
                             </div>
 
-                            <!-- Botón guardar -->
-                            <div class="row mt-3">
-                                <div class="col-12">
-                                    <button 
-                                        type="submit" 
-                                        class="btn btn-primary btn-lg"
-                                        [disabled]="!registroForm.valid || btn_guardar">
-                                        <span *ngIf="!btn_guardar">
-                                            <i class="cxi-check mr-2"></i>
-                                            Guardar Dirección
-                                        </span>
-                                        <span *ngIf="btn_guardar">
-                                            <span class="spinner-border spinner-border-sm mr-2" role="status" aria-hidden="true"></span>
-                                            Guardando...
-                                        </span>
-                                    </button>
-                                    <button 
-                                        type="button" 
-                                        class="btn btn-outline-secondary btn-lg ml-2"
-                                        (click)="registroForm.resetForm({ pais: '', departamento: '', municipio: '', principal: false })"
-                                        [disabled]="btn_guardar">
-                                        <i class="cxi-close mr-2"></i>
-                                        Limpiar
-                                    </button>
-                                </div>
+                            <!-- Botones -->
+                            <div class="d-flex flex-wrap gap-2">
+                                <button 
+                                    type="submit" 
+                                    class="btn btn-primary"
+                                    [disabled]="!registroForm.valid || btn_guardar">
+                                    <span *ngIf="!btn_guardar">
+                                        <i class="cxi-check mr-2"></i>
+                                        Guardar Dirección
+                                    </span>
+                                    <span *ngIf="btn_guardar">
+                                        <span class="spinner-border spinner-border-sm mr-2"></span>
+                                        Guardando...
+                                    </span>
+                                </button>
+                                <button 
+                                    type="button" 
+                                    class="btn btn-outline-secondary"
+                                    (click)="registroForm.resetForm({ pais: '', departamento: '', municipio: '', principal: false })"
+                                    [disabled]="btn_guardar">
+                                    <i class="cxi-close mr-2"></i>
+                                    Limpiar
+                                </button>
                             </div>
                         </form>
                     </div>
@@ -269,15 +272,15 @@
                     <div class="card-body">
                         <!-- Loading -->
                         <div class="text-center py-5" *ngIf="load_direcciones">
-                            <div class="spinner-border" role="status">
-                                <span class="visually-hidden">Cargando direcciones...</span>
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="sr-only">Cargando direcciones...</span>
                             </div>
                             <p class="mt-3 text-muted">Cargando direcciones...</p>
                         </div>
 
                         <!-- Sin direcciones -->
                         <div class="text-center py-5" *ngIf="!load_direcciones && direcciones.length === 0">
-                            <i class="cxi-location" style="font-size: 4rem; color: #ccc;"></i>
+                            <i class="cxi-location text-muted" style="font-size: 4rem;"></i>
                             <h4 class="mt-3">No tienes direcciones guardadas</h4>
                             <p class="text-muted">Agrega tu primera dirección de envío usando el formulario anterior</p>
                         </div>
@@ -286,59 +289,59 @@
                         <div *ngIf="!load_direcciones && direcciones.length > 0">
                             <div 
                                 class="border rounded p-4 mb-3 position-relative"
-                                [class.border-primary]="dir.principal"
+                                [class.border-success]="dir.principal"
                                 [class.bg-light]="dir.principal"
                                 *ngFor="let dir of direcciones; let i = index">
                                 
-                                <!-- Badge principal -->
-                                <div class="position-absolute" style="top: 10px; right: 10px;">
-                                    <span class="badge badge-success badge-lg" *ngIf="dir.principal">
+                                <!-- Badge principal 
+                                <div class="position-absolute" style="top: 15px; right: 15px;" *ngIf="dir.principal">
+                                    <span class="badge badge-success">
                                         <i class="cxi-star mr-1"></i>
-                                        Dirección Principal
+                                        Principal
                                     </span>
                                 </div>
-
+-->
                                 <div class="row">
-                                    <!-- Información de la dirección -->
-                                    <div class="col-md-8">
-                                        <h5 class="mb-2">
-                                            <i class="cxi-user mr-2"></i>
+                                    <!-- Información -->
+                                    <div class="col-lg-8 mb-3 mb-lg-0">
+                                        <h5 class="mb-3">
+                                            <i class="cxi-user mr-2 text-primary"></i>
                                             {{ dir.destinatario }}
                                         </h5>
                                         
                                         <div class="mb-2">
                                             <i class="cxi-location mr-2 text-muted"></i>
-                                            <span>{{ dir.direccion }}</span>
+                                            <strong>Dirección:</strong> {{ dir.direccion }}
                                         </div>
 
-                                        <div class="mb-2" *ngIf="dir.pais === 'El Salvador'">
+                                        <div class="mb-2" *ngIf="dir.pais === 'El Salvador' && dir.municipio">
                                             <i class="cxi-map mr-2 text-muted"></i>
-                                            <span>{{ dir.municipio }}, {{ obtenerNombreDepartamento(dir.departamento) }}</span>
+                                            <strong>Ubicación:</strong> {{ dir.municipio }}, {{ obtenerNombreDepartamento(dir.departamento) }}
                                         </div>
 
                                         <div class="mb-2">
                                             <i class="cxi-flag mr-2 text-muted"></i>
-                                            <span>{{ dir.pais }}</span>
+                                            <strong>País:</strong> {{ dir.pais }}
                                             <span class="ml-3">
                                                 <i class="cxi-mail mr-2 text-muted"></i>
-                                                CP: {{ dir.zip }}
+                                                <strong>CP:</strong> {{ dir.zip }}
                                             </span>
                                         </div>
 
                                         <div class="mb-2">
                                             <i class="cxi-phone mr-2 text-muted"></i>
-                                            <span>{{ dir.telefono }}</span>
+                                            <strong>Teléfono:</strong> {{ dir.telefono }}
                                         </div>
 
                                         <div>
                                             <i class="cxi-user-circle mr-2 text-muted"></i>
-                                            <span>DUI: {{ dir.dui }}</span>
+                                            <strong>DUI:</strong> {{ dir.dui }}
                                         </div>
                                     </div>
 
                                     <!-- Acciones -->
-                                    <div class="col-md-4 text-md-right mt-3 mt-md-0">
-                                        <!-- Botón establecer como principal -->
+                                    <div class="col-lg-4 text-lg-right">
+                                        <!-- Botón establecer como principal (solo si NO es principal) -->
                                         <button 
                                             *ngIf="!dir.principal"
                                             type="button" 
@@ -347,16 +350,17 @@
                                             [disabled]="btn_principal[dir._id]">
                                             <span *ngIf="!btn_principal[dir._id]">
                                                 <i class="cxi-star mr-1"></i>
-                                                Establecer como Principal
+                                                Establecer Principal
                                             </span>
                                             <span *ngIf="btn_principal[dir._id]">
-                                                <span class="spinner-border spinner-border-sm mr-1" role="status"></span>
+                                                <span class="spinner-border spinner-border-sm mr-1"></span>
                                                 Actualizando...
                                             </span>
                                         </button>
 
-                                        <!-- Botón eliminar -->
+                                        <!-- Botón eliminar (solo si NO es principal) -->
                                         <button 
+                                            *ngIf="!dir.principal"
                                             type="button" 
                                             class="btn btn-outline-danger btn-sm btn-block"
                                             (click)="eliminar_direccion(dir._id)"
@@ -366,16 +370,18 @@
                                                 Eliminar
                                             </span>
                                             <span *ngIf="btn_eliminar[dir._id]">
-                                                <span class="spinner-border spinner-border-sm mr-1" role="status"></span>
+                                                <span class="spinner-border spinner-border-sm mr-1"></span>
                                                 Eliminando...
                                             </span>
                                         </button>
 
-                                        <!-- Info si es principal -->
-                                        <small class="text-muted d-block mt-2" *ngIf="dir.principal">
-                                            <i class="cxi-info-circle mr-1"></i>
-                                            No puedes eliminar la dirección principal
-                                        </small>
+                                        <!-- Mensaje informativo para dirección principal -->
+                                        <div *ngIf="dir.principal" class="alert alert-success mb-0 py-2">
+                                            <small class="mb-0">
+                                                <i class="cxi-star mr-1"></i>
+                                                <strong>Dirección principal de envío</strong>
+                                            </small>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -389,10 +395,10 @@
                         <i class="cxi-info-circle mr-2"></i>
                         Información importante
                     </h6>
-                    <ul class="mb-0 pl-3">
+                    <ul class="mb-0 pl-4">
                         <li>La dirección principal se usará por defecto en todos tus pedidos</li>
-                        <li>Puedes tener múltiples direcciones guardadas para mayor comodidad</li>
-                        <li>No puedes eliminar la dirección principal. Primero establece otra como principal</li>
+                        <li>Puedes tener múltiples direcciones guardadas</li>
+                        <li>No puedes eliminar la dirección principal sin establecer otra primero</li>
                         <li>Todos tus datos están protegidos y encriptados</li>
                     </ul>
                 </div>
