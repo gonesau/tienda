@@ -23,4 +23,12 @@ export class GuestService {
     return this._http.get(this.url + 'listar_productos_recomendados_publico/' + categoria, { headers: headers });
   }
 
+  get_departamentos(): Observable<any> {
+    return this._http.get('../../assets/departamentos.json');
+  }
+
+  get_municipios(): Observable<any> {
+    return this._http.get('../../assets/municipios.json');
+  }
+
 }
