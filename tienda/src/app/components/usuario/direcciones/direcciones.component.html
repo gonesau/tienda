@@ -34,7 +34,7 @@
                 </div>
 
             -->
-                <form action="">
+                <form #registroForm="ngForm" action="" (ngSubmit)="guardar_direccion(registroForm)">
                     <div class="row mb-3">
                         <div class="col-sm-6">
                             <label for="ac-fn">Destinatario</label>

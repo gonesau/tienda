@@ -7,7 +7,7 @@ var Schema = mongoose.Schema;
 var DireccionSchema = new Schema({
     cliente: { type: Schema.ObjectId, ref: 'Cliente', required: true },
     destinatario: { type: String, required: true },
-    duration: { type: String, required: true },
+    dui: { type: String, required: true },
     zip: { type: String, required: true },
     direccion: { type: String, required: true },
     pais: { type: String, required: true },
