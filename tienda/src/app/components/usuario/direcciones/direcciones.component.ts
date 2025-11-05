@@ -72,6 +72,7 @@ export class DireccionesComponent implements OnInit, OnDestroy {
       .subscribe({
         next: (response) => {
           this.departamentos = response || [];
+          console.log('Departamentos cargados:', this.departamentos);
         },
         error: (error) => {
           console.error('Error cargando departamentos:', error);
@@ -85,6 +86,7 @@ export class DireccionesComponent implements OnInit, OnDestroy {
       .subscribe({
         next: (response) => {
           this.todosMunicipios = response || [];
+          console.log('Municipios cargados:', this.todosMunicipios);
         },
         error: (error) => {
           console.error('Error cargando municipios:', error);
@@ -94,36 +96,80 @@ export class DireccionesComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Obtiene direcciones del cliente
+   * Obtiene direcciones del cliente - CORREGIDO
    */
+  /**
+     * Obtiene direcciones del cliente - CORREGIDO
+     */
   obtener_direcciones(): void {
     if (!this.idCliente || !this.token) {
+      console.log('No hay token o ID de cliente');
       return;
     }
 
+    console.log('Obteniendo direcciones para cliente:', this.idCliente);
     this.load_direcciones = true;
 
     this._clienteService.obtener_direcciones_cliente(this.idCliente, this.token)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (response) => {
-          // Ordenar direcciones: principal primero
-          this.direcciones = (response.data || []).sort((a, b) => {
+          console.log('Respuesta del servidor (direcciones):', response);
+
+          // --- INICIO DE LA CORRECCIÓN ---
+          // Validar si la respuesta del servidor es en realidad un error
+          if (response && response.message) {
+            this.mostrarError(response.message);
+            console.error('Error del servidor recibido:', response.message);
+            this.direcciones = [];
+            this.load_direcciones = false;
+            return; // Detener la ejecución aquí
+          }
+          // --- FIN DE LA CORRECCIÓN ---
+
+          // CORRECCIÓN: Manejar diferentes formatos de respuesta
+          let direccionesData: Array<any> = [];
+
+          if (response && Array.isArray(response)) {
+            // Si la respuesta es directamente un array
+            direccionesData = response;
+          } else if (response && response.data && Array.isArray(response.data)) {
+            // Si la respuesta tiene un campo data con el array
+            direccionesData = response.data;
+          } else if (response && response.data && response.data.data && Array.isArray(response.data.data)) {
+            // Si hay un doble anidamiento
+            direccionesData = response.data.data;
+          }
+
+          console.log('Direcciones extraídas:', direccionesData);
+
+          // Ordenar direcciones: principal primero, luego por fecha
+          this.direcciones = direccionesData.sort((a, b) => {
             if (a.principal && !b.principal) return -1;
             if (!a.principal && b.principal) return 1;
+
             // Luego por fecha de creación (más reciente primero)
-            return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+            const fechaA = new Date(a.createdAt || 0).getTime();
+            const fechaB = new Date(b.createdAt || 0).getTime();
+            return fechaB - fechaA;
           });
 
+          console.log('Direcciones ordenadas:', this.direcciones);
           this.load_direcciones = false;
         },
         error: (error) => {
           console.error('Error obteniendo direcciones:', error);
           this.direcciones = [];
           this.load_direcciones = false;
-          
+
           if (error.status !== 401 && error.status !== 403) {
             this.mostrarError('Error al cargar direcciones');
+          } else {
+            this.mostrarError('Tu sesión ha expirado');
+            setTimeout(() => {
+              localStorage.clear();
+              this._router.navigate(['/login']);
+            }, 2000);
           }
         }
       });
@@ -311,12 +357,15 @@ export class DireccionesComponent implements OnInit, OnDestroy {
       principal: this.direccion.principal
     };
 
+    console.log('Guardando dirección:', data);
+
     this._clienteService.registro_direccion_cliente(data, this.token)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (response) => {
+          console.log('Respuesta guardar dirección:', response);
           this.mostrarExito('Dirección guardada correctamente');
-          
+
           // Resetear formulario
           registroForm.resetForm({
             pais: '',
@@ -332,7 +381,7 @@ export class DireccionesComponent implements OnInit, OnDestroy {
 
           // Recargar direcciones
           this.obtener_direcciones();
-          
+
           this.btn_guardar = false;
         },
         error: (error) => {
@@ -352,12 +401,14 @@ export class DireccionesComponent implements OnInit, OnDestroy {
       return;
     }
 
+    console.log('Estableciendo dirección principal:', id);
     this.btn_principal[id] = true;
 
     this._clienteService.establecer_direccion_principal(id, this.token)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (response) => {
+          console.log('Respuesta establecer principal:', response);
           this.mostrarExito('Dirección principal actualizada');
           this.obtener_direcciones();
           this.btn_principal[id] = false;
@@ -381,7 +432,7 @@ export class DireccionesComponent implements OnInit, OnDestroy {
 
     // Buscar la dirección
     const direccion = this.direcciones.find(d => d._id === id);
-    
+
     if (direccion && direccion.principal) {
       this.mostrarAdvertencia('No puedes eliminar la dirección principal. Primero establece otra dirección como principal.');
       return;
@@ -414,12 +465,14 @@ export class DireccionesComponent implements OnInit, OnDestroy {
    * Confirma y ejecuta la eliminación
    */
   private confirmarEliminacion(id: string): void {
+    console.log('Eliminando dirección:', id);
     this.btn_eliminar[id] = true;
 
     this._clienteService.eliminar_direccion_cliente(id, this.token)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (response) => {
+          console.log('Respuesta eliminar dirección:', response);
           this.mostrarExito('Dirección eliminada correctamente');
           this.obtener_direcciones();
           delete this.btn_eliminar[id];

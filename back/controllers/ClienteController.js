@@ -252,7 +252,7 @@ const registro_direccion_cliente = async function (req, res) {
   if (req.user) {
     var data = req.body;
 
-    if(data.principal){
+    if (data.principal) {
       // Si la nueva dirección es principal, actualizar las demás direcciones a no principal
       await direccion.updateMany(
         { cliente: req.user.sub },
@@ -273,9 +273,8 @@ const obtener_direcciones_cliente = async function (req, res) {
       let direcciones = await direccion.find({ cliente: id }).sort({ principal: -1 }).populate('cliente');
       res.status(200).send({ data: direcciones });
     } catch (err) {
-      return res
-        .status(200)
-        .send({ message: "Error en el servidor", data: undefined });
+      console.error('Error en obtener_direcciones_cliente:', err);
+      return res.status(200).send({ message: "Error en el servidor", data: undefined });
     }
   } else {
     res.status(500).send({ message: "No autorizado" });
@@ -289,30 +288,30 @@ const establecer_direccion_principal = async function (req, res) {
   if (req.user) {
     try {
       const id = req.params['id'];
-      
+
       // Buscar la dirección
       const direccionActual = await direccion.findById(id);
-      
+
       if (!direccionActual) {
-        return res.status(404).send({ 
-          message: 'Dirección no encontrada', 
-          data: undefined 
+        return res.status(404).send({
+          message: 'Dirección no encontrada',
+          data: undefined
         });
       }
 
       // Verificar que la dirección pertenezca al cliente autenticado
       if (direccionActual.cliente.toString() !== req.user.sub) {
-        return res.status(403).send({ 
-          message: 'No tienes permiso para modificar esta dirección', 
-          data: undefined 
+        return res.status(403).send({
+          message: 'No tienes permiso para modificar esta dirección',
+          data: undefined
         });
       }
 
       // Si ya es principal, no hacer nada
       if (direccionActual.principal) {
-        return res.status(200).send({ 
-          message: 'Esta dirección ya es la principal', 
-          data: direccionActual 
+        return res.status(200).send({
+          message: 'Esta dirección ya es la principal',
+          data: direccionActual
         });
       }
 
@@ -326,16 +325,16 @@ const establecer_direccion_principal = async function (req, res) {
       direccionActual.principal = true;
       await direccionActual.save();
 
-      res.status(200).send({ 
+      res.status(200).send({
         message: 'Dirección principal actualizada correctamente',
-        data: direccionActual 
+        data: direccionActual
       });
-      
+
     } catch (err) {
       console.error('Error estableciendo dirección principal:', err);
-      return res.status(500).send({ 
-        message: 'Error en el servidor', 
-        data: undefined 
+      return res.status(500).send({
+        message: 'Error en el servidor',
+        data: undefined
       });
     }
   } else {
@@ -350,35 +349,35 @@ const eliminar_direccion_cliente = async function (req, res) {
   if (req.user) {
     try {
       const id = req.params['id'];
-      
+
       // Buscar la dirección
       const direccionEliminar = await direccion.findById(id);
-      
+
       if (!direccionEliminar) {
-        return res.status(404).send({ 
-          message: 'Dirección no encontrada', 
-          data: undefined 
+        return res.status(404).send({
+          message: 'Dirección no encontrada',
+          data: undefined
         });
       }
 
       // Verificar que la dirección pertenezca al cliente autenticado
       if (direccionEliminar.cliente.toString() !== req.user.sub) {
-        return res.status(403).send({ 
-          message: 'No tienes permiso para eliminar esta dirección', 
-          data: undefined 
+        return res.status(403).send({
+          message: 'No tienes permiso para eliminar esta dirección',
+          data: undefined
         });
       }
 
       // No permitir eliminar la dirección principal si hay más direcciones
       if (direccionEliminar.principal) {
-        const totalDirecciones = await direccion.countDocuments({ 
-          cliente: req.user.sub 
+        const totalDirecciones = await direccion.countDocuments({
+          cliente: req.user.sub
         });
-        
+
         if (totalDirecciones > 1) {
-          return res.status(400).send({ 
-            message: 'No puedes eliminar la dirección principal. Primero establece otra dirección como principal.', 
-            data: undefined 
+          return res.status(400).send({
+            message: 'No puedes eliminar la dirección principal. Primero establece otra dirección como principal.',
+            data: undefined
           });
         }
       }
@@ -386,16 +385,16 @@ const eliminar_direccion_cliente = async function (req, res) {
       // Eliminar la dirección
       await direccion.findByIdAndDelete(id);
 
-      res.status(200).send({ 
+      res.status(200).send({
         message: 'Dirección eliminada correctamente',
-        data: direccionEliminar 
+        data: direccionEliminar
       });
-      
+
     } catch (err) {
       console.error('Error eliminando dirección:', err);
-      return res.status(500).send({ 
-        message: 'Error en el servidor', 
-        data: undefined 
+      return res.status(500).send({
+        message: 'Error en el servidor',
+        data: undefined
       });
     }
   } else {
