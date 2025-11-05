@@ -8,7 +8,10 @@
                 <li class="breadcrumb-item">
                     <a [routerLink]="['/']"><i class="cxi-home"></i></a>
                 </li>
-                <li class="breadcrumb-item active" aria-current="page">Mi perfil</li>
+                <li class="breadcrumb-item">
+                    <a [routerLink]="['/cuenta/perfil']">Mi cuenta</a>
+                </li>
+                <li class="breadcrumb-item active" aria-current="page">Mis direcciones</li>
             </ol>
         </div>
     </nav>
@@ -23,130 +26,379 @@
             <!-- Content -->
             <div class="col-lg-8 ml-auto">
                 <div class="d-flex align-items-center justify-content-between mb-4 pb-1 pb-sm-3">
-                    <h1 class="h2 mb-0">Mi Perfil</h1>
+                    <h1 class="h2 mb-0" >Mis Direcciones</h1>
                 </div>
 
-                <!-- Loader 
-                <div class="text-center py-5">
-                    <div class="spinner-border" style="width: 3rem; height: 3rem;" role="status">
-                        <span class="visually-hidden">Cargando...</span>
-                    </div>
+                <!-- Alerta informativa -->
+                <div class="alert alert-info mb-4" role="alert">
+                    <i class="cxi-info-circle mr-2"></i>
+                    <strong>Gestiona tus direcciones de envío.</strong> Puedes agregar, editar o eliminar direcciones. La dirección marcada como principal se usará por defecto en tus pedidos.
                 </div>
 
-            -->
-                <form #registroForm="ngForm" action="" (ngSubmit)="guardar_direccion(registroForm)" class="mb-3">
-                    <div class="row mb-3">
-                        <div class="col-sm-6">
-                            <label for="ac-fn">Destinatario</label>
-                            <input type="text" class="form-control mb-3" placeholder="Nombre completo"
-                                [(ngModel)]="direccion.destinatario" name="destinatario" required>
-                        </div>
-                        <div class="col-sm-6">
-                            <label for="ac-fn">DUI</label>
-                            <input type="text" class="form-control mb-3" placeholder="Número de DUI"
-                                [(ngModel)]="direccion.dui" name="dui" required>
-                        </div>
-                        <div class="col-sm-6">
-                            <label for="ac-fn">Código Postal</label>
-                            <input type="text" class="form-control mb-3" placeholder="Número de Código Postal"
-                                [(ngModel)]="direccion.zip" name="zip" required>
-                        </div>
-                        <div class="col-sm-6">
-                            <label for="ac-fn">Teléfono</label>
-                            <input type="text" class="form-control mb-3" placeholder="Número de Teléfono"
-                                [(ngModel)]="direccion.telefono" name="telefono" required>
-                        </div>
-                        <div class="col-sm-12">
-                            <label for="ac-fn">Dirección</label>
-                            <textarea class="form-control mb-3" placeholder="Dirección completa"
-                                [(ngModel)]="direccion.direccion" name="direccion" required></textarea>
-                        </div>
-
-                        <div class="col-sm-6">
-                            <label for="ac-fn">País</label>
-                            <select class="form-control mb-3" [(ngModel)]="direccion.pais" name="pais" required
-                                (change)="select_pais()" id="sl_pais">
-                                <option value="" disabled selected>Seleccione un país</option>
-                                <option value="El Salvador">El Salvador</option>
-                                <option value="Guatemala">Guatemala</option>
-                                <option value="Honduras">Honduras</option>
-                                <option value="Nicaragua">Nicaragua</option>
-                                <option value="Costa Rica">Costa Rica</option>
-                                <option value="Panamá">Panamá</option>
-                            </select>
-                        </div>
-
-                        <div class="col-sm-6">
-                            <label for="ac-fn">Departamento</label>
-                            <select class="form-control mb-3" [(ngModel)]="direccion.departamento" name="departamento"
-                                (change)="select_departamento()" required disabled id="sl_departamento">
-                                <option value="" disabled selected>Seleccione un departamento</option>
-                                <option *ngFor="let departamento of departamentos" [value]="departamento.id">
-                                    {{ departamento.nombre }}
-                                </option>
-                            </select>
-                        </div>
-
-                        <div class="col-sm-6">
-                            <label for="ac-fn">Municipio</label>
-                            <select class="form-control mb-3" [(ngModel)]="direccion.municipio" name="municipio"
-                                required disabled id="sl_municipio">
-                                <option value="" disabled selected>Seleccione un municipio</option>
-                                <option *ngFor="let municipio of municipiosFiltrados" [value]="municipio">
-                                    {{ municipio }}
-                                </option>
-                            </select>
-                        </div>
-
-
-                        <div class="col-sm-6">
-                            <!-- Stacked checkboxes -->
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" id="ex-check-1" name="principal"
-                                    [(ngModel)]="direccion.principal">
-                                <label class="form-check-label" for="ex-check-1">Guardar como direccion
-                                    principal</label>
-                            </div>
-                        </div>
-
+                <!-- Formulario de nueva dirección -->
+                <div class="card mb-5">
+                    <div class="card-header bg-primary text-white">
+                        <h3 class="h5 mb-0" style="color: #ffffff;">
+                            <i class="cxi-location mr-2"></i>
+                            Agregar Nueva Dirección
+                        </h3>
                     </div>
-                    <button type="submit" class="btn btn-primary btn-lg">Guardar Dirección</button>
-
-                </form>
-
-                <div class="row mt-5">
-                    <div class="col-12">
-                        <div class="row">
-                            <div class="col-12 mb-4">
-                                <h1 class="h2">Mis Direcciones</h1>
-                            </div>
-                            <div class="row" *ngFor="let direccion of direcciones">
-                                <div class="col-md-3 col-sm-4 mb-sm-0 mb-3">
-                                    <h3 class="mb-2 font-size-lg">{{direccion.destinatario}}</h3>
-                                    <span class="d-block mb-3 font-size-sm text-muted">{{direccion.zip}}</span>
-                                    <a class="badge badge-primary" *ngIf="direccion.principal">Dirección Principal</a>
+                    <div class="card-body">
+                        <form #registroForm="ngForm" (ngSubmit)="guardar_direccion(registroForm)">
+                            <div class="row">
+                                <!-- Destinatario -->
+                                <div class="col-sm-6 form-group">
+                                    <label for="destinatario">
+                                        Destinatario <span class="text-danger">*</span>
+                                    </label>
+                                    <input 
+                                        type="text" 
+                                        class="form-control" 
+                                        id="destinatario"
+                                        placeholder="Nombre completo del destinatario"
+                                        [(ngModel)]="direccion.destinatario" 
+                                        name="destinatario"
+                                        (input)="validarSoloLetras($event, 'destinatario')"
+                                        required
+                                        minlength="3"
+                                        maxlength="100"
+                                        pattern="[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+">
+                                    <small class="form-text text-muted">Solo letras y espacios</small>
                                 </div>
-                                <div class="col">
-                                    <p class="mb-3">Vel velit pulvinar montes, sit rhoncus odio
-                                        molestie. Venenatis nunc fames ut proin adipiscing sit. Etiam egestas elit
-                                        varius a, vestibulum bibendum nibh sociis in. Ut facilisis sit eget cum
-                                        fringilla. Dapibus mauris viverra est sed risus quam lacinia.</p>
-                                    <div class="d-flex justify-content-end"><a href="#"
-                                            class="nav-link mr-3 p-0 font-size-sm"><i
-                                                class="cxi-like mr-2 font-size-base align-middle mt-n1 text-success"></i>
-                                            2 </a><a href="#" class="nav-link p-0 font-size-sm"><i
-                                                class="cxi-dislike mr-2 font-size-base align-middle mt-n1 text-danger"></i>
-                                            0 </a></div>
+
+                                <!-- DUI -->
+                                <div class="col-sm-6 form-group">
+                                    <label for="dui">
+                                        DUI <span class="text-danger">*</span>
+                                    </label>
+                                    <input 
+                                        type="text" 
+                                        class="form-control" 
+                                        id="dui"
+                                        placeholder="00000000-0"
+                                        [(ngModel)]="direccion.dui" 
+                                        name="dui"
+                                        (input)="aplicarMascaraDUI($event)"
+                                        required
+                                        maxlength="10"
+                                        pattern="\d{8}-\d">
+                                    <small class="form-text text-muted">Formato: 00000000-0</small>
+                                </div>
+
+                                <!-- Código Postal -->
+                                <div class="col-sm-6 form-group">
+                                    <label for="zip">
+                                        Código Postal <span class="text-danger">*</span>
+                                    </label>
+                                    <input 
+                                        type="text" 
+                                        class="form-control" 
+                                        id="zip"
+                                        placeholder="Ej: 1101"
+                                        [(ngModel)]="direccion.zip" 
+                                        name="zip"
+                                        required
+                                        minlength="4"
+                                        maxlength="10">
+                                    <small class="form-text text-muted">Entre 4 y 10 caracteres</small>
+                                </div>
+
+                                <!-- Teléfono -->
+                                <div class="col-sm-6 form-group">
+                                    <label for="telefono">
+                                        Teléfono <span class="text-danger">*</span>
+                                    </label>
+                                    <input 
+                                        type="text" 
+                                        class="form-control" 
+                                        id="telefono"
+                                        placeholder="0000-0000"
+                                        [(ngModel)]="direccion.telefono" 
+                                        name="telefono"
+                                        (input)="aplicarMascaraTelefono($event)"
+                                        required
+                                        maxlength="9"
+                                        pattern="\d{4}-\d{4}">
+                                    <small class="form-text text-muted">Formato: 0000-0000</small>
+                                </div>
+
+                                <!-- Dirección completa -->
+                                <div class="col-12 form-group">
+                                    <label for="direccion">
+                                        Dirección Completa <span class="text-danger">*</span>
+                                    </label>
+                                    <textarea 
+                                        class="form-control" 
+                                        id="direccion"
+                                        rows="3"
+                                        placeholder="Ingrese la dirección completa (calle, número, colonia, referencias)"
+                                        [(ngModel)]="direccion.direccion" 
+                                        name="direccion"
+                                        required
+                                        minlength="10"
+                                        maxlength="500"></textarea>
+                                    <small class="form-text text-muted">Mínimo 10 caracteres, máximo 500</small>
+                                </div>
+
+                                <!-- País -->
+                                <div class="col-sm-6 form-group">
+                                    <label for="pais">
+                                        País <span class="text-danger">*</span>
+                                    </label>
+                                    <select 
+                                        class="form-control custom-select" 
+                                        id="sl_pais"
+                                        [(ngModel)]="direccion.pais" 
+                                        name="pais"
+                                        (change)="select_pais()"
+                                        required>
+                                        <option value="" disabled selected>Seleccione un país</option>
+                                        <option value="El Salvador">El Salvador</option>
+                                        <option value="Guatemala">Guatemala</option>
+                                        <option value="Honduras">Honduras</option>
+                                        <option value="Nicaragua">Nicaragua</option>
+                                        <option value="Costa Rica">Costa Rica</option>
+                                        <option value="Panamá">Panamá</option>
+                                    </select>
+                                </div>
+
+                                <!-- Departamento (solo El Salvador) -->
+                                <div class="col-sm-6 form-group">
+                                    <label for="departamento">
+                                        Departamento 
+                                        <span class="text-danger" *ngIf="direccion.pais === 'El Salvador'">*</span>
+                                    </label>
+                                    <select 
+                                        class="form-control custom-select" 
+                                        id="sl_departamento"
+                                        [(ngModel)]="direccion.departamento" 
+                                        name="departamento"
+                                        (change)="select_departamento()"
+                                        [required]="direccion.pais === 'El Salvador'"
+                                        disabled>
+                                        <option value="" disabled selected>Seleccione un departamento</option>
+                                        <option *ngFor="let depto of departamentos" [value]="depto.id">
+                                            {{ depto.nombre }}
+                                        </option>
+                                    </select>
+                                    <small class="form-text text-muted" *ngIf="direccion.pais !== 'El Salvador'">
+                                        Solo disponible para El Salvador
+                                    </small>
+                                </div>
+
+                                <!-- Municipio (solo El Salvador) -->
+                                <div class="col-sm-6 form-group">
+                                    <label for="municipio">
+                                        Municipio 
+                                        <span class="text-danger" *ngIf="direccion.pais === 'El Salvador'">*</span>
+                                    </label>
+                                    <select 
+                                        class="form-control custom-select" 
+                                        id="sl_municipio"
+                                        [(ngModel)]="direccion.municipio" 
+                                        name="municipio"
+                                        [required]="direccion.pais === 'El Salvador'"
+                                        disabled>
+                                        <option value="" disabled selected>Seleccione un municipio</option>
+                                        <option *ngFor="let municipio of municipiosFiltrados" [value]="municipio">
+                                            {{ municipio }}
+                                        </option>
+                                    </select>
+                                    <small class="form-text text-muted" *ngIf="direccion.pais !== 'El Salvador'">
+                                        Solo disponible para El Salvador
+                                    </small>
+                                </div>
+
+                                <!-- Dirección principal -->
+                                <div class="col-12 form-group">
+                                    <div class="custom-control custom-checkbox">
+                                        <input 
+                                            type="checkbox" 
+                                            class="custom-control-input" 
+                                            id="principal"
+                                            name="principal"
+                                            [(ngModel)]="direccion.principal">
+                                        <label class="custom-control-label" for="principal">
+                                            <strong>Establecer como dirección principal de envío</strong>
+                                            <br>
+                                            <small class="text-muted">Esta dirección se usará por defecto en tus pedidos</small>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Botón guardar -->
+                            <div class="row mt-3">
+                                <div class="col-12">
+                                    <button 
+                                        type="submit" 
+                                        class="btn btn-primary btn-lg"
+                                        [disabled]="!registroForm.valid || btn_guardar">
+                                        <span *ngIf="!btn_guardar">
+                                            <i class="cxi-check mr-2"></i>
+                                            Guardar Dirección
+                                        </span>
+                                        <span *ngIf="btn_guardar">
+                                            <span class="spinner-border spinner-border-sm mr-2" role="status" aria-hidden="true"></span>
+                                            Guardando...
+                                        </span>
+                                    </button>
+                                    <button 
+                                        type="button" 
+                                        class="btn btn-outline-secondary btn-lg ml-2"
+                                        (click)="registroForm.resetForm({ pais: '', departamento: '', municipio: '', principal: false })"
+                                        [disabled]="btn_guardar">
+                                        <i class="cxi-close mr-2"></i>
+                                        Limpiar
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Lista de direcciones -->
+                <div class="card">
+                    <div class="card-header bg-light">
+                        <h3 class="h5 mb-0">
+                            <i class="cxi-bookmark mr-2"></i>
+                            Direcciones Guardadas
+                            <span class="badge badge-primary ml-2">{{ direcciones.length }}</span>
+                        </h3>
+                    </div>
+                    <div class="card-body">
+                        <!-- Loading -->
+                        <div class="text-center py-5" *ngIf="load_direcciones">
+                            <div class="spinner-border" role="status">
+                                <span class="visually-hidden">Cargando direcciones...</span>
+                            </div>
+                            <p class="mt-3 text-muted">Cargando direcciones...</p>
+                        </div>
+
+                        <!-- Sin direcciones -->
+                        <div class="text-center py-5" *ngIf="!load_direcciones && direcciones.length === 0">
+                            <i class="cxi-location" style="font-size: 4rem; color: #ccc;"></i>
+                            <h4 class="mt-3">No tienes direcciones guardadas</h4>
+                            <p class="text-muted">Agrega tu primera dirección de envío usando el formulario anterior</p>
+                        </div>
+
+                        <!-- Lista de direcciones -->
+                        <div *ngIf="!load_direcciones && direcciones.length > 0">
+                            <div 
+                                class="border rounded p-4 mb-3 position-relative"
+                                [class.border-primary]="dir.principal"
+                                [class.bg-light]="dir.principal"
+                                *ngFor="let dir of direcciones; let i = index">
+                                
+                                <!-- Badge principal -->
+                                <div class="position-absolute" style="top: 10px; right: 10px;">
+                                    <span class="badge badge-success badge-lg" *ngIf="dir.principal">
+                                        <i class="cxi-star mr-1"></i>
+                                        Dirección Principal
+                                    </span>
+                                </div>
+
+                                <div class="row">
+                                    <!-- Información de la dirección -->
+                                    <div class="col-md-8">
+                                        <h5 class="mb-2">
+                                            <i class="cxi-user mr-2"></i>
+                                            {{ dir.destinatario }}
+                                        </h5>
+                                        
+                                        <div class="mb-2">
+                                            <i class="cxi-location mr-2 text-muted"></i>
+                                            <span>{{ dir.direccion }}</span>
+                                        </div>
+
+                                        <div class="mb-2" *ngIf="dir.pais === 'El Salvador'">
+                                            <i class="cxi-map mr-2 text-muted"></i>
+                                            <span>{{ dir.municipio }}, {{ obtenerNombreDepartamento(dir.departamento) }}</span>
+                                        </div>
+
+                                        <div class="mb-2">
+                                            <i class="cxi-flag mr-2 text-muted"></i>
+                                            <span>{{ dir.pais }}</span>
+                                            <span class="ml-3">
+                                                <i class="cxi-mail mr-2 text-muted"></i>
+                                                CP: {{ dir.zip }}
+                                            </span>
+                                        </div>
+
+                                        <div class="mb-2">
+                                            <i class="cxi-phone mr-2 text-muted"></i>
+                                            <span>{{ dir.telefono }}</span>
+                                        </div>
+
+                                        <div>
+                                            <i class="cxi-user-circle mr-2 text-muted"></i>
+                                            <span>DUI: {{ dir.dui }}</span>
+                                        </div>
+                                    </div>
+
+                                    <!-- Acciones -->
+                                    <div class="col-md-4 text-md-right mt-3 mt-md-0">
+                                        <!-- Botón establecer como principal -->
+                                        <button 
+                                            *ngIf="!dir.principal"
+                                            type="button" 
+                                            class="btn btn-outline-primary btn-sm btn-block mb-2"
+                                            (click)="establecer_principal(dir._id)"
+                                            [disabled]="btn_principal[dir._id]">
+                                            <span *ngIf="!btn_principal[dir._id]">
+                                                <i class="cxi-star mr-1"></i>
+                                                Establecer como Principal
+                                            </span>
+                                            <span *ngIf="btn_principal[dir._id]">
+                                                <span class="spinner-border spinner-border-sm mr-1" role="status"></span>
+                                                Actualizando...
+                                            </span>
+                                        </button>
+
+                                        <!-- Botón eliminar -->
+                                        <button 
+                                            type="button" 
+                                            class="btn btn-outline-danger btn-sm btn-block"
+                                            (click)="eliminar_direccion(dir._id)"
+                                            [disabled]="btn_eliminar[dir._id]">
+                                            <span *ngIf="!btn_eliminar[dir._id]">
+                                                <i class="cxi-trash mr-1"></i>
+                                                Eliminar
+                                            </span>
+                                            <span *ngIf="btn_eliminar[dir._id]">
+                                                <span class="spinner-border spinner-border-sm mr-1" role="status"></span>
+                                                Eliminando...
+                                            </span>
+                                        </button>
+
+                                        <!-- Info si es principal -->
+                                        <small class="text-muted d-block mt-2" *ngIf="dir.principal">
+                                            <i class="cxi-info-circle mr-1"></i>
+                                            No puedes eliminar la dirección principal
+                                        </small>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
 
+                <!-- Información adicional -->
+                <div class="alert alert-secondary mt-4" role="alert">
+                    <h6 class="alert-heading">
+                        <i class="cxi-info-circle mr-2"></i>
+                        Información importante
+                    </h6>
+                    <ul class="mb-0 pl-3">
+                        <li>La dirección principal se usará por defecto en todos tus pedidos</li>
+                        <li>Puedes tener múltiples direcciones guardadas para mayor comodidad</li>
+                        <li>No puedes eliminar la dirección principal. Primero establece otra como principal</li>
+                        <li>Todos tus datos están protegidos y encriptados</li>
+                    </ul>
+                </div>
             </div>
         </div>
     </section>
-
 </main>
 
 <app-footer></app-footer>

@@ -54,10 +54,8 @@ export class ClienteService {
     let errorMessage = 'Ocurrió un error inesperado';
 
     if (error.error instanceof ErrorEvent) {
-      // Error del cliente
       errorMessage = `Error: ${error.error.message}`;
     } else {
-      // Error del servidor
       switch (error.status) {
         case 0:
           errorMessage = 'No se pudo conectar con el servidor. Verifica tu conexión.';
@@ -138,7 +136,6 @@ export class ClienteService {
    * Login del cliente
    */
   login_cliente(data: { email: string; password: string }): Observable<any> {
-    // Validación básica
     if (!data.email || !data.password) {
       return throwError(() => ({ 
         status: 400, 
@@ -151,7 +148,6 @@ export class ClienteService {
     return this._http.post(this.url + 'login_cliente', data, { headers })
       .pipe(
         tap((response: any) => {
-          // Guardar datos de sesión
           if (response.data && response.token) {
             localStorage.setItem(this.tokenKey, response.token);
             localStorage.setItem(this.userIdKey, response.data._id);
@@ -193,7 +189,6 @@ export class ClienteService {
     return this._http.put(this.url + 'actualizar_perfil_cliente_guest/' + id, data, { headers })
       .pipe(
         tap((response: any) => {
-          // Actualizar localStorage si la actualización fue exitosa
           const datosActualizados = response.data || response;
           if (datosActualizados && datosActualizados._id) {
             localStorage.setItem('usuario', JSON.stringify(datosActualizados));
@@ -234,7 +229,6 @@ export class ClienteService {
    * Agrega producto al carrito
    */
   agregar_carrito_cliente(data: any, token?: string): Observable<any> {
-    // Validaciones
     if (!data.producto || !data.cliente) {
       return throwError(() => ({ status: 400, message: 'Datos del producto incompletos' }));
     }
@@ -315,18 +309,114 @@ export class ClienteService {
       );
   }
 
+  /**
+   * ==========================================
+   * MÉTODOS DE DIRECCIONES
+   * ==========================================
+   */
+
+  /**
+   * Registra una nueva dirección del cliente
+   */
   registro_direccion_cliente(data: any, token?: string): Observable<any> {
-    let headers = new HttpHeaders({'Content-Type': 'application/json', 'Authorization': token || this.getToken() || ''});
-    return this._http.post(this.url + 'registro_direccion_cliente', data, {headers: headers}).pipe(
-      catchError(this.handleError.bind(this))
-    );
+    if (!data || !data.cliente) {
+      return throwError(() => ({ status: 400, message: 'Datos de dirección incompletos' }));
+    }
+
+    // Validaciones
+    if (!data.destinatario || data.destinatario.trim().length < 3) {
+      return throwError(() => ({ status: 400, message: 'El nombre del destinatario debe tener al menos 3 caracteres' }));
+    }
+
+    if (!data.dui || !/^\d{8}-\d$/.test(data.dui)) {
+      return throwError(() => ({ status: 400, message: 'El formato del DUI es inválido' }));
+    }
+
+    if (!data.telefono || !/^\d{4}-\d{4}$/.test(data.telefono)) {
+      return throwError(() => ({ status: 400, message: 'El formato del teléfono es inválido' }));
+    }
+
+    if (!data.zip || data.zip.trim().length < 4) {
+      return throwError(() => ({ status: 400, message: 'El código postal es inválido' }));
+    }
+
+    if (!data.direccion || data.direccion.trim().length < 10) {
+      return throwError(() => ({ status: 400, message: 'La dirección debe tener al menos 10 caracteres' }));
+    }
+
+    if (!data.pais) {
+      return throwError(() => ({ status: 400, message: 'Debe seleccionar un país' }));
+    }
+
+    if (!this.isAuthenticated()) {
+      return throwError(() => ({ status: 401, message: 'Debes iniciar sesión' }));
+    }
+
+    const headers = this.getAuthHeaders(token);
+    
+    return this._http.post(this.url + 'registro_direccion_cliente', data, { headers })
+      .pipe(
+        catchError(this.handleError.bind(this))
+      );
   }
 
+  /**
+   * Obtiene todas las direcciones del cliente
+   */
   obtener_direcciones_cliente(id: string, token?: string): Observable<any> {
-    let headers = new HttpHeaders({'Content-Type': 'application/json', 'Authorization': token || this.getToken() || ''});
-    return this._http.get(this.url + 'obtener_direcciones_cliente/' + id, {headers: headers}).pipe(
-      catchError(this.handleError.bind(this))
-    );
+    if (!id) {
+      return throwError(() => ({ status: 400, message: 'ID de usuario requerido' }));
+    }
+
+    if (!this.isAuthenticated()) {
+      return throwError(() => ({ status: 401, message: 'Debes iniciar sesión' }));
+    }
+
+    const headers = this.getAuthHeaders(token);
+    
+    return this._http.get(this.url + 'obtener_direcciones_cliente/' + id, { headers })
+      .pipe(
+        catchError(this.handleError.bind(this))
+      );
   }
 
+  /**
+   * Establece una dirección como principal
+   */
+  establecer_direccion_principal(id: string, token?: string): Observable<any> {
+    if (!id) {
+      return throwError(() => ({ status: 400, message: 'ID de dirección requerido' }));
+    }
+
+    if (!this.isAuthenticated()) {
+      return throwError(() => ({ status: 401, message: 'Debes iniciar sesión' }));
+    }
+
+    const headers = this.getAuthHeaders(token);
+    
+    return this._http.put(this.url + 'establecer_direccion_principal/' + id, {}, { headers })
+      .pipe(
+        catchError(this.handleError.bind(this))
+      );
+  }
+
+  /**
+   * Elimina una dirección del cliente
+   */
+  eliminar_direccion_cliente(id: string, token?: string): Observable<any> {
+    if (!id) {
+      return throwError(() => ({ status: 400, message: 'ID de dirección requerido' }));
+    }
+
+    if (!this.isAuthenticated()) {
+      return throwError(() => ({ status: 401, message: 'Debes iniciar sesión' }));
+    }
+
+    const headers = this.getAuthHeaders(token);
+    
+    return this._http.delete(this.url + 'eliminar_direccion_cliente/' + id, { headers })
+      .pipe(
+        catchError(this.handleError.bind(this))
+      );
+  }
 }

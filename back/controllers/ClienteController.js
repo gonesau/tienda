@@ -282,6 +282,127 @@ const obtener_direcciones_cliente = async function (req, res) {
   }
 };
 
+/**
+ * Establece una dirección como principal
+ */
+const establecer_direccion_principal = async function (req, res) {
+  if (req.user) {
+    try {
+      const id = req.params['id'];
+      
+      // Buscar la dirección
+      const direccionActual = await direccion.findById(id);
+      
+      if (!direccionActual) {
+        return res.status(404).send({ 
+          message: 'Dirección no encontrada', 
+          data: undefined 
+        });
+      }
+
+      // Verificar que la dirección pertenezca al cliente autenticado
+      if (direccionActual.cliente.toString() !== req.user.sub) {
+        return res.status(403).send({ 
+          message: 'No tienes permiso para modificar esta dirección', 
+          data: undefined 
+        });
+      }
+
+      // Si ya es principal, no hacer nada
+      if (direccionActual.principal) {
+        return res.status(200).send({ 
+          message: 'Esta dirección ya es la principal', 
+          data: direccionActual 
+        });
+      }
+
+      // Quitar el estatus de principal a todas las direcciones del cliente
+      await direccion.updateMany(
+        { cliente: req.user.sub },
+        { $set: { principal: false } }
+      );
+
+      // Establecer esta dirección como principal
+      direccionActual.principal = true;
+      await direccionActual.save();
+
+      res.status(200).send({ 
+        message: 'Dirección principal actualizada correctamente',
+        data: direccionActual 
+      });
+      
+    } catch (err) {
+      console.error('Error estableciendo dirección principal:', err);
+      return res.status(500).send({ 
+        message: 'Error en el servidor', 
+        data: undefined 
+      });
+    }
+  } else {
+    res.status(500).send({ message: 'No autorizado' });
+  }
+};
+
+/**
+ * Elimina una dirección del cliente
+ */
+const eliminar_direccion_cliente = async function (req, res) {
+  if (req.user) {
+    try {
+      const id = req.params['id'];
+      
+      // Buscar la dirección
+      const direccionEliminar = await direccion.findById(id);
+      
+      if (!direccionEliminar) {
+        return res.status(404).send({ 
+          message: 'Dirección no encontrada', 
+          data: undefined 
+        });
+      }
+
+      // Verificar que la dirección pertenezca al cliente autenticado
+      if (direccionEliminar.cliente.toString() !== req.user.sub) {
+        return res.status(403).send({ 
+          message: 'No tienes permiso para eliminar esta dirección', 
+          data: undefined 
+        });
+      }
+
+      // No permitir eliminar la dirección principal si hay más direcciones
+      if (direccionEliminar.principal) {
+        const totalDirecciones = await direccion.countDocuments({ 
+          cliente: req.user.sub 
+        });
+        
+        if (totalDirecciones > 1) {
+          return res.status(400).send({ 
+            message: 'No puedes eliminar la dirección principal. Primero establece otra dirección como principal.', 
+            data: undefined 
+          });
+        }
+      }
+
+      // Eliminar la dirección
+      await direccion.findByIdAndDelete(id);
+
+      res.status(200).send({ 
+        message: 'Dirección eliminada correctamente',
+        data: direccionEliminar 
+      });
+      
+    } catch (err) {
+      console.error('Error eliminando dirección:', err);
+      return res.status(500).send({ 
+        message: 'Error en el servidor', 
+        data: undefined 
+      });
+    }
+  } else {
+    res.status(500).send({ message: 'No autorizado' });
+  }
+};
+
 module.exports = {
   registro_cliente,
   login_cliente,
@@ -294,4 +415,6 @@ module.exports = {
   actualizar_perfil_cliente_guest,
   registro_direccion_cliente,
   obtener_direcciones_cliente,
+  establecer_direccion_principal,
+  eliminar_direccion_cliente
 };
