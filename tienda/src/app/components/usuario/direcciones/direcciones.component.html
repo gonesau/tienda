@@ -34,7 +34,7 @@
                 </div>
 
             -->
-                <form #registroForm="ngForm" action="" (ngSubmit)="guardar_direccion(registroForm)">
+                <form #registroForm="ngForm" action="" (ngSubmit)="guardar_direccion(registroForm)" class="mb-3">
                     <div class="row mb-3">
                         <div class="col-sm-6">
                             <label for="ac-fn">Destinatario</label>
@@ -113,6 +113,35 @@
                     <button type="submit" class="btn btn-primary btn-lg">Guardar Dirección</button>
 
                 </form>
+
+                <div class="row mt-5">
+                    <div class="col-12">
+                        <div class="row">
+                            <div class="col-12 mb-4">
+                                <h1 class="h2">Mis Direcciones</h1>
+                            </div>
+                            <div class="row" *ngFor="let direccion of direcciones">
+                                <div class="col-md-3 col-sm-4 mb-sm-0 mb-3">
+                                    <h3 class="mb-2 font-size-lg">{{direccion.destinatario}}</h3>
+                                    <span class="d-block mb-3 font-size-sm text-muted">{{direccion.zip}}</span>
+                                    <a class="badge badge-primary" *ngIf="direccion.principal">Dirección Principal</a>
+                                </div>
+                                <div class="col">
+                                    <p class="mb-3">Vel velit pulvinar montes, sit rhoncus odio
+                                        molestie. Venenatis nunc fames ut proin adipiscing sit. Etiam egestas elit
+                                        varius a, vestibulum bibendum nibh sociis in. Ut facilisis sit eget cum
+                                        fringilla. Dapibus mauris viverra est sed risus quam lacinia.</p>
+                                    <div class="d-flex justify-content-end"><a href="#"
+                                            class="nav-link mr-3 p-0 font-size-sm"><i
+                                                class="cxi-like mr-2 font-size-base align-middle mt-n1 text-success"></i>
+                                            2 </a><a href="#" class="nav-link p-0 font-size-sm"><i
+                                                class="cxi-dislike mr-2 font-size-base align-middle mt-n1 text-danger"></i>
+                                            0 </a></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
             </div>
         </div>

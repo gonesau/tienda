@@ -322,4 +322,11 @@ export class ClienteService {
     );
   }
 
+  obtener_direcciones_cliente(id: string, token?: string): Observable<any> {
+    let headers = new HttpHeaders({'Content-Type': 'application/json', 'Authorization': token || this.getToken() || ''});
+    return this._http.get(this.url + 'obtener_direcciones_cliente/' + id, {headers: headers}).pipe(
+      catchError(this.handleError.bind(this))
+    );
+  }
+
 }

@@ -19,6 +19,7 @@ export class DireccionesComponent implements OnInit {
     principal: false
   };
 
+  public direcciones: Array<any> = [];
   public departamentos: Array<any> = [];
   public todosMunicipios: Array<any> = [];
   public municipiosFiltrados: Array<string> = [];
@@ -32,6 +33,10 @@ export class DireccionesComponent implements OnInit {
   }
 
   ngOnInit(): void {
+
+    this.obtener_direcciones();
+
+
     // Cargar departamentos
     this._guestService.get_departamentos().subscribe({
       next: (response) => {
@@ -124,6 +129,23 @@ export class DireccionesComponent implements OnInit {
       error: (err) => {
         this.mostrarError(err?.message || 'Error al registrar dirección.');
         this.load_data = false;
+      }
+    });
+  }
+
+  obtener_direcciones(): void {
+    const clienteId = localStorage.getItem('_id');
+    if (!clienteId || !this.token) {
+      this.mostrarError('No se encontró sesión activa.');
+      return;
+    }
+
+    this._clienteService.obtener_direcciones_cliente(clienteId, this.token).subscribe({
+      next: (response) => {
+        this.direcciones = response.data;
+      },
+      error: (err) => {
+        this.mostrarError(err?.message || 'Error al obtener direcciones.');
       }
     });
   }

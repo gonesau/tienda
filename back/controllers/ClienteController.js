@@ -259,10 +259,24 @@ const registro_direccion_cliente = async function (req, res) {
         { $set: { principal: false } }
       );
     }
-
     let reg = await direccion.create(data);
     res.status(200).send({ data: reg });
+  } else {
+    res.status(500).send({ message: "No autorizado" });
+  }
+};
 
+const obtener_direcciones_cliente = async function (req, res) {
+  if (req.user) {
+    var id = req.params["id"];
+    try {
+      let direcciones = await direccion.find({ cliente: id }).sort({ principal: -1 }).populate('cliente');
+      res.status(200).send({ data: direcciones });
+    } catch (err) {
+      return res
+        .status(200)
+        .send({ message: "Error en el servidor", data: undefined });
+    }
   } else {
     res.status(500).send({ message: "No autorizado" });
   }
@@ -279,4 +293,5 @@ module.exports = {
   obtener_cliente_guest,
   actualizar_perfil_cliente_guest,
   registro_direccion_cliente,
+  obtener_direcciones_cliente,
 };

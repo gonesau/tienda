@@ -21,5 +21,6 @@ api.put('/actualizar_perfil_cliente_guest/:id', auth.auth, clienteController.act
 
 // Rutas direcciones
 api.post('/registro_direccion_cliente', auth.auth, clienteController.registro_direccion_cliente);
+api.get('/obtener_direcciones_cliente/:id', auth.auth, clienteController.obtener_direcciones_cliente);
 
 module.exports = api;
