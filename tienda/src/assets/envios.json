@@ -1,0 +1,27 @@
+[
+    {
+        "titulo": "Envio express",
+        "tiempo": "24-48 horas",
+        "costo": 50.00
+    }, 
+    {
+        "titulo": "Envio estandar",
+        "tiempo": "3-5 dias",
+        "costo": 25.00
+    }, 
+    {
+        "titulo": "Envio economico",
+        "tiempo": "7-10 dias",
+        "costo": 15.00
+    }, 
+    {
+        "titulo": "Envio Gratis",
+        "tiempo": "1 mes",
+        "costo": 0.00
+    }, 
+    {
+        "titulo": "Retiro en tienda",
+        "tiempo": "Inmediato",
+        "costo": 0.00
+    }
+]

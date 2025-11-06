@@ -5,6 +5,7 @@ import { ClienteService } from 'src/app/services/cliente.service';
 import { io, Socket } from "socket.io-client";
 import { Subject } from 'rxjs';
 import { takeUntil, debounceTime } from 'rxjs/operators';
+import { GuestService } from 'src/app/services/guest.service';
 declare var iziToast: any;
 declare var Cleave;
 declare var StickySidebar;
@@ -23,6 +24,9 @@ export class CarritoComponent implements OnInit, OnDestroy {
   public total_pagar = 0;
   public costo_envio = 25.00;
   public load_data = true;
+  public direccion_principal: any = {};
+  public envios: Array<any> = [];
+  public precio_envio = 0;
 
   private socket: Socket;
   private destroy$ = new Subject<void>();
@@ -31,14 +35,25 @@ export class CarritoComponent implements OnInit, OnDestroy {
 
   constructor(
     private _clienteService: ClienteService,
-    private _router: Router
+    private _router: Router,
+    private _guestService: GuestService
   ) {
     this.idcliente = localStorage.getItem('_id');
     this.token = localStorage.getItem('token');
     this.url = this._clienteService.url;
+    this._guestService.get_envios().subscribe({
+      next: (response) => {
+        this.envios = response;
+      },
+      error: (error) => {
+        console.error('Error obteniendo datos de envío:', error);
+      }
+    });
   }
 
   ngOnInit(): void {
+
+    this.obtenerDireccionPrincipal();
 
     setTimeout(() => {
       new Cleave('#cc-number', {
@@ -77,6 +92,24 @@ export class CarritoComponent implements OnInit, OnDestroy {
       this.socket.off('update-carrito');
       this.socket.disconnect();
     }
+  }
+
+
+  // Obtiene la dirección principal del cliente
+  obtenerDireccionPrincipal(): void {
+    this._clienteService.obtener_direccion_principal_cliente(this.idcliente!, this.token!).subscribe({
+      next: (response) => {
+        if (response.data == undefined) {
+          this.direccion_principal = undefined;
+        } else{
+          this.direccion_principal = response.data;
+        }
+      },
+      error: (error) => {
+        console.error('Error obteniendo dirección principal:', error);
+        this.manejarError(error);
+      }
+    });
   }
 
   /**

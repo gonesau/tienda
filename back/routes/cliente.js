@@ -28,5 +28,6 @@ api.post('/registro_direccion_cliente', auth.auth, clienteController.registro_di
 api.get('/obtener_direcciones_cliente/:id', auth.auth, clienteController.obtener_direcciones_cliente);
 api.put('/establecer_direccion_principal/:id', auth.auth, clienteController.establecer_direccion_principal);
 api.delete('/eliminar_direccion_cliente/:id', auth.auth, clienteController.eliminar_direccion_cliente);
+api.get('/obtener_direccion_principal_cliente/:id', auth.auth, clienteController.obtener_direccion_principal_cliente);
 
 module.exports = api;

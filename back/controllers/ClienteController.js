@@ -402,6 +402,26 @@ const eliminar_direccion_cliente = async function (req, res) {
   }
 };
 
+const obtener_direccion_principal_cliente = async function (req, res) {
+  if (req.user) {
+    var id = req.params["id"];
+    var direccion = undefined;
+    try {
+      direccion = await direccion.findOne({ cliente: req.user.sub, _id: id });
+      if (!direccion) {
+        return res.status(404).send({ message: "Dirección no encontrada", data: undefined });
+      }
+      res.status(200).send({ message: "Dirección principal obtenida", data: direccion });
+    } catch (err) {
+      console.error('Error en obtener_direccion_principal_cliente:', err);
+      return res.status(200).send({ message: "Error en el servidor", data: undefined });
+    }
+  } else {
+    res.status(500).send({ message: "No autorizado" });
+  }
+};
+
+
 module.exports = {
   registro_cliente,
   login_cliente,
@@ -415,5 +435,6 @@ module.exports = {
   registro_direccion_cliente,
   obtener_direcciones_cliente,
   establecer_direccion_principal,
-  eliminar_direccion_cliente
+  eliminar_direccion_cliente,
+  obtener_direccion_principal_cliente
 };

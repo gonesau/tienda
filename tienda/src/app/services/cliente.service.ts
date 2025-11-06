@@ -419,4 +419,24 @@ export class ClienteService {
         catchError(this.handleError.bind(this))
       );
   }
+
+
+  // Obtiene la dirección principal del cliente
+  obtener_direccion_principal_cliente(id: string, token?: string): Observable<any> {
+    if (!id) {
+      return throwError(() => ({ status: 400, message: 'ID de usuario requerido' }));
+    }
+
+    if (!this.isAuthenticated()) {
+      return throwError(() => ({ status: 401, message: 'Debes iniciar sesión' }));
+    }
+
+    const headers = this.getAuthHeaders(token);
+
+    return this._http.get(this.url + 'obtener_direccion_principal_cliente/' + id, { headers })
+      .pipe(
+        catchError(this.handleError.bind(this))
+      );
+  }
+
 }
