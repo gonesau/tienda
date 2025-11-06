@@ -6,6 +6,8 @@ import { io, Socket } from "socket.io-client";
 import { Subject } from 'rxjs';
 import { takeUntil, debounceTime } from 'rxjs/operators';
 declare var iziToast: any;
+declare var Cleave;
+declare var StickySidebar;
 
 @Component({
   selector: 'app-carrito',
@@ -21,7 +23,7 @@ export class CarritoComponent implements OnInit, OnDestroy {
   public total_pagar = 0;
   public costo_envio = 25.00;
   public load_data = true;
-  
+
   private socket: Socket;
   private destroy$ = new Subject<void>();
   private carritoUpdate$ = new Subject<void>();
@@ -37,6 +39,24 @@ export class CarritoComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
+
+    setTimeout(() => {
+      new Cleave('#cc-number', {
+        creditCard: true,
+        onCreditCardTypeChanged: function (type) {
+          // update UI ...
+        }
+      });
+
+      new Cleave('#cc-exp-date', {
+        date: true,
+        datePattern: ['m', 'y']
+      });
+
+      var sidebar = new StickySidebar('.sidebar-sticky', {topSpacing: 20});
+
+    }, 0);
+
     if (!this.token || !this.idcliente) {
       this._router.navigate(['/login']);
       return;
@@ -50,7 +70,7 @@ export class CarritoComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
-    
+
     if (this.socket) {
       this.socket.off('new-carrito-add');
       this.socket.off('delete-carrito');
@@ -157,7 +177,7 @@ export class CarritoComponent implements OnInit, OnDestroy {
    */
   calcular_carrito(): void {
     this.subtotal = 0;
-    
+
     if (this.carrito_compras && this.carrito_compras.length > 0) {
       this.subtotal = this.carrito_compras.reduce((total, item) => {
         if (item.producto?.precio && item.cantidad) {
@@ -166,7 +186,7 @@ export class CarritoComponent implements OnInit, OnDestroy {
         return total;
       }, 0);
     }
-    
+
     this.total_pagar = this.subtotal + this.costo_envio;
   }
 
@@ -211,7 +231,7 @@ export class CarritoComponent implements OnInit, OnDestroy {
     }
 
     const data = { cantidad: nueva_cantidad };
-    
+
     this._clienteService.actualizar_cantidad_carrito(id, data, this.token)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
