@@ -56,7 +56,7 @@
 
 .custom-select:focus {
     border-color: #17696a;
-    box-shadow: 0 0 0 0.2rem rgba(23, 105, 106, 0.25);
+    box-shadow: 0 0 0 0.2rem #17696a40;
 }
 
 /* Checkbox personalizado */

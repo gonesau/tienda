@@ -22,11 +22,12 @@ export class CarritoComponent implements OnInit, OnDestroy {
   public subtotal = 0;
   public url: string;
   public total_pagar = 0;
-  public costo_envio = 25.00;
   public load_data = true;
-  public direccion_principal: any = {};
+  public load_direccion = true;
+  public direccion_principal: any = undefined;
   public envios: Array<any> = [];
   public precio_envio = 0;
+  public envio_seleccionado: any = null;
 
   private socket: Socket;
   private destroy$ = new Subject<void>();
@@ -41,20 +42,15 @@ export class CarritoComponent implements OnInit, OnDestroy {
     this.idcliente = localStorage.getItem('_id');
     this.token = localStorage.getItem('token');
     this.url = this._clienteService.url;
-    this._guestService.get_envios().subscribe({
-      next: (response) => {
-        this.envios = response;
-      },
-      error: (error) => {
-        console.error('Error obteniendo datos de envío:', error);
-      }
-    });
   }
 
   ngOnInit(): void {
+    if (!this.token || !this.idcliente) {
+      this._router.navigate(['/login']);
+      return;
+    }
 
-    this.obtenerDireccionPrincipal();
-
+    // Inicializar Cleave y StickySidebar
     setTimeout(() => {
       new Cleave('#cc-number', {
         creditCard: true,
@@ -68,15 +64,12 @@ export class CarritoComponent implements OnInit, OnDestroy {
         datePattern: ['m', 'y']
       });
 
-      var sidebar = new StickySidebar('.sidebar-sticky', {topSpacing: 20});
-
+      var sidebar = new StickySidebar('.sidebar-sticky', { topSpacing: 20 });
     }, 0);
 
-    if (!this.token || !this.idcliente) {
-      this._router.navigate(['/login']);
-      return;
-    }
-
+    // Cargar datos iniciales
+    this.cargarEnvios();
+    this.obtenerDireccionPrincipal();
     this.setupCarritoDebounce();
     this.inicializarSocket();
     this.cargarCarrito();
@@ -94,21 +87,98 @@ export class CarritoComponent implements OnInit, OnDestroy {
     }
   }
 
-
-  // Obtiene la dirección principal del cliente
-  obtenerDireccionPrincipal(): void {
-    this._clienteService.obtener_direccion_principal_cliente(this.idcliente!, this.token!).subscribe({
-      next: (response) => {
-        if (response.data == undefined) {
-          this.direccion_principal = undefined;
-        } else{
-          this.direccion_principal = response.data;
+  /**
+   * Carga los métodos de envío disponibles
+   */
+  private cargarEnvios(): void {
+    this._guestService.get_envios()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (response) => {
+          this.envios = response || [];
+          
+          // Seleccionar automáticamente el primer método de envío
+          if (this.envios.length > 0) {
+            this.envio_seleccionado = this.envios[0];
+            this.precio_envio = parseFloat(this.envio_seleccionado.costo) || 0;
+            this.calcularTotal();
+          }
+        },
+        error: (error) => {
+          console.error('Error cargando métodos de envío:', error);
+          this.envios = [];
         }
-      },
-      error: (error) => {
-        console.error('Error obteniendo dirección principal:', error);
-        this.manejarError(error);
-      }
+      });
+  }
+
+  /**
+   * Obtiene la dirección principal del cliente
+   */
+  private obtenerDireccionPrincipal(): void {
+    if (!this.idcliente || !this.token) {
+      this.direccion_principal = undefined;
+      this.load_direccion = false;
+      return;
+    }
+
+    this.load_direccion = true;
+
+    this._clienteService.obtener_direcciones_cliente(this.idcliente, this.token)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (response) => {
+          console.log('Respuesta direcciones:', response); // Debug
+          
+          let direcciones: Array<any> = [];
+
+          // Manejar diferentes formatos de respuesta
+          if (response) {
+            if (Array.isArray(response.data)) {
+              direcciones = response.data;
+            } else if (Array.isArray(response)) {
+              direcciones = response;
+            }
+          }
+
+          // Buscar la dirección principal
+          this.direccion_principal = direcciones.find(dir => dir.principal === true);
+
+          if (!this.direccion_principal) {
+            console.log('No se encontró dirección principal');
+            this.direccion_principal = undefined;
+          } else {
+            console.log('Dirección principal encontrada:', this.direccion_principal);
+          }
+
+          this.load_direccion = false;
+        },
+        error: (error) => {
+          console.error('Error obteniendo dirección principal:', error);
+          this.direccion_principal = undefined;
+          this.load_direccion = false;
+          this.manejarError(error);
+        }
+      });
+  }
+
+  /**
+   * Maneja el cambio de método de envío
+   */
+  onEnvioChange(envio: any): void {
+    console.log('Envío seleccionado:', envio); // Debug
+    
+    this.envio_seleccionado = envio;
+    this.precio_envio = parseFloat(envio.costo) || 0;
+    this.calcularTotal();
+
+    iziToast.info({
+      title: 'Método de envío',
+      titleColor: '#17a2b8',
+      color: '#FFF',
+      class: 'text-info',
+      position: 'topRight',
+      message: `Seleccionaste: ${envio.titulo}`,
+      timeout: 2000
     });
   }
 
@@ -191,7 +261,7 @@ export class CarritoComponent implements OnInit, OnDestroy {
       .subscribe({
         next: (response) => {
           this.carrito_compras = response.data || [];
-          this.calcular_carrito();
+          this.calcularCarrito();
           this.load_data = false;
           this.isUpdating = false;
         },
@@ -206,9 +276,9 @@ export class CarritoComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Calcula totales del carrito
+   * Calcula subtotal del carrito
    */
-  calcular_carrito(): void {
+  private calcularCarrito(): void {
     this.subtotal = 0;
 
     if (this.carrito_compras && this.carrito_compras.length > 0) {
@@ -220,7 +290,19 @@ export class CarritoComponent implements OnInit, OnDestroy {
       }, 0);
     }
 
-    this.total_pagar = this.subtotal + this.costo_envio;
+    this.calcularTotal();
+  }
+
+  /**
+   * Calcula el total a pagar (subtotal + envío)
+   */
+  private calcularTotal(): void {
+    this.total_pagar = this.subtotal + this.precio_envio;
+    console.log('Total calculado:', {
+      subtotal: this.subtotal,
+      envio: this.precio_envio,
+      total: this.total_pagar
+    }); // Debug
   }
 
   /**
