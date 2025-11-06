@@ -3,7 +3,7 @@ import { Router } from '@angular/router';
 import { GuestService } from 'src/app/services/guest.service';
 import { ClienteService } from 'src/app/services/cliente.service';
 import { Subject } from 'rxjs';
-import { takeUntil } from 'rxjs/operators';
+import { takeUntil, finalize } from 'rxjs/operators';
 declare var $: any;
 declare var iziToast: any;
 
@@ -33,8 +33,11 @@ export class DireccionesComponent implements OnInit, OnDestroy {
   public todosMunicipios: Array<any> = [];
   public municipiosFiltrados: Array<string> = [];
   
-  public load_direcciones = true;
-  public btn_guardar = false;
+  // Estados de carga mejorados
+  public load_init = true;           // Carga inicial de todos los datos
+  public load_form_data = true;      // Carga de departamentos/municipios
+  public load_direcciones = true;    // Carga de direcciones
+  public btn_guardar = false;        // Botón guardar
   public btn_eliminar: { [key: string]: boolean } = {};
   public btn_principal: { [key: string]: boolean } = {};
 
@@ -56,7 +59,7 @@ export class DireccionesComponent implements OnInit, OnDestroy {
       return;
     }
 
-    this.cargarDatos();
+    this.inicializarComponente();
   }
 
   ngOnDestroy(): void {
@@ -65,105 +68,140 @@ export class DireccionesComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Carga todos los datos necesarios
+   * Inicializa el componente cargando todos los datos necesarios
    */
-  private cargarDatos(): void {
-    this.cargarDepartamentos();
-    this.cargarMunicipios();
-    this.cargarDirecciones();
-  }
-
-  /**
-   * Carga departamentos
-   */
-  private cargarDepartamentos(): void {
-    this._guestService.get_departamentos()
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: (response) => {
-          this.departamentos = response || [];
-        },
-        error: (error) => {
-          console.error('Error cargando departamentos:', error);
-        }
-      });
-  }
-
-  /**
-   * Carga municipios
-   */
-  private cargarMunicipios(): void {
-    this._guestService.get_municipios()
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: (response) => {
-          this.todosMunicipios = response || [];
-        },
-        error: (error) => {
-          console.error('Error cargando municipios:', error);
-        }
-      });
-  }
-
-  /**
-   * Carga direcciones del cliente - OPTIMIZADO
-   */
-  private cargarDirecciones(): void {
-    if (!this.idCliente || !this.token) {
-      return;
-    }
-
+  private inicializarComponente(): void {
+    this.load_init = true;
+    this.load_form_data = true;
     this.load_direcciones = true;
 
-    this._clienteService.obtener_direcciones_cliente(this.idCliente, this.token)
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: (response) => {
-          // Normalizar respuesta - puede venir en diferentes formatos
-          let direccionesData: Array<any> = [];
+    // Cargar datos del formulario y direcciones en paralelo
+    Promise.all([
+      this.cargarDepartamentos(),
+      this.cargarMunicipios(),
+      this.cargarDirecciones()
+    ]).then(() => {
+      this.load_init = false;
+    }).catch(error => {
+      console.error('Error inicializando componente:', error);
+      this.load_init = false;
+    });
+  }
 
-          if (response) {
-            // Si es un error del servidor
-            if (response.message && !response.data) {
-              console.log('Sin direcciones o error:', response.message);
-              direccionesData = [];
-            }
-            // Si data es un array
-            else if (Array.isArray(response.data)) {
-              direccionesData = response.data;
-            }
-            // Si response es directamente un array
-            else if (Array.isArray(response)) {
-              direccionesData = response;
-            }
+  /**
+   * Carga departamentos con manejo de estado
+   */
+  private cargarDepartamentos(): Promise<void> {
+    return new Promise((resolve, reject) => {
+      this._guestService.get_departamentos()
+        .pipe(
+          takeUntil(this.destroy$),
+          finalize(() => {
+            // Se completa cuando ambos (deptos y municipios) terminan
+          })
+        )
+        .subscribe({
+          next: (response) => {
+            this.departamentos = response || [];
+            resolve();
+          },
+          error: (error) => {
+            console.error('Error cargando departamentos:', error);
+            this.departamentos = [];
+            resolve(); // No rechazamos para no bloquear otras cargas
           }
+        });
+    });
+  }
 
-          // Ordenar: principal primero, luego por fecha
-          this.direcciones = direccionesData.sort((a, b) => {
-            if (a.principal && !b.principal) return -1;
-            if (!a.principal && b.principal) return 1;
+  /**
+   * Carga municipios con manejo de estado
+   */
+  private cargarMunicipios(): Promise<void> {
+    return new Promise((resolve, reject) => {
+      this._guestService.get_municipios()
+        .pipe(
+          takeUntil(this.destroy$),
+          finalize(() => {
+            this.load_form_data = false;
+          })
+        )
+        .subscribe({
+          next: (response) => {
+            this.todosMunicipios = response || [];
+            resolve();
+          },
+          error: (error) => {
+            console.error('Error cargando municipios:', error);
+            this.todosMunicipios = [];
+            resolve();
+          }
+        });
+    });
+  }
+
+  /**
+   * Carga direcciones del cliente con manejo mejorado de estado
+   */
+  private cargarDirecciones(): Promise<void> {
+    return new Promise((resolve, reject) => {
+      if (!this.idCliente || !this.token) {
+        this.load_direcciones = false;
+        resolve();
+        return;
+      }
+
+      this.load_direcciones = true;
+
+      this._clienteService.obtener_direcciones_cliente(this.idCliente, this.token)
+        .pipe(
+          takeUntil(this.destroy$),
+          finalize(() => {
+            this.load_direcciones = false;
+          })
+        )
+        .subscribe({
+          next: (response) => {
+            let direccionesData: Array<any> = [];
+
+            if (response) {
+              if (response.message && !response.data) {
+                direccionesData = [];
+              } else if (Array.isArray(response.data)) {
+                direccionesData = response.data;
+              } else if (Array.isArray(response)) {
+                direccionesData = response;
+              }
+            }
+
+            // Ordenar: principal primero, luego por fecha
+            this.direcciones = direccionesData.sort((a, b) => {
+              if (a.principal && !b.principal) return -1;
+              if (!a.principal && b.principal) return 1;
+              
+              const fechaA = new Date(a.createdAt || 0).getTime();
+              const fechaB = new Date(b.createdAt || 0).getTime();
+              return fechaB - fechaA;
+            });
+
+            resolve();
+          },
+          error: (error) => {
+            console.error('Error cargando direcciones:', error);
+            this.direcciones = [];
+
+            if (error.status === 401 || error.status === 403) {
+              this.mostrarError('Tu sesión ha expirado');
+              setTimeout(() => {
+                localStorage.clear();
+                this._router.navigate(['/login']);
+              }, 2000);
+            }
             
-            const fechaA = new Date(a.createdAt || 0).getTime();
-            const fechaB = new Date(b.createdAt || 0).getTime();
-            return fechaB - fechaA;
-          });
-
-          this.load_direcciones = false;
-        },
-        error: (error) => {
-          console.error('Error cargando direcciones:', error);
-          this.direcciones = [];
-          this.load_direcciones = false;
-
-          if (error.status === 401 || error.status === 403) {
-            this.mostrarError('Tu sesión ha expirado');
-            setTimeout(() => {
-              localStorage.clear();
-              this._router.navigate(['/login']);
-            }, 2000);
+            resolve();
           }
-        }
-      });
+        });
+    });
   }
 
   /**
@@ -202,6 +240,7 @@ export class DireccionesComponent implements OnInit, OnDestroy {
 
   /**
    * Aplica máscara al teléfono (0000-0000)
+   * IMPORTANTE: Actualizar el modelo explícitamente para evitar problemas con ngModel
    */
   aplicarMascaraTelefono(event: any): void {
     let valor = event.target.value.replace(/\D/g, '');
@@ -214,12 +253,18 @@ export class DireccionesComponent implements OnInit, OnDestroy {
       valor = valor.substring(0, 4) + '-' + valor.substring(4);
     }
     
-    event.target.value = valor;
+    // Actualizar el modelo ANTES de modificar el DOM
     this.direccion.telefono = valor;
+    
+    // Usar setTimeout para evitar conflictos con ngModel
+    setTimeout(() => {
+      event.target.value = valor;
+    }, 0);
   }
 
   /**
    * Aplica máscara al DUI (00000000-0)
+   * IMPORTANTE: Actualizar el modelo explícitamente para evitar problemas con ngModel
    */
   aplicarMascaraDUI(event: any): void {
     let valor = event.target.value.replace(/\D/g, '');
@@ -232,8 +277,13 @@ export class DireccionesComponent implements OnInit, OnDestroy {
       valor = valor.substring(0, 8) + '-' + valor.substring(8);
     }
     
-    event.target.value = valor;
+    // Actualizar el modelo ANTES de modificar el DOM
     this.direccion.dui = valor;
+    
+    // Usar setTimeout para evitar conflictos con ngModel
+    setTimeout(() => {
+      event.target.value = valor;
+    }, 0);
   }
 
   /**
@@ -248,6 +298,14 @@ export class DireccionesComponent implements OnInit, OnDestroy {
       input.value = valor.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, '');
       this.direccion[campo] = input.value;
     }
+  }
+
+  /**
+   * Limpia espacios y caracteres especiales del código postal
+   */
+  limpiarCodigoPostal(event: any): void {
+    let valor = event.target.value.trim();
+    this.direccion.zip = valor;
   }
 
   /**
@@ -310,37 +368,40 @@ export class DireccionesComponent implements OnInit, OnDestroy {
 
     this.btn_guardar = true;
 
+    // Asegurar que todos los campos estén limpios antes de enviar
     const data = {
       cliente: this.idCliente,
       destinatario: this.direccion.destinatario.trim(),
-      dui: this.direccion.dui.trim(),
-      zip: this.direccion.zip.trim(),
+      dui: this.direccion.dui.trim().replace(/\s+/g, ''), // Remover espacios extras
+      zip: this.direccion.zip.trim().replace(/\s+/g, ''), // Remover espacios extras
       direccion: this.direccion.direccion.trim(),
       pais: this.direccion.pais,
       departamento: this.direccion.pais === 'El Salvador' ? this.direccion.departamento : '',
       municipio: this.direccion.pais === 'El Salvador' ? this.direccion.municipio : '',
-      telefono: this.direccion.telefono.trim(),
+      telefono: this.direccion.telefono.trim().replace(/\s+/g, ''), // Remover espacios extras
       principal: this.direccion.principal
     };
 
+    // Debug: verificar datos antes de enviar
+    console.log('Datos a enviar:', data);
+
     this._clienteService.registro_direccion_cliente(data, this.token)
-      .pipe(takeUntil(this.destroy$))
+      .pipe(
+        takeUntil(this.destroy$),
+        finalize(() => {
+          this.btn_guardar = false;
+        })
+      )
       .subscribe({
         next: (response) => {
+          console.log('Respuesta del servidor:', response);
           this.mostrarExito('Dirección guardada correctamente');
-          
-          // Resetear formulario
           this.resetearFormulario(registroForm);
-          
-          // Recargar direcciones
           this.cargarDirecciones();
-          
-          this.btn_guardar = false;
         },
         error: (error) => {
           console.error('Error guardando dirección:', error);
           this.mostrarError(error.error?.message || 'Error al guardar la dirección');
-          this.btn_guardar = false;
         }
       });
   }
@@ -377,17 +438,20 @@ export class DireccionesComponent implements OnInit, OnDestroy {
     this.btn_principal[id] = true;
 
     this._clienteService.establecer_direccion_principal(id, this.token)
-      .pipe(takeUntil(this.destroy$))
+      .pipe(
+        takeUntil(this.destroy$),
+        finalize(() => {
+          delete this.btn_principal[id];
+        })
+      )
       .subscribe({
         next: (response) => {
           this.mostrarExito('Dirección principal actualizada');
           this.cargarDirecciones();
-          delete this.btn_principal[id];
         },
         error: (error) => {
           console.error('Error estableciendo dirección principal:', error);
           this.mostrarError(error.error?.message || 'Error al establecer dirección principal');
-          this.btn_principal[id] = false;
         }
       });
   }
@@ -434,17 +498,20 @@ export class DireccionesComponent implements OnInit, OnDestroy {
     this.btn_eliminar[id] = true;
 
     this._clienteService.eliminar_direccion_cliente(id, this.token)
-      .pipe(takeUntil(this.destroy$))
+      .pipe(
+        takeUntil(this.destroy$),
+        finalize(() => {
+          delete this.btn_eliminar[id];
+        })
+      )
       .subscribe({
         next: (response) => {
           this.mostrarExito('Dirección eliminada correctamente');
           this.cargarDirecciones();
-          delete this.btn_eliminar[id];
         },
         error: (error) => {
           console.error('Error eliminando dirección:', error);
           this.mostrarError(error.error?.message || 'Error al eliminar la dirección');
-          this.btn_eliminar[id] = false;
         }
       });
   }
