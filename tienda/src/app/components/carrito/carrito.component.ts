@@ -1,5 +1,5 @@
 // tienda/src/app/components/carrito/carrito.component.ts
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewChild, ElementRef } from '@angular/core';
 import { Router } from '@angular/router';
 import { ClienteService } from 'src/app/services/cliente.service';
 import { io, Socket } from "socket.io-client";
@@ -9,6 +9,11 @@ import { GuestService } from 'src/app/services/guest.service';
 declare var iziToast: any;
 declare var Cleave;
 declare var StickySidebar;
+declare var paypal;
+
+interface HtmlInputEvent extends Event{
+  target : HTMLInputElement & EventTarget;
+} 
 
 @Component({
   selector: 'app-carrito',
@@ -16,6 +21,7 @@ declare var StickySidebar;
   styleUrls: ['./carrito.component.css']
 })
 export class CarritoComponent implements OnInit, OnDestroy {
+  @ViewChild('paypalButton',{static:true}) paypalElement : ElementRef;
   public idcliente: string | null;
   public token: string | null;
   public carrito_compras: Array<any> = [];
@@ -66,6 +72,38 @@ export class CarritoComponent implements OnInit, OnDestroy {
 
       var sidebar = new StickySidebar('.sidebar-sticky', { topSpacing: 20 });
     }, 0);
+
+
+paypal.Buttons({
+    style: {
+        layout: 'horizontal'
+    },
+    createOrder: (data,actions)=>{
+
+        return actions.order.create({
+          purchase_units : [{
+            description : 'Nombre del pago',
+            amount : {
+              currency_code : 'USD',
+              value: 999
+            },
+          }]
+        });
+      
+    },
+    onApprove : async (data,actions)=>{
+      const order = await actions.order.capture();
+
+      
+    },
+    onError : err =>{
+     
+    },
+    onCancel: function (data, actions) {
+      
+    }
+  }).render(this.paypalElement.nativeElement);
+
 
     // Cargar datos iniciales
     this.cargarEnvios();
