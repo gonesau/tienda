@@ -439,23 +439,38 @@ export class ClienteService {
       );
   }
 
-  //Venta
-  registro_venta_cliente(data: any, token?: string): Observable<any> {
-    if (!data || !data.cliente || !data.carrito || !data.direccion || !data.total) {
-      return throwError(() => ({ status: 400, message: 'Datos de venta incompletos' }));
-    }
-
-    if (!this.isAuthenticated()) {
-      return throwError(() => ({ status: 401, message: 'Debes iniciar sesión' }));
-    }
-
-    const headers = this.getAuthHeaders(token);
-    
-    return this._http.post(this.url + 'registro_venta_cliente', data, { headers })
-      .pipe(
-        catchError(this.handleError.bind(this))
-      );
+/**
+ * Registra una venta con PayPal
+ */
+registro_venta_cliente(data: any, token?: string): Observable<any> {
+  if (!data || !data.cliente || !data.detalles || data.detalles.length === 0) {
+    return throwError(() => ({ 
+      status: 400, 
+      message: 'Datos de venta incompletos' 
+    }));
   }
+
+  if (!data.transaccion) {
+    return throwError(() => ({ 
+      status: 400, 
+      message: 'No se recibió el ID de transacción de PayPal' 
+    }));
+  }
+
+  if (!this.isAuthenticated()) {
+    return throwError(() => ({ 
+      status: 401, 
+      message: 'Debes iniciar sesión' 
+    }));
+  }
+
+  const headers = this.getAuthHeaders(token);
+  
+  return this._http.post(this.url + 'registro_compra_cliente', data, { headers })
+    .pipe(
+      catchError(this.handleError.bind(this))
+    );
+}
 
   //
 

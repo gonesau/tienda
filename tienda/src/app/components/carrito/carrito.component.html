@@ -1,4 +1,4 @@
-<!-- carrito.component.html - HTML MEJORADO -->
+<!-- carrito.component.html - ACTUALIZADO CON CANTIDAD EDITABLE -->
 <app-nav></app-nav>
 
 <main class="cs-page-wrapper">
@@ -70,18 +70,61 @@
                   <ul class="list-unstyled font-size-xs mt-n2 mb-2">
                     <li class="mb-0"><span class="text-muted">{{item.producto.titulo_variedad}}: </span>
                       {{item.variedad}}</li>
+                    <li class="mb-0"><span class="text-muted">Stock disponible: </span>
+                      {{item.producto.stock}} unidades</li>
                   </ul>
                 </div>
-                <div class="d-flex pr-sm-3">
-                  <input type="number" class="form-control form-control-sm bg-light mr-3" style="width: 4.5rem;"
-                    [value]="item.cantidad" min="1" [max]="item.producto.stock" readonly>
-                  <div class="text-nowrap pt-2">
-                    <span class="font-size-m text-muted">{{ item.producto.precio | currency }}</span>
+                <div class="d-flex pr-sm-3 align-items-center">
+                  <!-- Control de cantidad mejorado -->
+                  <div class="input-group" style="width: 150px;">
+                    <div class="input-group-prepend">
+                      <button 
+                        class="btn btn-outline-secondary btn-sm" 
+                        type="button"
+                        (click)="cambiar_cantidad(item, item.cantidad - 1)"
+                        [disabled]="item.cantidad <= 1 || actualizando_cantidad[item._id]">
+                        <i class="cxi-minus"></i>
+                      </button>
+                    </div>
+                    <input 
+                      type="number" 
+                      class="form-control form-control-sm bg-light text-center" 
+                      [value]="item.cantidad" 
+                      min="1" 
+                      [max]="item.producto.stock"
+                      (change)="cambiar_cantidad(item, $event.target.value)"
+                      [disabled]="actualizando_cantidad[item._id]">
+                    <div class="input-group-append">
+                      <button 
+                        class="btn btn-outline-secondary btn-sm" 
+                        type="button"
+                        (click)="cambiar_cantidad(item, item.cantidad + 1)"
+                        [disabled]="item.cantidad >= item.producto.stock || actualizando_cantidad[item._id]">
+                        <i class="cxi-plus"></i>
+                      </button>
+                    </div>
+                  </div>
+                  
+                  <!-- Spinner de actualización -->
+                  <div class="ml-2" *ngIf="actualizando_cantidad[item._id]">
+                    <div class="spinner-border spinner-border-sm text-primary" role="status">
+                      <span class="sr-only">Actualizando...</span>
+                    </div>
+                  </div>
+                  
+                  <div class="text-nowrap ml-3">
+                    <span class="font-size-m text-muted">{{ item.producto.precio * item.cantidad | currency }}</span>
+                    <br>
+                    <small class="text-muted">{{ item.producto.precio | currency }} c/u</small>
                   </div>
                 </div>
                 <div class="d-flex align-items-center flex-sm-column text-sm-center ml-sm-auto pt-3 pt-sm-0">
-                  <button class="btn btn-outline-primary btn-sm mr-2 mr-sm-0"
-                    (click)="eliminar_item(item._id)">Eliminar</button>
+                  <button 
+                    class="btn btn-outline-primary btn-sm mr-2 mr-sm-0"
+                    (click)="eliminar_item(item._id)"
+                    [disabled]="actualizando_cantidad[item._id]">
+                    Eliminar
+                  </button>
                   <button class="btn btn-link btn-sm text-decoration-none pt-0 pt-sm-2 px-0 pb-0 mt-0 mt-sm-1">
                     Agregar a favoritos
                     <i class="cxi-heart ml-1"></i>
@@ -284,8 +327,10 @@
                   </div>
                 </div>
                 <div class="collapse" id="paypal-card" data-parent="#payment-methods">
-                  <div class="card-body pt-3 pb-0" #paypalButton>
+                  <div class="card-body pt-3 pb-0">
                     <p class="mb-2 text-muted">Serás redirigido a PayPal para completar tu compra de forma segura.</p>
+                    <!-- Contenedor de botones PayPal -->
+                    <div #paypalButton id="paypal-button-container"></div>
                   </div>
                 </div>
               </div>
@@ -329,11 +374,31 @@
             <div class="form-group">
               <label for="promo-code">Aplicar cupón de descuento</label>
               <div class="input-group input-group-lg">
-                <input type="text" id="promo-code" class="form-control" placeholder="Ingresa el código" name="cupon" [(ngModel)]="venta.cupon">
+                <input 
+                  type="text" 
+                  id="promo-code" 
+                  class="form-control" 
+                  placeholder="Ingresa el código" 
+                  name="cupon" 
+                  [(ngModel)]="venta.cupon"
+                  [disabled]="btn_aplicar_cupon">
                 <div class="input-group-append">
-                  <button type="button" class="btn btn-primary">&nbsp;&nbsp;Aplicar&nbsp;&nbsp;</button>
+                  <button 
+                    type="button" 
+                    class="btn btn-primary"
+                    [disabled]="btn_aplicar_cupon || !venta.cupon">
+                    <span *ngIf="!btn_aplicar_cupon">Aplicar</span>
+                    <span *ngIf="btn_aplicar_cupon">
+                      <span class="spinner-border spinner-border-sm mr-1"></span>
+                      Validando...
+                    </span>
+                  </button>
                 </div>
               </div>
+              <small class="text-success" *ngIf="cupon_aplicado">
+                <i class="cxi-check-circle mr-1"></i>
+                Cupón aplicado: {{cupon_aplicado.codigo}}
+              </small>
             </div>
             <div class="bg-secondary rounded mb-4">
               <div class="border-bottom p-4">
@@ -348,9 +413,9 @@
                   <span>Envío:</span>
                   <span>{{precio_envio | currency }}</span>
                 </li>
-                <li class="d-flex justify-content-between mb-2">
+                <li class="d-flex justify-content-between mb-2" *ngIf="descuento_cupon > 0">
                   <span>Descuento:</span>
-                  <span>&mdash;</span>
+                  <span class="text-success">-{{descuento_cupon | currency}}</span>
                 </li>
               </ul>
               <div class="d-flex justify-content-between p-4">
@@ -358,26 +423,24 @@
                 <span class="h5 mb-0 text-primary">{{ total_pagar | currency }}</span>
               </div>
             </div>
-            <button 
-              type="button" 
-              class="btn btn-primary btn-lg btn-block"
-              [disabled]="carrito_compras.length === 0 || direccion_principal === undefined || load_data">
-              <span *ngIf="carrito_compras.length > 0 && direccion_principal !== undefined && !load_data">
-                <i class="cxi-check mr-2"></i>
-                Completar Pedido
-              </span>
-              <span *ngIf="carrito_compras.length === 0 || direccion_principal === undefined || load_data">
-                <i class="cxi-lock mr-2"></i>
-                Completa los pasos anteriores
-              </span>
-            </button>
             
             <!-- Mensaje informativo -->
             <div class="alert alert-info mt-3 mb-0" role="alert" *ngIf="carrito_compras.length > 0">
               <small class="mb-0">
                 <i class="cxi-shield-check mr-1"></i>
-                <strong>Compra segura</strong> - Tus datos están protegidos
+                <strong>Compra segura</strong> - Tus datos están protegidos con PayPal
               </small>
+            </div>
+
+            <!-- Estado de procesamiento -->
+            <div class="alert alert-success mt-3 mb-0" role="alert" *ngIf="load_btn_pagar">
+              <div class="d-flex align-items-center">
+                <div class="spinner-border spinner-border-sm mr-3" role="status"></div>
+                <div>
+                  <strong>Procesando tu compra...</strong>
+                  <p class="mb-0 mt-1 font-size-sm">Por favor espera, no cierres esta ventana.</p>
+                </div>
+              </div>
             </div>
           </div>
         </div>
