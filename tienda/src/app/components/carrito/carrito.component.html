@@ -317,7 +317,7 @@
         <h2 class="h4 mb-4">5. Información Adicional (opcional)</h2>
         <div class="form-group">
           <label for="ch-notes">Notas del pedido</label>
-          <textarea id="ch-notes" class="form-control form-control-lg" rows="5"
+          <textarea id="ch-notes" name="nota" [(ngModel)]="venta.nota" class="form-control form-control-lg" rows="5"
             placeholder="Notas sobre tu pedido, por ejemplo, instrucciones especiales para la entrega."></textarea>
         </div>
       </div>
@@ -329,7 +329,7 @@
             <div class="form-group">
               <label for="promo-code">Aplicar cupón de descuento</label>
               <div class="input-group input-group-lg">
-                <input type="text" id="promo-code" class="form-control" placeholder="Ingresa el código">
+                <input type="text" id="promo-code" class="form-control" placeholder="Ingresa el código" name="cupon" [(ngModel)]="venta.cupon">
                 <div class="input-group-append">
                   <button type="button" class="btn btn-primary">&nbsp;&nbsp;Aplicar&nbsp;&nbsp;</button>
                 </div>

@@ -11,9 +11,9 @@ declare var Cleave;
 declare var StickySidebar;
 declare var paypal;
 
-interface HtmlInputEvent extends Event{
-  target : HTMLInputElement & EventTarget;
-} 
+interface HtmlInputEvent extends Event {
+  target: HTMLInputElement & EventTarget;
+}
 
 @Component({
   selector: 'app-carrito',
@@ -21,7 +21,7 @@ interface HtmlInputEvent extends Event{
   styleUrls: ['./carrito.component.css']
 })
 export class CarritoComponent implements OnInit, OnDestroy {
-  @ViewChild('paypalButton',{static:true}) paypalElement : ElementRef;
+  @ViewChild('paypalButton', { static: true }) paypalElement: ElementRef;
   public idcliente: string | null;
   public token: string | null;
   public carrito_compras: Array<any> = [];
@@ -33,6 +33,9 @@ export class CarritoComponent implements OnInit, OnDestroy {
   public direccion_principal: any = undefined;
   public envios: Array<any> = [];
   public precio_envio = 0;
+  public venta: any = {};
+  public dventa: Array<any> = [];
+
   public envio_seleccionado: any = null;
 
   private socket: Socket;
@@ -48,6 +51,9 @@ export class CarritoComponent implements OnInit, OnDestroy {
     this.idcliente = localStorage.getItem('_id');
     this.token = localStorage.getItem('token');
     this.url = this._clienteService.url;
+
+    this.venta.cliente = this.idcliente;
+
   }
 
   ngOnInit(): void {
@@ -74,35 +80,35 @@ export class CarritoComponent implements OnInit, OnDestroy {
     }, 0);
 
 
-paypal.Buttons({
-    style: {
+    paypal.Buttons({
+      style: {
         layout: 'horizontal'
-    },
-    createOrder: (data,actions)=>{
+      },
+      createOrder: (data, actions) => {
 
         return actions.order.create({
-          purchase_units : [{
-            description : 'Nombre del pago',
-            amount : {
-              currency_code : 'USD',
+          purchase_units: [{
+            description: 'Nombre del pago',
+            amount: {
+              currency_code: 'USD',
               value: 999
             },
           }]
         });
-      
-    },
-    onApprove : async (data,actions)=>{
-      const order = await actions.order.capture();
 
-      
-    },
-    onError : err =>{
-     
-    },
-    onCancel: function (data, actions) {
-      
-    }
-  }).render(this.paypalElement.nativeElement);
+      },
+      onApprove: async (data, actions) => {
+        const order = await actions.order.capture();
+        this.venta.transaccion = order.purchase_units[0].payments.captures[0].id;
+
+      },
+      onError: err => {
+
+      },
+      onCancel: function (data, actions) {
+
+      }
+    }).render(this.paypalElement.nativeElement);
 
 
     // Cargar datos iniciales
@@ -134,7 +140,7 @@ paypal.Buttons({
       .subscribe({
         next: (response) => {
           this.envios = response || [];
-          
+
           // Seleccionar automáticamente el primer método de envío
           if (this.envios.length > 0) {
             this.envio_seleccionado = this.envios[0];
@@ -166,7 +172,7 @@ paypal.Buttons({
       .subscribe({
         next: (response) => {
           console.log('Respuesta direcciones:', response); // Debug
-          
+
           let direcciones: Array<any> = [];
 
           // Manejar diferentes formatos de respuesta
@@ -204,7 +210,7 @@ paypal.Buttons({
    */
   onEnvioChange(envio: any): void {
     console.log('Envío seleccionado:', envio); // Debug
-    
+
     this.envio_seleccionado = envio;
     this.precio_envio = parseFloat(envio.costo) || 0;
     this.calcularTotal();
@@ -334,12 +340,15 @@ paypal.Buttons({
   /**
    * Calcula el total a pagar (subtotal + envío)
    */
-  private calcularTotal(): void {
+  private calcularTotal(envio_titulo): void {
     this.total_pagar = this.subtotal + this.precio_envio;
+    this.venta.subtotal = this.total_pagar;
+    this.venta.envio_precio = this.precio_envio;
+    this.venta.envio_titulo = envio_titulo;
     console.log('Total calculado:', {
       subtotal: this.subtotal,
       envio: this.precio_envio,
-      total: this.total_pagar
+      total: this.total_pagar,
     }); // Debug
   }
 
