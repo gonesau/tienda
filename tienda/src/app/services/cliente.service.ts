@@ -472,7 +472,30 @@ registro_venta_cliente(data: any, token?: string): Observable<any> {
     );
 }
 
-  //
+/**
+ * Valida un cupón de descuento
+ */
+validar_cupon_cliente(data: { codigo: string }, token?: string): Observable<any> {
+  if (!data.codigo || data.codigo.trim() === '') {
+    return throwError(() => ({ 
+      status: 400, 
+      message: 'Debes ingresar un código de cupón' 
+    }));
+  }
 
+  if (!this.isAuthenticated()) {
+    return throwError(() => ({ 
+      status: 401, 
+      message: 'Debes iniciar sesión' 
+    }));
+  }
+
+  const headers = this.getAuthHeaders(token);
+  
+  return this._http.post(this.url + 'validar_cupon_cliente', data, { headers })
+    .pipe(
+      catchError(this.handleError.bind(this))
+    );
+}
 
 }
