@@ -59,6 +59,7 @@ var cupon_route = require('./routes/cupon');
 var config_route = require('./routes/config');
 var carrito_route = require('./routes/carrito');
 var venta_route = require('./routes/venta');
+var descuento_route = require('./routes/descuento');
 
 app.use('/api', cliente_route);
 app.use('/api', admin_route);
@@ -67,6 +68,7 @@ app.use('/api', cupon_route);
 app.use('/api', config_route);
 app.use('/api', carrito_route);
 app.use('/api', venta_route);
+app.use('/api', descuento_route);
 
 // Conexión a la base de datos
 mongoose.connect('mongodb://localhost:27017/tienda', {
