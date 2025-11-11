@@ -19,20 +19,63 @@ const generar_comprobante_pdf = async function (req, res) {
     try {
         const ventaId = req.params['id'];
 
+        console.log('=== INICIO GENERACIÓN PDF ===');
+        console.log('ID de venta:', ventaId);
+
+        // Validar ID
+        if (!ventaId || ventaId === 'undefined' || ventaId === 'null') {
+            console.error('ID de venta inválido:', ventaId);
+            return res.status(400).send({
+                message: 'ID de venta inválido',
+                data: undefined
+            });
+        }
+
         // Obtener venta con populate
         const venta = await Venta.findById(ventaId)
             .populate('cliente')
             .populate('direccion');
 
+        console.log('Venta encontrada:', venta ? 'Sí' : 'No');
+
         if (!venta) {
+            console.error('Venta no encontrada en la BD');
             return res.status(404).send({
                 message: 'Venta no encontrada',
                 data: undefined
             });
         }
 
+        // Validar que tenga cliente y dirección
+        if (!venta.cliente) {
+            console.error('La venta no tiene cliente asociado');
+            return res.status(500).send({
+                message: 'Error: venta sin cliente',
+                data: undefined
+            });
+        }
+
+        if (!venta.direccion) {
+            console.error('La venta no tiene dirección asociada');
+            return res.status(500).send({
+                message: 'Error: venta sin dirección',
+                data: undefined
+            });
+        }
+
+        console.log('Cliente:', venta.cliente.nombres, venta.cliente.apellidos);
+        console.log('Dirección:', venta.direccion.destinatario);
+
         // Verificar que la venta pertenezca al usuario
-        if (venta.cliente._id.toString() !== req.user.sub) {
+        // IMPORTANTE: req.user.sub viene del JWT (helpers/jwt.js)
+        const clienteId = venta.cliente._id.toString();
+        const usuarioId = req.user.sub || req.user._id;
+
+        console.log('Cliente ID:', clienteId);
+        console.log('Usuario ID:', usuarioId);
+        console.log('req.user completo:', req.user);
+
+        if (clienteId !== usuarioId) {
             return res.status(403).send({
                 message: 'No tienes permiso para ver esta venta',
                 data: undefined

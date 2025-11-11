@@ -18,28 +18,28 @@ declare var paypal: any;
 })
 export class CarritoComponent implements OnInit, OnDestroy {
   @ViewChild('paypalButton', { static: false }) paypalElement: ElementRef;
-  
+
   // Datos del usuario
   public idcliente: string | null;
   public token: string | null;
-  
+
   // Datos del carrito
   public carrito_compras: Array<any> = [];
   public subtotal = 0;
   public url: string;
   public total_pagar = 0;
-  
+
   // Estados de carga
   public load_data = true;
   public load_direccion = true;
   public load_btn_pagar = false;
-  
+
   // Dirección y envío
   public direccion_principal: any = undefined;
   public envios: Array<any> = [];
   public precio_envio = 0;
   public envio_seleccionado: any = null;
-  
+
   // Datos de la venta
   public venta: any = {
     cliente: '',
@@ -52,12 +52,12 @@ export class CarritoComponent implements OnInit, OnDestroy {
     nota: '',
     detalles: []
   };
-  
+
   // Cupón
   public cupon_aplicado: any = null;
   public descuento_cupon = 0;
   public btn_aplicar_cupon = false;
-  
+
   // Actualización de cantidad
   public actualizando_cantidad: { [key: string]: boolean } = {};
 
@@ -181,10 +181,10 @@ export class CarritoComponent implements OnInit, OnDestroy {
         try {
           const order = await actions.order.capture();
           console.log('PayPal order captured:', order);
-          
+
           this.venta.transaccion = order.purchase_units[0].payments.captures[0].id;
           await this.procesarCompra();
-          
+
         } catch (error) {
           console.error('Error capturando orden:', error);
           this.mostrarError('Error al procesar el pago. Por favor contacta a soporte.');
@@ -249,10 +249,10 @@ export class CarritoComponent implements OnInit, OnDestroy {
         .subscribe({
           next: (response) => {
             console.log('Respuesta venta:', response);
-            
+
             const ventaId = response.venta._id;
             const nventa = response.venta.nventa;
-            
+
             // Mostrar mensaje de éxito con opción de descargar PDF
             iziToast.success({
               title: '¡Compra exitosa!',
@@ -266,14 +266,14 @@ export class CarritoComponent implements OnInit, OnDestroy {
                 }, true]
               ]
             });
-            
+
             // Limpiar carrito local
             this.carrito_compras = [];
             this.cupon_aplicado = null;
             this.descuento_cupon = 0;
             this.venta.cupon = '';
             this.calcularCarrito();
-            
+
             // Redirigir
             setTimeout(() => {
               this._router.navigate(['/']);
@@ -293,21 +293,68 @@ export class CarritoComponent implements OnInit, OnDestroy {
     }
   }
 
-  /**
-   * Descarga el comprobante PDF
-   */
-  descargarComprobante(ventaId: string): void {
-    if (!ventaId) {
-      this.mostrarError('ID de venta inválido');
-      return;
-    }
 
-    // Abrir PDF en nueva pestaña
-    const pdfUrl = `${this.url}generar_comprobante_pdf/${ventaId}`;
-    window.open(pdfUrl, '_blank');
-    
-    this.mostrarInfo('Descargando comprobante...');
+/**
+ * Descarga el comprobante PDF de forma segura
+ */
+descargarComprobante(ventaId: string): void {
+  if (!ventaId) {
+    this.mostrarError('ID de venta inválido');
+    return;
   }
+
+  if (!this.token) {
+    this.mostrarError('Sesión expirada. Por favor inicia sesión nuevamente');
+    return;
+  }
+
+  this.mostrarInfo('Generando comprobante...');
+
+  // Crear XMLHttpRequest para descargar con autenticación
+  const xhr = new XMLHttpRequest();
+  xhr.open('GET', `${this.url}generar_comprobante_pdf/${ventaId}`, true);
+  xhr.setRequestHeader('Authorization', this.token);
+  xhr.responseType = 'blob';
+
+  xhr.onload = () => {
+    if (xhr.status === 200) {
+      // Crear blob y descargar
+      const blob = new Blob([xhr.response], { type: 'application/pdf' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `Comprobante-${ventaId}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+      this.mostrarExito('Comprobante descargado correctamente');
+    } else {
+      // Intentar leer el error del servidor
+      const reader = new FileReader();
+      reader.onload = () => {
+        try {
+          const error = JSON.parse(reader.result as string);
+          console.error('Error del servidor:', error);
+          this.mostrarError(error.message || 'Error al descargar el comprobante');
+        } catch (e) {
+          console.error('Error descargando PDF. Status:', xhr.status);
+          this.mostrarError('Error al descargar el comprobante. Código: ' + xhr.status);
+        }
+      };
+      reader.readAsText(xhr.response);
+    }
+  };
+
+  xhr.onerror = function() {
+    console.error('Error de red descargando PDF');
+    alert('Error de conexión. Por favor intenta nuevamente.');
+  };
+
+  xhr.send();
+}
+
+
 
   private cargarEnvios(): void {
     this._guestService.get_envios()
@@ -451,7 +498,7 @@ export class CarritoComponent implements OnInit, OnDestroy {
           this.calcularCarrito();
           this.load_data = false;
           this.isUpdating = false;
-          
+
           setTimeout(() => {
             this.inicializarPayPal();
           }, 500);
@@ -483,7 +530,7 @@ export class CarritoComponent implements OnInit, OnDestroy {
 
   private calcularTotal(): void {
     let totalBase = this.subtotal;
-    
+
     // Aplicar descuento
     if (this.cupon_aplicado) {
       if (this.cupon_aplicado.tipo === 'Porcentaje') {
@@ -495,7 +542,7 @@ export class CarritoComponent implements OnInit, OnDestroy {
     } else {
       this.descuento_cupon = 0;
     }
-    
+
     // Sumar envío
     this.total_pagar = totalBase + this.precio_envio;
     this.venta.subtotal = this.total_pagar;
@@ -519,12 +566,12 @@ export class CarritoComponent implements OnInit, OnDestroy {
       .subscribe({
         next: (response) => {
           this.btn_aplicar_cupon = false;
-          
+
           if (response.data) {
             this.cupon_aplicado = response.data;
             this.calcularTotal();
             this.mostrarExito(`¡Cupón aplicado! Descuento: ${this.cupon_aplicado.tipo === 'Porcentaje' ? this.cupon_aplicado.valor + '%' : '$' + this.cupon_aplicado.valor}`);
-            
+
             // Reinicializar PayPal con el nuevo total
             setTimeout(() => {
               this.inicializarPayPal();
@@ -546,7 +593,7 @@ export class CarritoComponent implements OnInit, OnDestroy {
     this.venta.cupon = '';
     this.calcularTotal();
     this.mostrarInfo('Cupón removido');
-    
+
     // Reinicializar PayPal
     setTimeout(() => {
       this.inicializarPayPal();
@@ -555,7 +602,7 @@ export class CarritoComponent implements OnInit, OnDestroy {
 
   cambiar_cantidad(item: any, nuevaCantidad: any): void {
     const cantidad = parseInt(nuevaCantidad);
-    
+
     if (isNaN(cantidad) || cantidad < 1) {
       this.mostrarError('La cantidad debe ser al menos 1');
       return;

@@ -40,6 +40,8 @@ const listar_descuentos_admin = async function(req, res){
 
 const obtener_banner_descuento = async function(req, res){
     var img = req.params['img'];
+    const fs = require('fs');
+    const path = require('path');
     
     fs.stat('./uploads/descuentos/'+img, function(err){
         if(!err){
