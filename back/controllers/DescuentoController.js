@@ -1,3 +1,4 @@
+const { create } = require('../models/config');
 var Descuento = require('../models/descuento');
 
 const registro_descuento_admin = async function(req, res){
@@ -122,6 +123,26 @@ const eliminar_descuento_admin = async function(req, res){
     }
 }
 
+const obtener_descuento_activo = async function(req, res){
+    let descuentos = (await Descuento.find()).sort({createdAt:-1});
+    var arr_descuentos = [];
+    var today = Date.parse(new Date().toISOString())/1000;
+
+    descuentos.forEach(element=>{
+        var fecha_inicio = Date.parse(element.fecha_inicio.toISOString())/1000;
+        var fecha_fin = Date.parse(element.fecha_fin.toISOString())/1000;
+        if(today >= fecha_inicio && today <= fecha_fin){
+            arr_descuentos.push(element);
+        }
+    });
+
+    if(arr_descuentos.length > 0){
+        res.status(200).send({data: arr_descuentos[0]});
+    }else{
+        res.status(200).send({data: undefined});
+    }
+}
+
 
 module.exports = {
     registro_descuento_admin,
@@ -129,6 +150,6 @@ module.exports = {
     obtener_banner_descuento,
     obtener_descuento_admin,
     actualizar_descuento_admin,
-    eliminar_descuento_admin
-
+    eliminar_descuento_admin,
+    obtener_descuento_activo
 }

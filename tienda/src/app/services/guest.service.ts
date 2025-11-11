@@ -35,4 +35,10 @@ export class GuestService {
     return this._http.get('../../assets/envios.json');
   }
 
+  obtener_descuento_activo(): Observable<any> {
+    let headers = new HttpHeaders().set('Content-Type', 'application/json');
+    return this._http.get(this.url + 'obtener_descuento_activo', { headers: headers });
+  }
+
+
 }
