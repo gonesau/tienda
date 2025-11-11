@@ -1,1 +1,376 @@
-<p>edit-descuento works!</p>
+<app-sidebar></app-sidebar>
+
+<main class="admin-content">
+  <div class="admin-main">
+    
+    <!-- Page Header -->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-4 pb-3 border-bottom">
+      <div class="mb-3 mb-md-0">
+        <h1 class="h2 mb-2">Editar Descuento</h1>
+        <p class="text-muted mb-0" *ngIf="descuento">
+          Modificando: {{ descuento.titulo }}
+        </p>
+      </div>
+      <a class="btn btn-outline-secondary" [routerLink]="['/panel/descuentos']">
+        <i class="fas fa-arrow-left me-2"></i>Volver
+      </a>
+    </div>
+
+    <!-- Loading State -->
+    <div class="card" *ngIf="load_data">
+      <div class="card-body text-center py-5">
+        <div class="spinner-border text-primary mb-3" role="status" style="width: 3rem; height: 3rem;">
+          <span class="visually-hidden">Cargando...</span>
+        </div>
+        <p class="text-muted mb-0">Cargando datos del descuento...</p>
+      </div>
+    </div>
+
+    <!-- Descuento no encontrado -->
+    <div class="card" *ngIf="!descuento && !load_data">
+      <div class="card-body text-center py-5">
+        <i class="fas fa-percentage text-muted mb-3" style="font-size: 4rem; display: block;"></i>
+        <h4 class="mb-3">Descuento no encontrado</h4>
+        <p class="text-muted mb-4">El descuento que buscas no existe o fue eliminado</p>
+        <a class="btn btn-primary" [routerLink]="['/panel/descuentos']">
+          <i class="fas fa-arrow-left me-2"></i>Volver a Descuentos
+        </a>
+      </div>
+    </div>
+
+    <!-- Formulario -->
+    <form #actualizarForm="ngForm" (ngSubmit)="actualizar(actualizarForm)" novalidate *ngIf="descuento && !load_data">
+      
+      <div class="row g-4">
+        
+        <!-- Columna Principal -->
+        <div class="col-lg-8">
+          
+          <!-- Información del Descuento -->
+          <div class="card mb-4">
+            <div class="card-header bg-light">
+              <h5 class="mb-0">
+                <i class="fas fa-percentage me-2 text-primary"></i>Detalles del Descuento
+              </h5>
+            </div>
+            <div class="card-body">
+              <div class="row g-3">
+                
+                <!-- Título -->
+                <div class="col-12">
+                  <label for="titulo" class="form-label">
+                    Título de la Promoción <span class="text-danger">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    class="form-control"
+                    id="titulo"
+                    name="titulo"
+                    placeholder="Ej: Black Friday 2024, Cyber Monday, Rebajas de Verano"
+                    required
+                    minlength="3"
+                    maxlength="100"
+                    [(ngModel)]="descuento.titulo"
+                    #titulo="ngModel"
+                    [class.is-invalid]="titulo.invalid && titulo.touched"
+                  />
+                  <div class="invalid-feedback" *ngIf="titulo.invalid && titulo.touched">
+                    <small *ngIf="titulo.errors?.['required']">El título es requerido</small>
+                    <small *ngIf="titulo.errors?.['minlength']">Mínimo 3 caracteres</small>
+                  </div>
+                </div>
+
+                <!-- Porcentaje de Descuento -->
+                <div class="col-md-12">
+                  <label for="descuento" class="form-label">
+                    Porcentaje de Descuento <span class="text-danger">*</span>
+                  </label>
+                  <div class="input-group input-group-lg">
+                    <span class="input-group-text">
+                      <i class="fas fa-percentage text-muted"></i>
+                    </span>
+                    <input
+                      type="number"
+                      class="form-control form-control-lg"
+                      id="descuento"
+                      name="descuento"
+                      placeholder="Ej: 25"
+                      required
+                      min="1"
+                      max="100"
+                      step="1"
+                      [(ngModel)]="descuento.descuento"
+                      #descuentoInput="ngModel"
+                      [class.is-invalid]="descuentoInput.invalid && descuentoInput.touched"
+                    />
+                    <span class="input-group-text">%</span>
+                  </div>
+                  <div class="invalid-feedback d-block" *ngIf="descuentoInput.invalid && descuentoInput.touched">
+                    <small *ngIf="descuentoInput.errors?.['required']">El porcentaje es requerido</small>
+                    <small *ngIf="descuentoInput.errors?.['min']">El porcentaje debe ser mayor a 0</small>
+                    <small *ngIf="descuentoInput.errors?.['max']">El porcentaje no puede ser mayor a 100</small>
+                  </div>
+                  <small class="form-text text-muted">
+                    Este porcentaje se aplicará automáticamente a todos los productos durante el período activo
+                  </small>
+                </div>
+
+                <!-- Fecha de Inicio -->
+                <div class="col-md-6">
+                  <label for="fecha_inicio" class="form-label">
+                    Fecha de Inicio <span class="text-danger">*</span>
+                  </label>
+                  <div class="input-group">
+                    <span class="input-group-text">
+                      <i class="fas fa-calendar-alt text-muted"></i>
+                    </span>
+                    <input
+                      type="date"
+                      class="form-control"
+                      id="fecha_inicio"
+                      name="fecha_inicio"
+                      required
+                      [(ngModel)]="descuento.fecha_inicio"
+                      #fecha_inicio="ngModel"
+                      [class.is-invalid]="fecha_inicio.invalid && fecha_inicio.touched"
+                    />
+                  </div>
+                  <div class="invalid-feedback d-block" *ngIf="fecha_inicio.invalid && fecha_inicio.touched">
+                    <small>La fecha de inicio es requerida</small>
+                  </div>
+                </div>
+
+                <!-- Fecha de Fin -->
+                <div class="col-md-6">
+                  <label for="fecha_fin" class="form-label">
+                    Fecha de Fin <span class="text-danger">*</span>
+                  </label>
+                  <div class="input-group">
+                    <span class="input-group-text">
+                      <i class="fas fa-calendar-check text-muted"></i>
+                    </span>
+                    <input
+                      type="date"
+                      class="form-control"
+                      id="fecha_fin"
+                      name="fecha_fin"
+                      required
+                      [min]="descuento.fecha_inicio"
+                      [(ngModel)]="descuento.fecha_fin"
+                      #fecha_fin="ngModel"
+                      [class.is-invalid]="fecha_fin.invalid && fecha_fin.touched"
+                    />
+                  </div>
+                  <div class="invalid-feedback d-block" *ngIf="fecha_fin.invalid && fecha_fin.touched">
+                    <small>La fecha de fin es requerida</small>
+                  </div>
+                </div>
+
+                <!-- Duración -->
+                <div class="col-12" *ngIf="descuento.fecha_inicio && descuento.fecha_fin">
+                  <div class="alert alert-info">
+                    <i class="fas fa-clock me-2"></i>
+                    <strong>Duración:</strong> {{ calcularDuracionDias() }} días
+                    <span *ngIf="calcularDuracionDias() === 1">(1 día)</span>
+                  </div>
+                </div>
+
+                <!-- Estado actual -->
+                <div class="col-12" *ngIf="esDescuentoActivo()">
+                  <div class="alert alert-success">
+                    <i class="fas fa-check-circle me-2"></i>
+                    <strong>Estado:</strong> Este descuento está actualmente activo y aplicándose a los productos
+                  </div>
+                </div>
+
+              </div>
+            </div>
+          </div>
+
+          <!-- Información Adicional -->
+          <div class="card">
+            <div class="card-header bg-light">
+              <h5 class="mb-0">
+                <i class="fas fa-info-circle me-2 text-primary"></i>Información Importante
+              </h5>
+            </div>
+            <div class="card-body">
+              <div class="alert alert-warning mb-0">
+                <h6 class="alert-heading d-flex align-items-center">
+                  <i class="fas fa-exclamation-triangle me-2"></i>Notas sobre la edición
+                </h6>
+                <hr>
+                <ul class="mb-0 small">
+                  <li class="mb-2">
+                    <strong>Cambios inmediatos:</strong> Las modificaciones se aplicarán inmediatamente a todos los productos
+                  </li>
+                  <li class="mb-2">
+                    <strong>Banner opcional:</strong> Si no cambias el banner, se mantendrá el actual
+                  </li>
+                  <li class="mb-2">
+                    <strong>Fechas flexibles:</strong> Puedes extender o acortar el período de la promoción
+                  </li>
+                  <li>
+                    <strong>Porcentaje:</strong> Puedes ajustar el porcentaje de descuento en cualquier momento
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Columna Lateral -->
+        <div class="col-lg-4">
+
+          <!-- Estadísticas -->
+          <div class="card mb-4">
+            <div class="card-header bg-light">
+              <h5 class="mb-0">
+                <i class="fas fa-chart-line me-2 text-primary"></i>Información
+              </h5>
+            </div>
+            <div class="card-body">
+              <div class="small text-muted">
+                <div class="d-flex justify-content-between mb-2" *ngIf="descuento.createdAt">
+                  <span>Creado:</span>
+                  <span class="fw-semibold">{{ descuento.createdAt | date: 'dd/MM/yyyy' }}</span>
+                </div>
+                <div class="d-flex justify-content-between" *ngIf="descuento._id">
+                  <span>ID:</span>
+                  <span class="fw-semibold font-monospace small">{{ descuento._id.substring(0, 8) }}...</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Preview del Descuento -->
+          <div class="card mb-4" *ngIf="descuento.titulo && descuento.descuento">
+            <div class="card-header bg-light">
+              <h5 class="mb-0">
+                <i class="fas fa-eye me-2 text-primary"></i>Vista Previa
+              </h5>
+            </div>
+            <div class="card-body">
+              <div class="discount-preview">
+                <div class="mb-3">
+                  <i class="fas fa-tags fa-3x mb-2 opacity-75"></i>
+                </div>
+                <h4 class="fw-bold mb-2">{{ descuento.titulo }}</h4>
+                <div class="display-1 my-3 text-danger">
+                  {{ descuento.descuento }}%
+                </div>
+                <span class="badge bg-white text-dark">
+                  Descuento en toda la tienda
+                </span>
+                <hr class="my-3 border-white opacity-25">
+                <p class="small mb-0 opacity-75" *ngIf="descuento.fecha_inicio && descuento.fecha_fin">
+                  <i class="fas fa-calendar-alt me-2"></i>
+                  {{ descuento.fecha_inicio | date: 'dd/MM/yyyy' }} - {{ descuento.fecha_fin | date: 'dd/MM/yyyy' }}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Banner Promocional -->
+          <div class="card mb-4">
+            <div class="card-header bg-light">
+              <h5 class="mb-0">
+                <i class="fas fa-image me-2 text-primary"></i>Banner Promocional
+              </h5>
+            </div>
+            <div class="card-body">
+              
+              <!-- Preview del banner actual/nuevo -->
+              <div class="text-center mb-3">
+                <img
+                  [src]="imgSelect"
+                  class="img-fluid rounded border"
+                  alt="Preview"
+                  style="max-height: 250px; width: 100%; object-fit: cover; background-color: #f8f9fa;"
+                />
+              </div>
+
+              <!-- Input de archivo -->
+              <div class="mb-3">
+                <label for="banner" class="form-label">
+                  Cambiar Banner
+                </label>
+                <input
+                  #fileInput
+                  type="file"
+                  class="form-control"
+                  id="banner"
+                  accept="image/png,image/jpeg,image/jpg,image/webp"
+                  (change)="fileChangeEvent($event)"
+                />
+                <small class="form-text text-muted d-block mt-2">
+                  Formatos: PNG, JPG, JPEG, WEBP<br>
+                  Tamaño máximo: 5MB<br>
+                  Dimensiones recomendadas: 1200x400px<br>
+                  <span class="text-info">Dejar vacío para mantener el banner actual</span>
+                </small>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- Card de Acciones -->
+          <div class="card sticky-top" style="top: 90px;">
+            <div class="card-header bg-warning text-dark">
+              <h5 class="mb-0">
+                <i class="fas fa-save me-2"></i>Actualizar Descuento
+              </h5>
+            </div>
+            <div class="card-body">
+              
+              <!-- Validación del formulario -->
+              <div class="alert alert-info mb-3" *ngIf="actualizarForm.invalid && actualizarForm.touched">
+                <i class="fas fa-info-circle me-2"></i>
+                <small>Completa todos los campos requeridos marcados con <span class="text-danger">*</span></small>
+              </div>
+
+              <!-- Botones de acción -->
+              <div class="d-grid gap-2">
+                <button
+                  type="submit"
+                  class="btn btn-warning btn-lg text-dark"
+                  [disabled]="load_btn">
+                  <span *ngIf="!load_btn">
+                    <i class="fas fa-save me-2"></i>Guardar Cambios
+                  </span>
+                  <span *ngIf="load_btn">
+                    <span class="spinner-border spinner-border-sm me-2"></span>
+                    Guardando...
+                  </span>
+                </button>
+                
+                <a class="btn btn-outline-secondary" [routerLink]="['/panel/descuentos']">
+                  <i class="fas fa-times me-2"></i>Cancelar
+                </a>
+              </div>
+
+              <!-- Información adicional -->
+              <hr class="my-3">
+              <div class="small text-muted">
+                <p class="mb-2">
+                  <i class="fas fa-asterisk fa-xs me-2"></i>
+                  Los campos marcados son obligatorios
+                </p>
+                <p class="mb-0">
+                  <i class="fas fa-shield-alt fa-xs me-2"></i>
+                  Los cambios se aplicarán inmediatamente
+                </p>
+              </div>
+
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+    </form>
+
+  </div>
+</main>

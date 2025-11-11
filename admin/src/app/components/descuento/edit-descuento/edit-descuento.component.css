@@ -1,0 +1,152 @@
+/* ============================================
+   EDIT DESCUENTO - ESTILOS ESPECÍFICOS
+   ============================================ */
+
+/* --- Sticky card --- */
+.sticky-top {
+    position: sticky;
+    z-index: 1020;
+}
+
+/* --- Input groups --- */
+.input-group-text {
+    background-color: #f8f9fa;
+    border-right: 0;
+}
+
+.input-group .form-control,
+.input-group .form-select {
+    border-left: 0;
+}
+
+.input-group .form-control:focus,
+.input-group .form-select:focus {
+    border-color: #ced4da;
+    box-shadow: none;
+}
+
+.input-group:focus-within .input-group-text {
+    border-color: #0d6efd;
+}
+
+.input-group:focus-within .form-control,
+.input-group:focus-within .form-select {
+    border-color: #0d6efd;
+}
+
+/* --- Input grande para porcentaje --- */
+.input-group-lg .form-control {
+    font-size: 1.5rem;
+    font-weight: 600;
+    text-align: center;
+}
+
+.input-group-lg .input-group-text {
+    font-size: 1.25rem;
+}
+
+/* --- Form labels --- */
+.form-label {
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+    color: #495057;
+}
+
+/* --- Cards --- */
+.card-header {
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.card-header h5 {
+    font-size: 1.1rem;
+}
+
+/* --- Alert info --- */
+.alert-info {
+    background-color: #e7f3ff;
+    border-color: #b3d9ff;
+    color: #004085;
+}
+
+.alert-warning {
+    background-color: #fff3cd;
+    border-color: #ffc107;
+    color: #856404;
+}
+
+.alert-success {
+    background-color: #d1e7dd;
+    border-color: #badbcc;
+    color: #0f5132;
+}
+
+/* --- Preview de descuento --- */
+.discount-preview {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 1rem;
+    padding: 2rem;
+    color: white;
+    text-align: center;
+    box-shadow: 0 8px 16px rgba(102, 126, 234, 0.3);
+}
+
+.discount-preview .display-1 {
+    font-size: 4rem;
+    font-weight: 700;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.discount-preview .badge {
+    font-size: 0.875rem;
+    padding: 0.5rem 1rem;
+}
+
+/* --- Preview de imagen --- */
+.img-fluid.rounded.border {
+    padding: 0;
+}
+
+/* --- Font monospace --- */
+.font-monospace {
+    font-family: 'Courier New', monospace;
+}
+
+/* --- Responsividad --- */
+@media (max-width: 991.98px) {
+    .sticky-top {
+        position: relative;
+        top: auto !important;
+    }
+    
+    .input-group-lg .form-control {
+        font-size: 1.25rem;
+    }
+    
+    .discount-preview .display-1 {
+        font-size: 3rem;
+    }
+}
+
+/* --- Form validation states --- */
+.form-control.is-invalid,
+.form-select.is-invalid {
+    border-color: #dc3545;
+    padding-right: calc(1.5em + 0.75rem);
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' width='12' height='12' fill='none' stroke='%23dc3545'%3e%3ccircle cx='6' cy='6' r='4.5'/%3e%3cpath stroke-linejoin='round' d='M5.8 3.6h.4L6 6.5z'/%3e%3ccircle cx='6' cy='8.2' r='.6' fill='%23dc3545' stroke='none'/%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right calc(0.375em + 0.1875rem) center;
+    background-size: calc(0.75em + 0.375rem) calc(0.75em + 0.375rem);
+}
+
+.invalid-feedback {
+    display: block;
+    margin-top: 0.25rem;
+    font-size: 0.875rem;
+}
+
+/* --- Buttons --- */
+.btn-lg {
+    padding: 0.75rem 1.25rem;
+    font-size: 1.05rem;
+}
