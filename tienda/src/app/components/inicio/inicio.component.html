@@ -32,7 +32,7 @@
     
           <!-- Slide 2 - Nueva Colección -->
           <div class="bg-size-cover py-xl-6" 
-               style="background-image: url(assets/img/ecommerce/home/hero-slider/01.jpg);">
+               style="background-image: url(../../../assets/img/ecommerce/home/hero-slider/01.jpg);">
             <div class="container pt-5 pb-6">
               <div class="row pb-lg-6">
                 <div class="col-lg-6 offset-lg-1 offset-xl-0 pb-4 pb-md-6">
@@ -50,7 +50,7 @@
     
           <!-- Slide 3 - Temporada -->
           <div class="bg-size-cover py-xl-6" 
-               style="background-image: url(assets/img/ecommerce/home/hero-slider/02.jpg);">
+               style="background-image: url(../../../assets/img/ecommerce/home/hero-slider/02.jpg);">
             <div class="container pt-5 pb-6">
               <div class="row pb-lg-6">
                 <div class="col-lg-6 offset-lg-1 offset-xl-0 pb-4 pb-md-6">
@@ -68,7 +68,7 @@
     
           <!-- Slide 4 - Ofertas -->
           <div class="bg-size-cover py-xl-6" 
-               style="background-image: url(assets/img/ecommerce/home/hero-slider/04.jpg);">
+               style="background-image: url(../../../assets/img/ecommerce/home/hero-slider/04.jpg);">
             <div class="container pt-5 pb-6">
               <div class="row pb-lg-6">
                 <div class="col-lg-6 offset-lg-1 offset-xl-0 pb-4 pb-md-6">
@@ -331,43 +331,43 @@
     <!-- ============================================ -->
     <!-- CATEGORÍAS POPULARES -->
     <!-- ============================================ -->
-    <section class="container mt-1 mb-3 my-sm-4 py-5 py-lg-6">
-        <h2 class="h1 mb-5 pb-3 text-center">Categorías Populares</h2>
+<section class="container mt-1 mb-3 my-sm-4 py-5 py-lg-6" id="categorias">
+    <h2 class="h1 mb-5 pb-3 text-center">Categorías Populares</h2>
 
-        <!-- Loading -->
-        <div *ngIf="load_categorias" class="text-center py-5">
-          <div class="spinner-border text-primary" role="status">
-            <span class="sr-only">Cargando...</span>
-          </div>
-        </div>
+    <!-- Loading -->
+    <div *ngIf="load_categorias" class="text-center py-5">
+      <div class="spinner-border text-primary" role="status">
+        <span class="sr-only">Cargando...</span>
+      </div>
+    </div>
 
-        <!-- Carrusel de categorías -->
-        <div *ngIf="!load_categorias && categorias.length > 0" 
-             class="cs-carousel cs-nav-outside">
-          <div class="cs-carousel-inner cs-carousel-inner-five" data-carousel-options='{}'>
+    <!-- Carrusel de categorías con redirección correcta -->
+    <div *ngIf="!load_categorias && categorias.length > 0" 
+         class="cs-carousel cs-nav-outside">
+      <div class="cs-carousel-inner cs-carousel-inner-five" data-carousel-options='{}'>
 
-            <!-- Categoría -->
-            <div *ngFor="let categoria of categorias" class="pb-2">
-              <a [routerLink]="['/productos']" 
-                 class="d-block cs-image-scale cs-heading-highlight text-center">
-                <div class="cs-image-inner rounded-circle mx-auto mb-4 bg-light d-flex align-items-center justify-content-center" 
-                     style="width: 180px; height: 180px;">
-                  <i [class]="categoria.icono" 
-                     style="font-size: 4rem; color: #6c5ce7;"></i>
-                </div>
-                <h3 class="h5 mb-3">{{ categoria.titulo }}</h3>
-              </a>
+        <!-- Categoría con redirección correcta -->
+        <div *ngFor="let categoria of categorias" class="pb-2">
+          <a [routerLink]="['/productos/categoria', categoria.titulo.toLowerCase()]" 
+             class="d-block cs-image-scale cs-heading-highlight text-center">
+            <div class="cs-image-inner rounded-circle mx-auto mb-4 bg-light d-flex align-items-center justify-content-center" 
+                 style="width: 180px; height: 180px;">
+              <i [class]="categoria.icono" 
+                 style="font-size: 4rem; color: #6c5ce7;"></i>
             </div>
-
-          </div>
+            <h3 class="h5 mb-3">{{ categoria.titulo }}</h3>
+          </a>
         </div>
 
-        <!-- Sin categorías -->
-        <div *ngIf="!load_categorias && categorias.length === 0" 
-             class="text-center py-5">
-          <p class="text-muted">No hay categorías disponibles</p>
-        </div>
-    </section>
+      </div>
+    </div>
+
+    <!-- Sin categorías -->
+    <div *ngIf="!load_categorias && categorias.length === 0" 
+         class="text-center py-5">
+      <p class="text-muted">No hay categorías disponibles</p>
+    </div>
+</section>
 
     <!-- ============================================ -->
     <!-- CARACTERÍSTICAS DEL SERVICIO -->
