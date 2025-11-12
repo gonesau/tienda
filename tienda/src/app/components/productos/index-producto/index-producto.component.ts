@@ -2,6 +2,7 @@
 import { Component, OnInit, AfterViewInit, OnDestroy } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ClienteService } from 'src/app/services/cliente.service';
+import { GuestService } from 'src/app/services/guest.service';
 import { Global } from 'src/app/services/global';
 import { Subject } from 'rxjs';
 import { takeUntil, debounceTime, distinctUntilChanged } from 'rxjs/operators';
@@ -33,11 +34,17 @@ export class IndexProductoComponent implements OnInit, AfterViewInit, OnDestroy 
   public token: string | null;
   public btn_cart = false;
 
+  // Variables para descuentos
+  public descuento_activo: any = null;
+  public tiene_descuento = false;
+  public load_descuento = true;
+
   private destroy$ = new Subject<void>();
   private searchSubject$ = new Subject<string>();
 
   constructor(
     private _clienteService: ClienteService,
+    private _guestService: GuestService,
     private _route: ActivatedRoute,
     private _router: Router
   ) {
@@ -60,6 +67,9 @@ export class IndexProductoComponent implements OnInit, AfterViewInit, OnDestroy 
     // Cargar configuración
     this.cargarConfiguracion();
 
+    // Cargar descuento activo
+    this.cargarDescuentoActivo();
+
     // Suscribirse a cambios de ruta
     this._route.params
       .pipe(takeUntil(this.destroy$))
@@ -78,6 +88,76 @@ export class IndexProductoComponent implements OnInit, AfterViewInit, OnDestroy 
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
+  }
+
+  /**
+   * Carga el descuento activo
+   */
+  private cargarDescuentoActivo(): void {
+    this.load_descuento = true;
+    this._guestService.obtener_descuento_activo()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (response) => {
+          this.descuento_activo = response.data;
+          this.tiene_descuento = !!this.descuento_activo;
+          this.load_descuento = false;
+          
+          // Si hay descuento, recalcular precios de productos
+          if (this.tiene_descuento && this.productos.length > 0) {
+            this.aplicarDescuentoAProductos();
+          }
+        },
+        error: (error) => {
+          console.error('Error cargando descuento:', error);
+          this.descuento_activo = null;
+          this.tiene_descuento = false;
+          this.load_descuento = false;
+        }
+      });
+  }
+
+  /**
+   * Aplica el descuento activo a todos los productos
+   */
+  private aplicarDescuentoAProductos(): void {
+    if (!this.tiene_descuento || !this.descuento_activo) return;
+
+    this.productos = this.productos.map(producto => {
+      const productoConDescuento = { ...producto };
+      productoConDescuento.precio_original = producto.precio;
+      productoConDescuento.precio_con_descuento = this.calcularPrecioConDescuento(producto.precio);
+      productoConDescuento.tiene_descuento = true;
+      productoConDescuento.porcentaje_descuento = this.descuento_activo.descuento;
+      return productoConDescuento;
+    });
+
+    this.productos_constante = this.productos_constante.map(producto => {
+      const productoConDescuento = { ...producto };
+      productoConDescuento.precio_original = producto.precio;
+      productoConDescuento.precio_con_descuento = this.calcularPrecioConDescuento(producto.precio);
+      productoConDescuento.tiene_descuento = true;
+      productoConDescuento.porcentaje_descuento = this.descuento_activo.descuento;
+      return productoConDescuento;
+    });
+  }
+
+  /**
+   * Calcula el precio con descuento
+   */
+  private calcularPrecioConDescuento(precioOriginal: number): number {
+    if (!this.tiene_descuento || !this.descuento_activo) return precioOriginal;
+    
+    const descuento = this.descuento_activo.descuento || 0;
+    const precioConDescuento = precioOriginal - (precioOriginal * (descuento / 100));
+    return parseFloat(precioConDescuento.toFixed(2));
+  }
+
+  /**
+   * Obtiene el precio final a mostrar (con o sin descuento)
+   */
+  getPrecioFinal(producto: any): number {
+    return producto.tiene_descuento ? producto.precio_con_descuento : producto.precio;
   }
 
   /**
@@ -145,6 +225,12 @@ export class IndexProductoComponent implements OnInit, AfterViewInit, OnDestroy 
       .subscribe({
         next: (response) => {
           this.productos_constante = response.data || [];
+          
+          // Aplicar descuento si existe
+          if (this.tiene_descuento) {
+            this.aplicarDescuentoAProductos();
+          }
+          
           this.aplicarFiltros();
           this.load_data = false;
         },
@@ -187,10 +273,11 @@ export class IndexProductoComponent implements OnInit, AfterViewInit, OnDestroy 
       );
     }
 
-    // Filtro por rango de precios
-    resultado = resultado.filter(item =>
-      item.precio >= this.precio_min && item.precio <= this.precio_max
-    );
+    // Filtro por rango de precios (usar precio con descuento si existe)
+    resultado = resultado.filter(item => {
+      const precioFinal = this.getPrecioFinal(item);
+      return precioFinal >= this.precio_min && precioFinal <= this.precio_max;
+    });
 
     // Aplicar ordenamiento
     this.productos = this.aplicarOrdenamiento(resultado);
@@ -207,10 +294,10 @@ export class IndexProductoComponent implements OnInit, AfterViewInit, OnDestroy 
 
     switch (this.sort_by) {
       case 'menoramayor':
-        resultado.sort((a, b) => a.precio - b.precio);
+        resultado.sort((a, b) => this.getPrecioFinal(a) - this.getPrecioFinal(b));
         break;
       case 'mayoramenor':
-        resultado.sort((a, b) => b.precio - a.precio);
+        resultado.sort((a, b) => this.getPrecioFinal(b) - this.getPrecioFinal(a));
         break;
       case 'calificacionpromedio':
         resultado.sort((a, b) => (b.calificacion_promedio || 0) - (a.calificacion_promedio || 0));

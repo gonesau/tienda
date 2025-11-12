@@ -1,6 +1,24 @@
 <app-nav></app-nav>
 
 <main class="cs-page-wrapper">
+    <!-- Banner de Descuento Activo -->
+    <div class="container-fluid px-0" *ngIf="tiene_descuento && !load_descuento">
+        <div class="position-relative" style="max-height: 300px; overflow: hidden;">
+            <img 
+                [src]="url + 'obtener_banner_descuento/' + descuento_activo.banner" 
+                [alt]="descuento_activo.titulo"
+                class="w-100"
+                style="object-fit: cover; object-position: center;">
+            <div class="position-absolute" style="top: 20px; right: 20px;">
+                <span class="badge badge-danger badge-pill px-4 py-2" style="font-size: 1.2rem;">
+                    <i class="cxi-tag mr-2"></i>
+                    -{{ descuento_activo.descuento }}% OFF
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Breadcrumb -->
     <nav class="bg-secondary mb-3" aria-label="breadcrumb">
         <div class="container">
             <ol class="breadcrumb breadcrumb-alt mb-0">
@@ -255,13 +273,22 @@
 
                     <!-- Productos -->
                     <ng-container *ngIf="productos.length >= 1">
-                        <div class="col pb-sm-2 mb-grid-gutter"
+                        <div class="col pb-sm-2 mb-4"
                             *ngFor="let producto of productos | slice:(page-1)*pageSize:(page-1)*pageSize + pageSize">
-                            <div class="card card-product mx-auto">
-                                <div class="card-product-img">
-                                    <a [routerLink]="['/productos', producto.slug]" class="card-img-top">
-                                        <img [src]="url + 'obtener_portada/' + producto.portada" alt="Product image">
-                                    </a>
+                            <div class="card card-product mx-auto h-100">
+                                <!-- Badge de descuento -->
+                                <span *ngIf="producto.tiene_descuento" 
+                                      class="badge badge-danger position-absolute"
+                                      style="top: 10px; left: 10px; z-index: 5; font-size: 0.85rem; padding: 0.4rem 0.6rem;">
+                                    -{{ producto.porcentaje_descuento }}%
+                                </span>
+
+                                <!-- Imagen del producto - CLICKEABLE -->
+                                <a [routerLink]="['/productos', producto.slug]" class="card-product-img d-block">
+                                    <img [src]="url + 'obtener_portada/' + producto.portada" 
+                                         [alt]="producto.titulo"
+                                         class="card-img-top">
+                                    
                                     <div class="card-product-widgets-top">
                                         <div class="star-rating ml-auto">
                                             <i class="sr-star cxi-star-filled active"></i>
@@ -272,22 +299,45 @@
                                         </div>
                                     </div>
                                     <div class="card-product-widgets-bottom">
-                                        <a [routerLink]="['/productos', producto.slug]" class="btn-wishlist ml-auto"
-                                            data-toggle="tooltip" data-placement="left" title="Add to wishlist"></a>
+                                        <span class="btn-wishlist ml-auto"
+                                              data-toggle="tooltip" 
+                                              data-placement="left" 
+                                              title="Agregar a favoritos"
+                                              (click)="$event.preventDefault(); $event.stopPropagation();"></span>
                                     </div>
-                                </div>
-                                <div class="card-body pb-2">
+                                </a>
+
+                                <!-- Cuerpo del producto - CLICKEABLE -->
+                                <a [routerLink]="['/productos', producto.slug]" class="card-body pb-2 text-decoration-none">
                                     <h3 class="card-product-title text-truncate mb-2">
-                                        <a [routerLink]="['/productos', producto.slug]" class="nav-link">{{
-                                            producto.titulo }}</a>
+                                        {{ producto.titulo }}
                                     </h3>
+                                    
+                                    <!-- Precios -->
                                     <div class="d-flex align-items-center">
-                                        <span class="h5 d-inline-block mb-0">${{ producto.precio }}</span>
+                                        <!-- Con descuento -->
+                                        <ng-container *ngIf="producto.tiene_descuento">
+                                            <span class="h5 d-inline-block mb-0 text-danger font-weight-bold mr-2">
+                                                {{ producto.precio_con_descuento | currency }}
+                                            </span>
+                                            <del class="text-muted font-size-sm">
+                                                {{ producto.precio_original | currency }}
+                                            </del>
+                                        </ng-container>
+                                        
+                                        <!-- Sin descuento -->
+                                        <ng-container *ngIf="!producto.tiene_descuento">
+                                            <span class="h5 d-inline-block mb-0">
+                                                {{ producto.precio | currency }}
+                                            </span>
+                                        </ng-container>
                                     </div>
-                                </div>
+                                </a>
+
+                                <!-- Footer del card -->
                                 <div class="card-footer">
                                     <div class="d-flex align-items-center mb-2 pb-1">
-                                        <div class="row">
+                                        <div class="row w-100">
                                             <div class="col-12">
                                                 <a style="cursor: pointer;"
                                                     (click)="filtrar_por_categoria(producto.categoria)">
@@ -296,19 +346,18 @@
                                             </div>
                                         </div>
                                     </div>
-                                    <button type="button" class="btn btn-primary btn-block" *ngIf="!btn_cart" (click)="agregar_producto(producto)">
+                                    
+                                    <button type="button" class="btn btn-primary btn-block" *ngIf="!btn_cart" 
+                                            (click)="agregar_producto(producto)">
                                         <i class="cxi-cart align-middle mt-n1 mr-2"></i>
                                         Agregar al carrito
                                     </button>
 
-
-                                    <!-- Button with growing spinner and text -->
                                     <button type="button" class="btn btn-secondary btn-block" disabled *ngIf="btn_cart">
                                         <span class="spinner-grow spinner-grow-sm me-2" role="status"
                                             aria-hidden="true"></span>
                                         Agregando...
                                     </button>
-
                                 </div>
                             </div>
                         </div>

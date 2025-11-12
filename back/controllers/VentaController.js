@@ -1,13 +1,44 @@
+// back/controllers/VentaController.js - ACTUALIZACIÓN PARA DESCUENTOS
 var Venta = require('../models/ventas');
 var DetalleVenta = require('../models/dventas');
 var Carrito = require('../models/carrito');
 var Producto = require('../models/producto');
 var Config = require('../models/config');
 var Cupon = require('../models/cupon');
+var Descuento = require('../models/descuento');
 const { generar_comprobante_pdf } = require('./PdfGenerator');
 
 /**
- * Registra una nueva compra del cliente
+ * Obtiene el descuento activo actual
+ */
+const obtener_descuento_aplicable = async function() {
+    let descuentos = await Descuento.find().sort({createdAt:-1});
+    var today = Date.parse(new Date().toISOString())/1000;
+
+    for(let element of descuentos) {
+        var fecha_inicio = Date.parse(element.fecha_inicio)/1000;
+        var fecha_fin = Date.parse(element.fecha_fin)/1000;
+        
+        if(today >= fecha_inicio && today <= fecha_fin){
+            return element;
+        }
+    }
+    
+    return null;
+}
+
+/**
+ * Calcula precio con descuento
+ */
+const calcular_precio_con_descuento = function(precio, descuento_porcentaje) {
+    if (!descuento_porcentaje || descuento_porcentaje <= 0) return precio;
+    
+    const precio_descuento = precio - (precio * (descuento_porcentaje / 100));
+    return parseFloat(precio_descuento.toFixed(2));
+}
+
+/**
+ * Registra una nueva compra del cliente - ACTUALIZADO CON DESCUENTOS
  */
 const registro_compra_cliente = async function(req, res) {
     if (!req.user) {
@@ -45,7 +76,14 @@ const registro_compra_cliente = async function(req, res) {
         }
 
         // ============================================
-        // 2. OBTENER CONFIGURACIÓN PARA NÚMERO DE VENTA
+        // 2. OBTENER DESCUENTO ACTIVO
+        // ============================================
+        const descuento_activo = await obtener_descuento_aplicable();
+        const tiene_descuento = !!descuento_activo;
+        const porcentaje_descuento = tiene_descuento ? descuento_activo.descuento : 0;
+
+        // ============================================
+        // 3. OBTENER CONFIGURACIÓN PARA NÚMERO DE VENTA
         // ============================================
         let config = await Config.findById({ _id: "68daa75d1e1062bf51932fa2" });
         
@@ -61,9 +99,11 @@ const registro_compra_cliente = async function(req, res) {
         let nventa = config.serie + '-' + correlativo.toString().padStart(7, '0');
 
         // ============================================
-        // 3. CALCULAR SUBTOTAL DE PRODUCTOS
+        // 4. CALCULAR SUBTOTAL CON DESCUENTO
         // ============================================
         let subtotal_productos = 0;
+        let subtotal_sin_descuento = 0;
+        let ahorro_descuento = 0;
         
         for (let detalle of data.detalles) {
             let producto = await Producto.findById(detalle.producto);
@@ -83,11 +123,20 @@ const registro_compra_cliente = async function(req, res) {
                 });
             }
 
-            subtotal_productos += (producto.precio * detalle.cantidad);
+            // Calcular precio con descuento si aplica
+            const precio_original = producto.precio;
+            const precio_final = tiene_descuento 
+                ? calcular_precio_con_descuento(precio_original, porcentaje_descuento)
+                : precio_original;
+
+            subtotal_sin_descuento += (precio_original * detalle.cantidad);
+            subtotal_productos += (precio_final * detalle.cantidad);
         }
 
+        ahorro_descuento = subtotal_sin_descuento - subtotal_productos;
+
         // ============================================
-        // 4. PROCESAR CUPÓN DE DESCUENTO (SI EXISTE)
+        // 5. PROCESAR CUPÓN DE DESCUENTO (SI EXISTE)
         // ============================================
         let descuento_cupon = 0;
         let cupon_codigo = null;
@@ -112,7 +161,7 @@ const registro_compra_cliente = async function(req, res) {
                 });
             }
 
-            // Calcular descuento según tipo
+            // Calcular descuento según tipo (sobre el precio YA con descuento)
             if (cupon.tipo === 'Porcentaje') {
                 descuento_cupon = subtotal_productos * (cupon.valor / 100);
             } else if (cupon.tipo === 'Valor fijo') {
@@ -133,48 +182,60 @@ const registro_compra_cliente = async function(req, res) {
         }
 
         // ============================================
-        // 5. CALCULAR TOTAL FINAL
+        // 6. CALCULAR TOTAL FINAL
         // ============================================
-        let subtotal_con_descuento = subtotal_productos - descuento_cupon;
+        let subtotal_con_cupón = subtotal_productos - descuento_cupon;
         let precio_envio = parseFloat(data.envio_precio) || 0;
-        let total_final = subtotal_con_descuento + precio_envio;
+        let total_final = subtotal_con_cupón + precio_envio;
 
         // ============================================
-        // 6. CREAR OBJETO DE VENTA
+        // 7. CREAR OBJETO DE VENTA
         // ============================================
         let ventaData = {
             cliente: data.cliente,
             nventa: nventa,
-            subtotal: total_final, // Total incluyendo envío
+            subtotal: total_final, // Total final incluyendo envío
             envio_titulo: data.envio_titulo,
             envio_precio: precio_envio,
             transaccion: data.transaccion,
             cupon: cupon_codigo,
-            estado: 'Procesando', // Estado inicial
+            estado: 'Procesando',
             direccion: data.direccion,
-            nota: data.nota || ''
+            nota: data.nota || '',
+            // Campos adicionales para descuentos
+            descuento_porcentaje: porcentaje_descuento,
+            descuento_promocion: tiene_descuento ? descuento_activo._id : null,
+            ahorro_total: ahorro_descuento + descuento_cupon
         };
 
         // ============================================
-        // 7. CREAR LA VENTA
+        // 8. CREAR LA VENTA
         // ============================================
         let venta = await Venta.create(ventaData);
 
         // ============================================
-        // 8. PROCESAR CADA DETALLE DE VENTA
+        // 9. PROCESAR CADA DETALLE DE VENTA
         // ============================================
         let detalles_guardados = [];
 
         for (let detalle of data.detalles) {
             let producto = await Producto.findById(detalle.producto);
 
+            // Calcular precio final con descuento
+            const precio_original = producto.precio;
+            const precio_con_descuento = tiene_descuento 
+                ? calcular_precio_con_descuento(precio_original, porcentaje_descuento)
+                : precio_original;
+
             // Crear detalle de venta
             let detalleData = {
                 producto: detalle.producto,
                 venta: venta._id,
-                subtotal: detalle.subtotal,
+                subtotal: precio_con_descuento * detalle.cantidad,
                 cantidad: detalle.cantidad,
-                variedad: detalle.variedad || 'Estándar'
+                variedad: detalle.variedad || 'Estándar',
+                precio_unitario: precio_con_descuento,
+                precio_original: precio_original
             };
 
             let detalleVenta = await DetalleVenta.create(detalleData);
@@ -196,7 +257,7 @@ const registro_compra_cliente = async function(req, res) {
         }
 
         // ============================================
-        // 9. ACTUALIZAR CORRELATIVO EN CONFIGURACIÓN
+        // 10. ACTUALIZAR CORRELATIVO EN CONFIGURACIÓN
         // ============================================
         await Config.findByIdAndUpdate(
             { _id: "68daa75d1e1062bf51932fa2" },
@@ -204,7 +265,7 @@ const registro_compra_cliente = async function(req, res) {
         );
 
         // ============================================
-        // 10. EMITIR EVENTO DE SOCKET (SI ESTÁ DISPONIBLE)
+        // 11. EMITIR EVENTO DE SOCKET (SI ESTÁ DISPONIBLE)
         // ============================================
         if (req.io) {
             req.io.emit('nueva-venta', { 
@@ -215,13 +276,15 @@ const registro_compra_cliente = async function(req, res) {
         }
 
         // ============================================
-        // 11. RESPUESTA EXITOSA
+        // 12. RESPUESTA EXITOSA
         // ============================================
         res.status(200).send({ 
             message: 'Compra realizada exitosamente',
             venta: venta, 
             detalles: detalles_guardados,
-            descuento_aplicado: descuento_cupon
+            descuento_aplicado: descuento_cupon,
+            ahorro_promocion: ahorro_descuento,
+            ahorro_total: ahorro_descuento + descuento_cupon
         });
 
     } catch (error) {
@@ -290,5 +353,7 @@ const validar_cupon_cliente = async function(req, res) {
 module.exports = {
     registro_compra_cliente,
     validar_cupon_cliente,
-    generar_comprobante_pdf
+    generar_comprobante_pdf,
+    obtener_descuento_aplicable,
+    calcular_precio_con_descuento
 }
