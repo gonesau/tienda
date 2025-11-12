@@ -123,26 +123,72 @@ const eliminar_descuento_admin = async function(req, res){
     }
 }
 
+// back/controllers/DescuentoController.js - FUNCIÓN CORREGIDA
+
 const obtener_descuento_activo = async function(req, res){
-    let descuentos = (await Descuento.find()).sort({createdAt:-1});
-    var arr_descuentos = [];
-    var today = Date.parse(new Date().toISOString())/1000;
-
-    descuentos.forEach(element=>{
-        var fecha_inicio = Date.parse(element.fecha_inicio.toISOString())/1000;
-        var fecha_fin = Date.parse(element.fecha_fin.toISOString())/1000;
-        if(today >= fecha_inicio && today <= fecha_fin){
-            arr_descuentos.push(element);
+    try {
+        // Obtener todos los descuentos ordenados por fecha de creación
+        let descuentos = await Descuento.find().sort({createdAt: -1});
+        
+        if (!descuentos || descuentos.length === 0) {
+            console.log('No hay descuentos en la base de datos');
+            return res.status(200).send({data: undefined});
         }
-    });
 
-    if(arr_descuentos.length > 0){
-        res.status(200).send({data: arr_descuentos[0]});
-    }else{
-        res.status(200).send({data: undefined});
+        // Fecha actual (inicio del día para comparación limpia)
+        const hoy = new Date();
+        hoy.setHours(0, 0, 0, 0);
+
+        console.log('=== VERIFICANDO DESCUENTOS ACTIVOS ===');
+        console.log('Fecha actual:', hoy.toISOString());
+        console.log('Total descuentos en BD:', descuentos.length);
+
+        // Buscar el primer descuento activo
+        for (let descuento of descuentos) {
+            // Convertir strings de fecha a objetos Date
+            const fechaInicio = new Date(descuento.fecha_inicio);
+            const fechaFin = new Date(descuento.fecha_fin);
+            
+            // Ajustar horas para comparación
+            fechaInicio.setHours(0, 0, 0, 0);
+            fechaFin.setHours(23, 59, 59, 999);
+
+            console.log('---');
+            console.log('Descuento:', descuento.titulo);
+            console.log('Porcentaje:', descuento.descuento + '%');
+            console.log('Inicio:', fechaInicio.toISOString());
+            console.log('Fin:', fechaFin.toISOString());
+            
+            // Verificar si está activo
+            const estaActivo = hoy >= fechaInicio && hoy <= fechaFin;
+            console.log('¿Activo?', estaActivo);
+
+            if (estaActivo) {
+                console.log('✓ DESCUENTO ACTIVO ENCONTRADO');
+                return res.status(200).send({
+                    data: {
+                        _id: descuento._id,
+                        titulo: descuento.titulo,
+                        banner: descuento.banner,
+                        descuento: descuento.descuento,
+                        fecha_inicio: descuento.fecha_inicio,
+                        fecha_fin: descuento.fecha_fin
+                    }
+                });
+            }
+        }
+
+        console.log('✗ No hay descuentos activos');
+        return res.status(200).send({data: undefined});
+
+    } catch (error) {
+        console.error('Error obteniendo descuento activo:', error);
+        return res.status(500).send({
+            message: 'Error al obtener descuento',
+            data: undefined
+        });
     }
 }
-
 
 module.exports = {
     registro_descuento_admin,

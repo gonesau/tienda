@@ -53,6 +53,8 @@ export class IndexProductoComponent implements OnInit, AfterViewInit, OnDestroy 
   }
 
   ngOnInit(): void {
+    console.log('=== INICIALIZANDO COMPONENTE INDEX-PRODUCTO ===');
+    
     // Configurar búsqueda con debounce
     this.searchSubject$
       .pipe(
@@ -67,7 +69,7 @@ export class IndexProductoComponent implements OnInit, AfterViewInit, OnDestroy 
     // Cargar configuración
     this.cargarConfiguracion();
 
-    // Cargar descuento activo
+    // Cargar descuento activo PRIMERO
     this.cargarDescuentoActivo();
 
     // Suscribirse a cambios de ruta
@@ -75,7 +77,10 @@ export class IndexProductoComponent implements OnInit, AfterViewInit, OnDestroy 
       .pipe(takeUntil(this.destroy$))
       .subscribe(params => {
         this.route_categoria = params['categoria'] || null;
-        this.cargarProductos();
+        // Esperar a que se cargue el descuento antes de cargar productos
+        setTimeout(() => {
+          this.cargarProductos();
+        }, 500);
       });
   }
 
@@ -91,25 +96,39 @@ export class IndexProductoComponent implements OnInit, AfterViewInit, OnDestroy 
   }
 
   /**
-   * Carga el descuento activo
+   * Carga el descuento activo - MEJORADO CON DEBUG
    */
   private cargarDescuentoActivo(): void {
+    console.log('📊 Cargando descuento activo...');
     this.load_descuento = true;
+    
     this._guestService.obtener_descuento_activo()
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (response) => {
+          console.log('✅ Respuesta descuento:', response);
+          
           this.descuento_activo = response.data;
           this.tiene_descuento = !!this.descuento_activo;
           this.load_descuento = false;
           
-          // Si hay descuento, recalcular precios de productos
+          if (this.tiene_descuento) {
+            console.log('🎉 DESCUENTO ACTIVO:');
+            console.log('  - Título:', this.descuento_activo.titulo);
+            console.log('  - Porcentaje:', this.descuento_activo.descuento + '%');
+            console.log('  - Banner:', this.descuento_activo.banner);
+          } else {
+            console.log('ℹ️ No hay descuentos activos en este momento');
+          }
+          
+          // Si hay productos cargados, aplicar descuento
           if (this.tiene_descuento && this.productos.length > 0) {
+            console.log('🔄 Aplicando descuento a productos ya cargados...');
             this.aplicarDescuentoAProductos();
           }
         },
         error: (error) => {
-          console.error('Error cargando descuento:', error);
+          console.error('❌ Error cargando descuento:', error);
           this.descuento_activo = null;
           this.tiene_descuento = false;
           this.load_descuento = false;
@@ -118,17 +137,24 @@ export class IndexProductoComponent implements OnInit, AfterViewInit, OnDestroy 
   }
 
   /**
-   * Aplica el descuento activo a todos los productos
+   * Aplica el descuento activo a todos los productos - MEJORADO
    */
   private aplicarDescuentoAProductos(): void {
-    if (!this.tiene_descuento || !this.descuento_activo) return;
+    if (!this.tiene_descuento || !this.descuento_activo) {
+      console.log('⚠️ No hay descuento para aplicar');
+      return;
+    }
+
+    const porcentaje = this.descuento_activo.descuento;
+    console.log(`🔧 Aplicando ${porcentaje}% de descuento a ${this.productos.length} productos`);
 
     this.productos = this.productos.map(producto => {
       const productoConDescuento = { ...producto };
       productoConDescuento.precio_original = producto.precio;
       productoConDescuento.precio_con_descuento = this.calcularPrecioConDescuento(producto.precio);
       productoConDescuento.tiene_descuento = true;
-      productoConDescuento.porcentaje_descuento = this.descuento_activo.descuento;
+      productoConDescuento.porcentaje_descuento = porcentaje;
+      
       return productoConDescuento;
     });
 
@@ -137,9 +163,12 @@ export class IndexProductoComponent implements OnInit, AfterViewInit, OnDestroy 
       productoConDescuento.precio_original = producto.precio;
       productoConDescuento.precio_con_descuento = this.calcularPrecioConDescuento(producto.precio);
       productoConDescuento.tiene_descuento = true;
-      productoConDescuento.porcentaje_descuento = this.descuento_activo.descuento;
+      productoConDescuento.porcentaje_descuento = porcentaje;
+      
       return productoConDescuento;
     });
+
+    console.log('✅ Descuento aplicado a todos los productos');
   }
 
   /**
@@ -185,7 +214,6 @@ export class IndexProductoComponent implements OnInit, AfterViewInit, OnDestroy 
 
     if (!sliderElement) return;
 
-    // Destruir slider existente si existe
     if (sliderElement.noUiSlider) {
       sliderElement.noUiSlider.destroy();
     }
@@ -215,19 +243,22 @@ export class IndexProductoComponent implements OnInit, AfterViewInit, OnDestroy 
   }
 
   /**
-   * Carga productos desde el servidor
+   * Carga productos desde el servidor - MEJORADO
    */
   cargarProductos(): void {
+    console.log('📦 Cargando productos...');
     this.load_data = true;
 
     this._clienteService.obtener_productos_publico('')
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (response) => {
+          console.log('✅ Productos cargados:', response.data?.length || 0);
           this.productos_constante = response.data || [];
           
           // Aplicar descuento si existe
           if (this.tiene_descuento) {
+            console.log('🔄 Aplicando descuento a productos recién cargados...');
             this.aplicarDescuentoAProductos();
           }
           
@@ -235,7 +266,7 @@ export class IndexProductoComponent implements OnInit, AfterViewInit, OnDestroy 
           this.load_data = false;
         },
         error: (error) => {
-          console.error('Error cargando productos:', error);
+          console.error('❌ Error cargando productos:', error);
           this.productos_constante = [];
           this.productos = [];
           this.load_data = false;
@@ -315,47 +346,29 @@ export class IndexProductoComponent implements OnInit, AfterViewInit, OnDestroy 
     return resultado;
   }
 
-  /**
-   * Busca categorías con debounce
-   */
   buscar_categorias(): void {
     // Implementar si es necesario
   }
 
-  /**
-   * Busca productos (con debounce)
-   */
   buscar_productos(): void {
     this.searchSubject$.next(this.filter_producto);
   }
 
-  /**
-   * Busca productos por precio
-   */
   buscar_precios(): void {
     this.aplicarFiltros();
   }
 
-  /**
-   * Filtra por categoría seleccionada
-   */
   buscar_por_categoria(): void {
     this.route_categoria = null;
     this.aplicarFiltros();
   }
 
-  /**
-   * Filtra por categoría clickeada
-   */
   filtrar_por_categoria(categoria: string): void {
     this.filter_cat_producto = categoria;
     this.route_categoria = null;
     this.aplicarFiltros();
   }
 
-  /**
-   * Resetea todos los filtros
-   */
   reset_productos(): void {
     this.filter_producto = '';
     this.filter_cat_producto = 'todos';
@@ -371,16 +384,10 @@ export class IndexProductoComponent implements OnInit, AfterViewInit, OnDestroy 
     this.aplicarFiltros();
   }
 
-  /**
-   * Cambia el ordenamiento
-   */
   orden_por(): void {
     this.aplicarFiltros();
   }
 
-  /**
-   * Verifica si el usuario está autenticado
-   */
   private verificarAutenticacion(): boolean {
     if (!this._clienteService.isAuthenticated()) {
       this.mostrarAdvertencia('Debes iniciar sesión para agregar productos a tu carrito');
@@ -395,21 +402,16 @@ export class IndexProductoComponent implements OnInit, AfterViewInit, OnDestroy 
     return true;
   }
 
-  /**
-   * Agrega producto al carrito
-   */
   agregar_producto(producto: any): void {
     if (!this.verificarAutenticacion()) {
       return;
     }
 
-    // Validar stock
     if (producto.stock <= 0) {
       this.mostrarError('Este producto no está disponible en este momento');
       return;
     }
 
-    // Determinar variedad
     let variedad = 'Estándar';
     if (producto.variedades && producto.variedades.length > 0) {
       variedad = producto.variedades[0].titulo;
@@ -452,9 +454,6 @@ export class IndexProductoComponent implements OnInit, AfterViewInit, OnDestroy 
       });
   }
 
-  /**
-   * Muestra mensaje de éxito
-   */
   private mostrarExito(mensaje: string): void {
     iziToast.success({
       title: '¡Agregado!',
@@ -467,9 +466,6 @@ export class IndexProductoComponent implements OnInit, AfterViewInit, OnDestroy 
     });
   }
 
-  /**
-   * Muestra mensaje de error
-   */
   private mostrarError(mensaje: string): void {
     iziToast.error({
       title: 'Ups...',
@@ -482,9 +478,6 @@ export class IndexProductoComponent implements OnInit, AfterViewInit, OnDestroy 
     });
   }
 
-  /**
-   * Muestra mensaje informativo
-   */
   private mostrarInfo(mensaje: string): void {
     iziToast.info({
       title: 'Ya está en tu carrito',
@@ -497,9 +490,6 @@ export class IndexProductoComponent implements OnInit, AfterViewInit, OnDestroy 
     });
   }
 
-  /**
-   * Muestra mensaje de advertencia
-   */
   private mostrarAdvertencia(mensaje: string): void {
     iziToast.warning({
       title: 'Inicia sesión',

@@ -11,34 +11,71 @@ const { generar_comprobante_pdf } = require('./PdfGenerator');
 /**
  * Obtiene el descuento activo actual
  */
+/**
+ * Obtiene el descuento activo actual - VERSIÓN CORREGIDA
+ */
 const obtener_descuento_aplicable = async function() {
-    let descuentos = await Descuento.find().sort({createdAt:-1});
-    var today = Date.parse(new Date().toISOString())/1000;
-
-    for(let element of descuentos) {
-        var fecha_inicio = Date.parse(element.fecha_inicio)/1000;
-        var fecha_fin = Date.parse(element.fecha_fin)/1000;
+    try {
+        let descuentos = await Descuento.find().sort({createdAt: -1});
         
-        if(today >= fecha_inicio && today <= fecha_fin){
-            return element;
+        if (!descuentos || descuentos.length === 0) {
+            console.log('No hay descuentos en la BD');
+            return null;
         }
+
+        // Fecha actual en formato ISO (sin conversión a timestamp)
+        const hoy = new Date();
+        hoy.setHours(0, 0, 0, 0); // Resetear a inicio del día para comparación limpia
+
+        console.log('=== DEBUG DESCUENTOS ===');
+        console.log('Fecha actual:', hoy.toISOString());
+        console.log('Total descuentos encontrados:', descuentos.length);
+
+        for (let descuento of descuentos) {
+            // Las fechas vienen como strings del modelo, convertirlas a Date
+            const fechaInicio = new Date(descuento.fecha_inicio);
+            const fechaFin = new Date(descuento.fecha_fin);
+            
+            // Resetear horas para comparación de solo fechas
+            fechaInicio.setHours(0, 0, 0, 0);
+            fechaFin.setHours(23, 59, 59, 999); // Fin del día
+
+            console.log('---');
+            console.log('Descuento:', descuento.titulo);
+            console.log('Porcentaje:', descuento.descuento + '%');
+            console.log('Fecha inicio:', fechaInicio.toISOString());
+            console.log('Fecha fin:', fechaFin.toISOString());
+            console.log('¿Está activo?', hoy >= fechaInicio && hoy <= fechaFin);
+
+            // Comparar usando objetos Date directamente
+            if (hoy >= fechaInicio && hoy <= fechaFin) {
+                console.log('✓ DESCUENTO ACTIVO ENCONTRADO:', descuento.titulo);
+                return descuento;
+            }
+        }
+        
+        console.log('✗ No hay descuentos activos para la fecha actual');
+        return null;
+    } catch (error) {
+        console.error('Error obteniendo descuento activo:', error);
+        return null;
     }
-    
-    return null;
 }
 
 /**
- * Calcula precio con descuento
+ * Calcula precio con descuento - VERSIÓN MEJORADA
  */
 const calcular_precio_con_descuento = function(precio, descuento_porcentaje) {
-    if (!descuento_porcentaje || descuento_porcentaje <= 0) return precio;
+    if (!descuento_porcentaje || descuento_porcentaje <= 0 || descuento_porcentaje > 100) {
+        return precio;
+    }
     
     const precio_descuento = precio - (precio * (descuento_porcentaje / 100));
     return parseFloat(precio_descuento.toFixed(2));
 }
 
 /**
- * Registra una nueva compra del cliente - ACTUALIZADO CON DESCUENTOS
+ * Registra una nueva compra del cliente - CON DESCUENTOS CORREGIDOS
  */
 const registro_compra_cliente = async function(req, res) {
     if (!req.user) {
@@ -50,6 +87,8 @@ const registro_compra_cliente = async function(req, res) {
 
     try {
         var data = req.body;
+
+        console.log('=== INICIO PROCESAMIENTO COMPRA ===');
 
         // ============================================
         // 1. VALIDACIONES BÁSICAS
@@ -81,6 +120,8 @@ const registro_compra_cliente = async function(req, res) {
         const descuento_activo = await obtener_descuento_aplicable();
         const tiene_descuento = !!descuento_activo;
         const porcentaje_descuento = tiene_descuento ? descuento_activo.descuento : 0;
+
+        console.log('Descuento activo:', tiene_descuento ? `${porcentaje_descuento}%` : 'NO');
 
         // ============================================
         // 3. OBTENER CONFIGURACIÓN PARA NÚMERO DE VENTA
@@ -131,9 +172,19 @@ const registro_compra_cliente = async function(req, res) {
 
             subtotal_sin_descuento += (precio_original * detalle.cantidad);
             subtotal_productos += (precio_final * detalle.cantidad);
+
+            console.log(`Producto: ${producto.titulo}`);
+            console.log(`  Precio original: $${precio_original}`);
+            console.log(`  Precio con descuento: $${precio_final}`);
+            console.log(`  Cantidad: ${detalle.cantidad}`);
+            console.log(`  Subtotal: $${precio_final * detalle.cantidad}`);
         }
 
         ahorro_descuento = subtotal_sin_descuento - subtotal_productos;
+
+        console.log('Subtotal sin descuento:', subtotal_sin_descuento);
+        console.log('Subtotal con descuento:', subtotal_productos);
+        console.log('Ahorro por descuento:', ahorro_descuento);
 
         // ============================================
         // 5. PROCESAR CUPÓN DE DESCUENTO (SI EXISTE)
@@ -179,6 +230,9 @@ const registro_compra_cliente = async function(req, res) {
             await Cupon.findByIdAndUpdate(cupon._id, {
                 $inc: { limite: -1 }
             });
+
+            console.log('Cupón aplicado:', cupon_codigo);
+            console.log('Descuento cupón:', descuento_cupon);
         }
 
         // ============================================
@@ -188,30 +242,31 @@ const registro_compra_cliente = async function(req, res) {
         let precio_envio = parseFloat(data.envio_precio) || 0;
         let total_final = subtotal_con_cupón + precio_envio;
 
+        console.log('Subtotal con cupón:', subtotal_con_cupón);
+        console.log('Precio envío:', precio_envio);
+        console.log('TOTAL FINAL:', total_final);
+
         // ============================================
         // 7. CREAR OBJETO DE VENTA
         // ============================================
         let ventaData = {
             cliente: data.cliente,
             nventa: nventa,
-            subtotal: total_final, // Total final incluyendo envío
+            subtotal: total_final,
             envio_titulo: data.envio_titulo,
             envio_precio: precio_envio,
             transaccion: data.transaccion,
             cupon: cupon_codigo,
             estado: 'Procesando',
             direccion: data.direccion,
-            nota: data.nota || '',
-            // Campos adicionales para descuentos
-            descuento_porcentaje: porcentaje_descuento,
-            descuento_promocion: tiene_descuento ? descuento_activo._id : null,
-            ahorro_total: ahorro_descuento + descuento_cupon
+            nota: data.nota || ''
         };
 
         // ============================================
         // 8. CREAR LA VENTA
         // ============================================
         let venta = await Venta.create(ventaData);
+        console.log('Venta creada:', venta._id);
 
         // ============================================
         // 9. PROCESAR CADA DETALLE DE VENTA
@@ -233,9 +288,7 @@ const registro_compra_cliente = async function(req, res) {
                 venta: venta._id,
                 subtotal: precio_con_descuento * detalle.cantidad,
                 cantidad: detalle.cantidad,
-                variedad: detalle.variedad || 'Estándar',
-                precio_unitario: precio_con_descuento,
-                precio_original: precio_original
+                variedad: detalle.variedad || 'Estándar'
             };
 
             let detalleVenta = await DetalleVenta.create(detalleData);
@@ -257,7 +310,7 @@ const registro_compra_cliente = async function(req, res) {
         }
 
         // ============================================
-        // 10. ACTUALIZAR CORRELATIVO EN CONFIGURACIÓN
+        // 10. ACTUALIZAR CORRELATIVO
         // ============================================
         await Config.findByIdAndUpdate(
             { _id: "68daa75d1e1062bf51932fa2" },
@@ -265,7 +318,7 @@ const registro_compra_cliente = async function(req, res) {
         );
 
         // ============================================
-        // 11. EMITIR EVENTO DE SOCKET (SI ESTÁ DISPONIBLE)
+        // 11. EMITIR EVENTO DE SOCKET
         // ============================================
         if (req.io) {
             req.io.emit('nueva-venta', { 
@@ -278,6 +331,8 @@ const registro_compra_cliente = async function(req, res) {
         // ============================================
         // 12. RESPUESTA EXITOSA
         // ============================================
+        console.log('=== COMPRA COMPLETADA EXITOSAMENTE ===');
+        
         res.status(200).send({ 
             message: 'Compra realizada exitosamente',
             venta: venta, 
