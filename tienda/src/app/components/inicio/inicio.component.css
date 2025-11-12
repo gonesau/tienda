@@ -1,0 +1,571 @@
+/* ============================================ */
+/* ESTILOS GENERALES */
+/* ============================================ */
+.cs-page-wrapper {
+  overflow-x: hidden;
+}
+
+/* ============================================ */
+/* OCULTAR CONTROLES DE AUTOPLAY */
+/* ============================================ */
+.tns-controls[data-action] {
+  display: none !important;
+}
+
+/* ============================================ */
+/* CARRUSEL PRINCIPAL */
+/* ============================================ */
+.cs-carousel-inner > div {
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  min-height: 400px;
+  position: relative;
+}
+
+.cs-carousel-inner h2 {
+  color: #333;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.cs-carousel-inner h3 {
+  color: #666;
+  font-weight: 600;
+  letter-spacing: 2px;
+}
+
+/* Overlay para mejor legibilidad en slides */
+.cs-carousel-inner > div::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(to right, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.3) 100%);
+  z-index: 0;
+}
+
+.cs-carousel-inner .container {
+  position: relative;
+  z-index: 1;
+}
+
+/* Paginador */
+.cs-pager button {
+  background: transparent;
+  border: 2px solid #fff;
+  color: #fff;
+  padding: 8px 15px;
+  margin: 0 5px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-weight: 600;
+}
+
+.cs-pager button:hover,
+.cs-pager button.tns-nav-active {
+  background: #fff;
+  color: #6c5ce7;
+}
+
+/* ============================================ */
+/* TARJETAS DE PRODUCTOS */
+/* ============================================ */
+.card-product {
+  border: 1px solid #e5e8ed;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  overflow: hidden;
+  height: 100%;
+}
+
+.card-product:hover {
+  box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+  transform: translateY(-5px);
+}
+
+.card-product-img {
+  position: relative;
+  overflow: hidden;
+  padding-top: 100%; /* Ratio 1:1 */
+}
+
+.card-product-img .card-img-top {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.card-product:hover .card-img-top {
+  transform: scale(1.1);
+}
+
+/* Widgets superiores (rating) */
+.card-product-widgets-top {
+  position: absolute;
+  top: 15px;
+  left: 15px;
+  right: 15px;
+  z-index: 2;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+/* Badge de ventas */
+.card-product-label {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  z-index: 2;
+}
+
+/* Rating de estrellas */
+.star-rating {
+  background: rgba(255,255,255,0.9);
+  padding: 5px 10px;
+  border-radius: 20px;
+  display: inline-flex;
+  gap: 2px;
+}
+
+.star-rating i {
+  color: #ddd;
+  font-size: 14px;
+}
+
+.star-rating i.active {
+  color: #ffc107;
+}
+
+/* Cuerpo de la tarjeta */
+.card-product .card-body {
+  padding: 20px;
+}
+
+.card-product-title {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 10px;
+}
+
+.card-product-title a {
+  color: #333;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.card-product-title a:hover {
+  color: #6c5ce7;
+}
+
+/* Precios */
+.card-product .h5 {
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.text-decoration-line-through {
+  text-decoration: line-through;
+}
+
+/* ============================================ */
+/* CATEGORÍAS */
+/* ============================================ */
+.cs-image-scale {
+  display: block;
+  text-decoration: none;
+  transition: transform 0.3s ease;
+}
+
+.cs-image-scale:hover {
+  transform: scale(1.05);
+}
+
+.cs-image-inner {
+  overflow: hidden;
+  border-radius: 8px;
+}
+
+.cs-image-inner img {
+  width: 100%;
+  height: auto;
+  transition: transform 0.3s ease;
+}
+
+.cs-image-scale:hover .cs-image-inner img {
+  transform: scale(1.1);
+}
+
+.cs-heading-highlight h3,
+.cs-heading-highlight h5 {
+  color: #333;
+  font-weight: 600;
+  transition: color 0.2s ease;
+}
+
+.cs-image-scale:hover h3,
+.cs-image-scale:hover h5 {
+  color: #6c5ce7;
+}
+
+/* Categorías circulares */
+.rounded-circle {
+  border-radius: 50% !important;
+}
+
+/* Contenedor de iconos de categorías */
+.cs-image-inner.rounded-circle {
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  transition: all 0.3s ease;
+}
+
+.cs-image-inner.rounded-circle:hover {
+  box-shadow: 0 5px 20px rgba(0,0,0,0.15);
+}
+
+/* ============================================ */
+/* SECCIONES */
+/* ============================================ */
+section {
+  position: relative;
+}
+
+.container-fluid {
+  padding-left: 15px;
+  padding-right: 15px;
+}
+
+/* Títulos de sección */
+section h2.h1 {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #333;
+  margin-bottom: 20px;
+}
+
+section .font-size-lg {
+  font-size: 1.125rem;
+}
+
+/* ============================================ */
+/* CONTROLES DE CARRUSEL */
+/* ============================================ */
+.tns-custom-controls {
+  display: flex;
+  gap: 10px;
+}
+
+.tns-custom-controls button {
+  background: #fff;
+  border: 2px solid #e5e8ed;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.tns-custom-controls button:hover {
+  background: #6c5ce7;
+  border-color: #6c5ce7;
+  color: #fff;
+}
+
+.tns-custom-controls button i {
+  font-size: 18px;
+}
+
+/* ============================================ */
+/* LOADING */
+/* ============================================ */
+.spinner-border {
+  width: 3rem;
+  height: 3rem;
+  border-width: 0.3rem;
+}
+
+/* ============================================ */
+/* BADGES */
+/* ============================================ */
+.badge {
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  border-radius: 20px;
+}
+
+.badge-danger {
+  background-color: #ff4757;
+  color: #fff;
+}
+
+.badge-success {
+  background-color: #2ed573;
+  color: #fff;
+}
+
+/* ============================================ */
+/* BOTONES */
+/* ============================================ */
+.btn {
+  font-weight: 600;
+  padding: 12px 30px;
+  border-radius: 6px;
+  transition: all 0.3s ease;
+}
+
+.btn-outline-primary {
+  border: 2px solid #6c5ce7;
+  color: #6c5ce7;
+}
+
+.btn-outline-primary:hover {
+  background: #6c5ce7;
+  color: #fff;
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(108, 92, 231, 0.3);
+}
+
+.btn-lg {
+  padding: 15px 40px;
+  font-size: 16px;
+}
+
+/* ============================================ */
+/* SERVICIOS */
+/* ============================================ */
+.divider-vertical {
+  width: 1px;
+  background: #e5e8ed;
+  margin: 0 auto;
+}
+
+/* ============================================ */
+/* RESPONSIVE */
+/* ============================================ */
+
+/* Tablets */
+@media (max-width: 991px) {
+  .cs-carousel-inner > div {
+    min-height: 350px;
+  }
+  
+  section h2.h1 {
+    font-size: 2rem;
+  }
+  
+  .cs-carousel-inner h2 {
+    font-size: 2rem;
+  }
+  
+  .card-product-title {
+    font-size: 14px;
+  }
+  
+  .card-product .h5 {
+    font-size: 18px;
+  }
+}
+
+/* Móviles */
+@media (max-width: 767px) {
+  .cs-carousel-inner > div {
+    min-height: 300px;
+  }
+  
+  .cs-carousel-inner h2 {
+    font-size: 1.5rem;
+    margin-bottom: 20px !important;
+  }
+  
+  .cs-carousel-inner h3 {
+    font-size: 0.875rem;
+  }
+  
+  section h2.h1 {
+    font-size: 1.75rem;
+  }
+  
+  .btn-lg {
+    padding: 12px 30px;
+    font-size: 14px;
+  }
+  
+  .card-product .card-body {
+    padding: 15px;
+  }
+  
+  .divider-vertical {
+    display: none !important;
+  }
+  
+  /* Centrar texto en móviles */
+  .text-center-mobile {
+    text-align: center !important;
+  }
+}
+
+/* Móviles pequeños */
+@media (max-width: 575px) {
+  .cs-carousel-inner > div {
+    min-height: 250px;
+  }
+  
+  .cs-carousel-inner h2 {
+    font-size: 1.25rem;
+  }
+  
+  .cs-carousel-inner .container {
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+  
+  section h2.h1 {
+    font-size: 1.5rem;
+  }
+  
+  .btn {
+    padding: 10px 20px;
+    font-size: 14px;
+  }
+  
+  .star-rating {
+    padding: 3px 8px;
+  }
+  
+  .star-rating i {
+    font-size: 12px;
+  }
+}
+
+/* ============================================ */
+/* ANIMACIONES */
+/* ============================================ */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.cs-from-left {
+  animation: fadeInUp 0.6s ease-out;
+}
+
+.cs-scale-up {
+  animation: fadeInUp 0.8s ease-out;
+}
+
+.cs-delay-1 {
+  animation-delay: 0.2s;
+}
+
+.cs-delay-2 {
+  animation-delay: 0.4s;
+}
+
+/* ============================================ */
+/* MEJORAS DE ACCESIBILIDAD */
+/* ============================================ */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0,0,0,0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+/* Focus visible para teclado */
+button:focus-visible,
+a:focus-visible {
+  outline: 2px solid #6c5ce7;
+  outline-offset: 2px;
+}
+
+/* ============================================ */
+/* OPTIMIZACIONES DE RENDIMIENTO */
+/* ============================================ */
+.card-product-img img {
+  will-change: transform;
+}
+
+.cs-image-scale {
+  will-change: transform;
+}
+
+/* Lazy loading hint */
+img {
+  loading: lazy;
+}
+
+/* ============================================ */
+/* INSTAGRAM SECTION */
+/* ============================================ */
+.cs-carousel-inner-six img {
+  border-radius: 8px;
+  width: 100%;
+  height: auto;
+  transition: transform 0.3s ease;
+}
+
+.cs-carousel-inner-six img:hover {
+  transform: scale(1.05);
+}
+
+/* ============================================ */
+/* DARK SECTION */
+/* ============================================ */
+.bg-dark {
+  background-color: #2c3e50 !important;
+  padding: 60px 0;
+}
+
+.bg-dark h2 {
+  color: #fff;
+  font-size: 2rem;
+  font-weight: 700;
+}
+
+.btn-market {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 12px 24px;
+  background: #fff;
+  border-radius: 8px;
+  text-decoration: none;
+  transition: transform 0.3s ease;
+}
+
+.btn-market:hover {
+  transform: translateY(-3px);
+}
+
+.btn-market-subtitle {
+  font-size: 12px;
+  color: #666;
+}
+
+.btn-market-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #333;
+}

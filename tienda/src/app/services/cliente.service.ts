@@ -498,4 +498,17 @@ validar_cupon_cliente(data: { codigo: string }, token?: string): Observable<any>
     );
 }
 
+obtener_descuento_activo(): Observable<any> {
+  let headers = new HttpHeaders().set('Content-Type', 'application/json');
+  return this._http.get(this.url + 'obtener_descuento_activo', {headers: headers});
+}
+
+/**
+ * Lista todos los productos públicos con filtro opcional
+ */
+listar_productos_publico(filtro: string): Observable<any> {
+  let headers = new HttpHeaders().set('Content-Type', 'application/json');
+  return this._http.get(this.url + 'listar_productos_publico/' + filtro, {headers: headers});
+}
+
 }
