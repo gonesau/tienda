@@ -20,6 +20,7 @@ import { GaleriaProductoComponent } from "./components/productos/galeria-product
 import { IndexDescuentoComponent } from "./components/descuento/index-descuento/index-descuento.component";
 import { CreateDescuentoComponent } from "./components/descuento/create-descuento/create-descuento.component";
 import { EditDescuentoComponent } from "./components/descuento/edit-descuento/edit-descuento.component";
+import { IndexContactoComponent } from "./components/contacto/index-contacto/index-contacto.component";
 
 
 const appRoutes: Routes = [
@@ -56,6 +57,8 @@ const appRoutes: Routes = [
     {path: 'descuentos/registro', component: CreateDescuentoComponent, canActivate: [AdminGuard]},
     {path: 'descuentos/:id', component: EditDescuentoComponent, canActivate: [AdminGuard]}, 
 
+    // Ruta de Contacto
+    {path: 'contacto', component: IndexContactoComponent, canActivate: [AdminGuard]},
 
   ]},
   {path: 'login', component: LoginComponent},

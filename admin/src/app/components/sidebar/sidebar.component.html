@@ -112,6 +112,18 @@
             <span>Configuración</span>
           </a>
         </li>
+
+                <li class="nav-item">
+          <a 
+            class="nav-link d-flex align-items-center px-3 py-2 text-white-75"
+            [routerLink]="['/panel/contacto']"
+            routerLinkActive="active"
+            (click)="closeSidebarOnMobile()">
+            <i class="fas fa-message fa-fw me-3"></i>
+            <span>Mensajes</span>
+          </a>
+        </li>
+
       </ul>
     </div>
   </nav>
