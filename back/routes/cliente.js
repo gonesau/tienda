@@ -31,8 +31,10 @@ api.put('/establecer_direccion_principal/:id', auth.auth, clienteController.esta
 api.delete('/eliminar_direccion_cliente/:id', auth.auth, clienteController.eliminar_direccion_cliente);
 api.get('/obtener_direccion_principal_cliente/:id', auth.auth, clienteController.obtener_direccion_principal_cliente);
 
-// Ruta de contacto
+// Ruta pública - No requiere autenticación
 api.post('/enviar_mensaje_contacto', contactoController.enviar_mensaje_contacto);
 
+// Ruta privada - Solo para administradores
+api.get('/listar_mensajes_contacto_admin', auth.auth, contactoController.listar_mensajes_admin);
 
 module.exports = api;
