@@ -3,6 +3,7 @@
 
 var express = require('express');
 var clienteController = require('../controllers/ClienteController');
+var contactoController = require('../controllers/ContactoController');
 const cliente = require('../models/cliente');
 
 var api = express.Router();
@@ -29,5 +30,9 @@ api.get('/obtener_direcciones_cliente/:id', auth.auth, clienteController.obtener
 api.put('/establecer_direccion_principal/:id', auth.auth, clienteController.establecer_direccion_principal);
 api.delete('/eliminar_direccion_cliente/:id', auth.auth, clienteController.eliminar_direccion_cliente);
 api.get('/obtener_direccion_principal_cliente/:id', auth.auth, clienteController.obtener_direccion_principal_cliente);
+
+// Ruta de contacto
+api.post('/enviar_mensaje_contacto', contactoController.enviar_mensaje_contacto);
+
 
 module.exports = api;
