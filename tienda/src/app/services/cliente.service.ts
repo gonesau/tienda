@@ -511,4 +511,121 @@ listar_productos_publico(filtro: string): Observable<any> {
   return this._http.get(this.url + 'listar_productos_publico/' + filtro, {headers: headers});
 }
 
+/**
+ * Lista todas las ventas/órdenes de un cliente con filtros
+ */
+listar_ventas_cliente(
+  id: string, 
+  params: {
+    filtro?: string,
+    estado?: string,
+    page?: number,
+    limit?: number
+  } = {},
+  token?: string
+): Observable<any> {
+  if (!id) {
+    return throwError(() => ({ 
+      status: 400, 
+      message: 'ID de usuario requerido' 
+    }));
+  }
+
+  if (!this.isAuthenticated()) {
+    return throwError(() => ({ 
+      status: 401, 
+      message: 'Debes iniciar sesión' 
+    }));
+  }
+
+  const headers = this.getAuthHeaders(token);
+  
+  // Construir query params
+  let queryParams = '';
+  const paramsArray: string[] = [];
+  
+  if (params.filtro) {
+    paramsArray.push(`filtro=${encodeURIComponent(params.filtro)}`);
+  }
+  if (params.estado && params.estado !== 'todos') {
+    paramsArray.push(`estado=${encodeURIComponent(params.estado)}`);
+  }
+  if (params.page) {
+    paramsArray.push(`page=${params.page}`);
+  }
+  if (params.limit) {
+    paramsArray.push(`limit=${params.limit}`);
+  }
+  
+  if (paramsArray.length > 0) {
+    queryParams = '?' + paramsArray.join('&');
+  }
+
+  return this._http.get(
+    this.url + 'listar_ventas_cliente/' + id + queryParams, 
+    { headers }
+  ).pipe(
+    retry(1),
+    catchError(this.handleError.bind(this))
+  );
+}
+
+/**
+ * Obtiene el detalle completo de una venta específica
+ */
+obtener_venta_cliente(id: string, token?: string): Observable<any> {
+  if (!id) {
+    return throwError(() => ({ 
+      status: 400, 
+      message: 'ID de venta requerido' 
+    }));
+  }
+
+  if (!this.isAuthenticated()) {
+    return throwError(() => ({ 
+      status: 401, 
+      message: 'Debes iniciar sesión' 
+    }));
+  }
+
+  const headers = this.getAuthHeaders(token);
+  
+  return this._http.get(
+    this.url + 'obtener_venta_cliente/' + id, 
+    { headers }
+  ).pipe(
+    retry(1),
+    catchError(this.handleError.bind(this))
+  );
+}
+
+/**
+ * Obtiene estadísticas de compras del cliente
+ */
+obtener_estadisticas_cliente(id: string, token?: string): Observable<any> {
+  if (!id) {
+    return throwError(() => ({ 
+      status: 400, 
+      message: 'ID de usuario requerido' 
+    }));
+  }
+
+  if (!this.isAuthenticated()) {
+    return throwError(() => ({ 
+      status: 401, 
+      message: 'Debes iniciar sesión' 
+    }));
+  }
+
+  const headers = this.getAuthHeaders(token);
+  
+  return this._http.get(
+    this.url + 'obtener_estadisticas_cliente/' + id, 
+    { headers }
+  ).pipe(
+    retry(1),
+    catchError(this.handleError.bind(this))
+  );
+}
+
 }

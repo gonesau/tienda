@@ -405,10 +405,227 @@ const validar_cupon_cliente = async function(req, res) {
     }
 }
 
+
+/**
+ * Lista todas las ventas de un cliente con filtros
+ */
+const listar_ventas_cliente = async function(req, res) {
+    if (!req.user) {
+        return res.status(401).send({ 
+            message: 'No autorizado',
+            data: [] 
+        });
+    }
+
+    try {
+        const clienteId = req.params['id'];
+        
+        // Verificar que el usuario solo pueda ver sus propias órdenes
+        if (req.user.sub !== clienteId) {
+            return res.status(403).send({ 
+                message: 'No tienes permiso para ver estas órdenes',
+                data: [] 
+            });
+        }
+
+        // Obtener parámetros de filtro y paginación
+        const { 
+            filtro = '', 
+            estado = '', 
+            page = 1, 
+            limit = 10 
+        } = req.query;
+
+        const skip = (parseInt(page) - 1) * parseInt(limit);
+
+        // Construir query de búsqueda
+        let query = { cliente: clienteId };
+
+        // Filtro por estado
+        if (estado && estado !== 'todos') {
+            query.estado = estado;
+        }
+
+        // Filtro por número de venta o transacción
+        if (filtro && filtro.trim() !== '') {
+            query.$or = [
+                { nventa: new RegExp(filtro, 'i') },
+                { transaccion: new RegExp(filtro, 'i') }
+            ];
+        }
+
+        // Obtener ventas con populate de direcciones
+        const ventas = await Venta.find(query)
+            .populate('direccion')
+            .sort({ createdAt: -1 })
+            .limit(parseInt(limit))
+            .skip(skip)
+            .lean();
+
+        // Para cada venta, obtener la cantidad de productos
+        const ventasConDetalles = await Promise.all(
+            ventas.map(async (venta) => {
+                const cantidadProductos = await DetalleVenta.countDocuments({ 
+                    venta: venta._id 
+                });
+                
+                return {
+                    ...venta,
+                    cantidad_productos: cantidadProductos
+                };
+            })
+        );
+
+        // Contar total de documentos para paginación
+        const total = await Venta.countDocuments(query);
+
+        return res.status(200).send({ 
+            data: ventasConDetalles,
+            pagination: {
+                page: parseInt(page),
+                limit: parseInt(limit),
+                total,
+                pages: Math.ceil(total / parseInt(limit))
+            }
+        });
+
+    } catch (error) {
+        console.error('Error listando ventas del cliente:', error);
+        return res.status(500).send({ 
+            message: 'Error al obtener las órdenes',
+            data: [] 
+        });
+    }
+}
+
+/**
+ * Obtiene detalles de una venta específica
+ */
+const obtener_venta_cliente = async function(req, res) {
+    if (!req.user) {
+        return res.status(401).send({ 
+            message: 'No autorizado',
+            data: undefined 
+        });
+    }
+
+    try {
+        const ventaId = req.params['id'];
+
+        // Obtener venta con populate
+        const venta = await Venta.findById(ventaId)
+            .populate('cliente')
+            .populate('direccion');
+
+        if (!venta) {
+            return res.status(404).send({ 
+                message: 'Venta no encontrada',
+                data: undefined 
+            });
+        }
+
+        // Verificar que la venta pertenezca al usuario
+        if (venta.cliente._id.toString() !== req.user.sub) {
+            return res.status(403).send({ 
+                message: 'No tienes permiso para ver esta orden',
+                data: undefined 
+            });
+        }
+
+        // Obtener detalles de la venta con productos
+        const detalles = await DetalleVenta.find({ venta: ventaId })
+            .populate('producto')
+            .sort({ createdAt: 1 });
+
+        return res.status(200).send({ 
+            data: {
+                venta: venta,
+                detalles: detalles
+            }
+        });
+
+    } catch (error) {
+        console.error('Error obteniendo venta:', error);
+        return res.status(500).send({ 
+            message: 'Error al obtener la orden',
+            data: undefined 
+        });
+    }
+}
+
+/**
+ * Obtiene estadísticas de compras del cliente
+ */
+const obtener_estadisticas_cliente = async function(req, res) {
+    if (!req.user) {
+        return res.status(401).send({ 
+            message: 'No autorizado',
+            data: undefined 
+        });
+    }
+
+    try {
+        const clienteId = req.params['id'];
+
+        if (req.user.sub !== clienteId) {
+            return res.status(403).send({ 
+                message: 'No tienes permiso',
+                data: undefined 
+            });
+        }
+
+        // Estadísticas básicas
+        const totalOrdenes = await Venta.countDocuments({ cliente: clienteId });
+        
+        const ordenesCompletadas = await Venta.countDocuments({ 
+            cliente: clienteId, 
+            estado: 'Entregado' 
+        });
+
+        const ordenesPendientes = await Venta.countDocuments({ 
+            cliente: clienteId, 
+            estado: { $in: ['Procesando', 'Enviado'] }
+        });
+
+        // Calcular total gastado
+        const ventasCompletadas = await Venta.find({ 
+            cliente: clienteId, 
+            estado: 'Entregado' 
+        }).select('subtotal');
+
+        const totalGastado = ventasCompletadas.reduce(
+            (sum, venta) => sum + venta.subtotal, 
+            0
+        );
+
+        return res.status(200).send({ 
+            data: {
+                total_ordenes: totalOrdenes,
+                ordenes_completadas: ordenesCompletadas,
+                ordenes_pendientes: ordenesPendientes,
+                total_gastado: totalGastado
+            }
+        });
+
+    } catch (error) {
+        console.error('Error obteniendo estadísticas:', error);
+        return res.status(500).send({ 
+            message: 'Error al obtener estadísticas',
+            data: undefined 
+        });
+    }
+}
+
+
+
+
 module.exports = {
     registro_compra_cliente,
     validar_cupon_cliente,
     generar_comprobante_pdf,
     obtener_descuento_aplicable,
-    calcular_precio_con_descuento
+    calcular_precio_con_descuento,
+    listar_ventas_cliente,
+    obtener_venta_cliente,
+    obtener_estadisticas_cliente
 }

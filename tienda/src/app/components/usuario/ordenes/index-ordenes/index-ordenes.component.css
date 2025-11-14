@@ -1,0 +1,276 @@
+/* === ESTILOS PARA EL LISTADO DE ÓRDENES === */
+
+/* Card de orden con hover */
+.order-card {
+    transition: all 0.3s ease;
+    cursor: default;
+}
+
+.order-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1) !important;
+}
+
+/* Badges de estado personalizados */
+.badge {
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 0.375rem 0.75rem;
+    border-radius: 0.25rem;
+}
+
+.badge-info {
+    background-color: #17a2b8;
+    color: white;
+}
+
+.badge-warning {
+    background-color: #ffc107;
+    color: #212529;
+}
+
+.badge-success {
+    background-color: #28a745;
+    color: white;
+}
+
+.badge-danger {
+    background-color: #dc3545;
+    color: white;
+}
+
+/* Cards de estadísticas */
+.card {
+    transition: all 0.3s ease;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+}
+
+/* Iconos de estado */
+.cxi-time,
+.cxi-truck,
+.cxi-check-circle,
+.cxi-close-circle,
+.cxi-bag {
+    vertical-align: middle;
+}
+
+/* Campos de búsqueda y filtros */
+.form-control:focus,
+.custom-select:focus {
+    border-color: #17696a;
+    box-shadow: 0 0 0 0.2rem rgba(23, 105, 106, 0.25);
+}
+
+/* Botones */
+.btn-primary {
+    background-color: #17696a;
+    border-color: #17696a;
+}
+
+.btn-primary:hover {
+    background-color: #135557;
+    border-color: #135557;
+}
+
+.btn-outline-primary {
+    color: #17696a;
+    border-color: #17696a;
+}
+
+.btn-outline-primary:hover {
+    background-color: #17696a;
+    border-color: #17696a;
+    color: white;
+}
+
+.btn-outline-secondary:hover {
+    background-color: #6c757d;
+    border-color: #6c757d;
+    color: white;
+}
+
+/* Paginación */
+.pagination {
+    margin-bottom: 0;
+}
+
+.page-link {
+    color: #17696a;
+    border-radius: 0.25rem;
+    margin: 0 0.25rem;
+}
+
+.page-link:hover {
+    background-color: #17696a;
+    border-color: #17696a;
+    color: white;
+}
+
+.page-item.active .page-link {
+    background-color: #17696a;
+    border-color: #17696a;
+}
+
+.page-item.disabled .page-link {
+    color: #6c757d;
+    pointer-events: none;
+    background-color: #fff;
+    border-color: #dee2e6;
+}
+
+/* Spinner de carga */
+.spinner-border {
+    color: #17696a;
+}
+
+/* Alertas */
+.alert {
+    border-left: 4px solid;
+}
+
+.alert-info {
+    border-left-color: #17a2b8;
+    background-color: #d1ecf1;
+}
+
+/* Labels de formulario */
+.form-label {
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+/* Responsive */
+@media (max-width: 991px) {
+    .order-card .card-body {
+        padding: 1rem;
+    }
+
+    .badge-pill {
+        font-size: 0.875rem !important;
+        padding: 0.375rem 0.75rem !important;
+    }
+
+    .btn-block {
+        margin-bottom: 0.5rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .order-card h5 {
+        font-size: 1rem;
+    }
+
+    .order-card h4 {
+        font-size: 1.25rem;
+    }
+
+    .badge {
+        font-size: 0.7rem;
+        padding: 0.25rem 0.5rem;
+    }
+
+    .pagination {
+        flex-wrap: wrap;
+    }
+
+    .page-link {
+        padding: 0.375rem 0.5rem;
+        font-size: 0.875rem;
+    }
+}
+
+/* Estados de validación */
+.form-control.ng-invalid.ng-touched,
+.custom-select.ng-invalid.ng-touched {
+    border-color: #dc3545;
+}
+
+.form-control.ng-valid.ng-touched,
+.custom-select.ng-valid.ng-touched {
+    border-color: #28a745;
+}
+
+/* Animaciones suaves */
+* {
+    transition: color 0.15s ease-in-out,
+        background-color 0.15s ease-in-out,
+        border-color 0.15s ease-in-out,
+        box-shadow 0.15s ease-in-out;
+}
+
+/* Estado disabled más visible */
+.btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* Hover en filas de órdenes */
+.order-card .card-body:hover {
+    background-color: rgba(23, 105, 106, 0.02);
+}
+
+/* Mejora visual de badges */
+.badge-lg {
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+}
+
+/* Cards de estadísticas con sombra suave */
+.shadow-sm {
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075) !important;
+}
+
+/* Iconos más grandes en estadísticas */
+.card-body i[style*="font-size: 2rem"] {
+    opacity: 0.8;
+}
+
+/* Texto muted más suave */
+.text-muted {
+    color: #6c757d !important;
+}
+
+/* Mejora de contraste en pequeño texto */
+.small {
+    font-size: 0.875rem;
+}
+
+/* Estado hover en botones de acción */
+.btn {
+    transition: all 0.2s ease-in-out;
+}
+
+.btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.btn:active {
+    transform: translateY(0);
+}
+
+/* Espacio entre badges */
+.badge + .badge {
+    margin-left: 0.5rem;
+}
+
+/* Mejora visual de inputs en focus */
+.form-control:focus,
+.custom-select:focus {
+    box-shadow: 0 0 0 0.2rem rgba(23, 105, 106, 0.15);
+}
+
+/* Placeholder más claro */
+::placeholder {
+    color: #adb5bd !important;
+    opacity: 1;
+}
+
+/* Separador visual */
+hr {
+    border-color: rgba(0, 0, 0, 0.1);
+}
