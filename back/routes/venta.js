@@ -12,11 +12,11 @@ api.post('/registro_compra_cliente', auth.auth, ventaController.registro_compra_
 // Ruta para validar cupón
 api.post('/validar_cupon_cliente', auth.auth, ventaController.validar_cupon_cliente);
 
-// Ruta para generar PDF
+// RUTA CORREGIDA - Generar PDF (debe estar ANTES de las rutas con parámetros dinámicos)
 api.get('/generar_comprobante_pdf/:id', auth.auth, ventaController.generar_comprobante_pdf);
 
 // ===================================
-// NUEVAS RUTAS - HISTORIAL DE ÓRDENES
+// RUTAS - HISTORIAL DE ÓRDENES
 // ===================================
 
 // Listar ventas del cliente con filtros y paginación

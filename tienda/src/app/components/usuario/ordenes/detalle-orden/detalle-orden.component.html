@@ -1,1 +1,392 @@
-<p>detalle-orden works!</p>
+<app-nav></app-nav>
+
+<main class="cs-page-wrapper">
+    <!-- Breadcrumb -->
+    <nav class="bg-secondary mb-3" aria-label="breadcrumb">
+        <div class="container">
+            <ol class="breadcrumb breadcrumb-alt mb-0">
+                <li class="breadcrumb-item">
+                    <a [routerLink]="['/']"><i class="cxi-home"></i></a>
+                </li>
+                <li class="breadcrumb-item">
+                    <a [routerLink]="['/cuenta/perfil']">Mi cuenta</a>
+                </li>
+                <li class="breadcrumb-item">
+                    <a [routerLink]="['/cuenta/ordenes']">Mis órdenes</a>
+                </li>
+                <li class="breadcrumb-item active" aria-current="page">Detalle de orden</li>
+            </ol>
+        </div>
+    </nav>
+
+    <section class="container pt-3 pt-lg-4 pb-5 pb-lg-6">
+        <div class="row pb-2 pb-lg-0">
+
+            <!-- Sidebar -->
+            <aside class="col-xl-3 col-lg-4 pb-3 mb-4 mb-lg-0">
+                <app-sidebar></app-sidebar>
+            </aside>
+
+            <!-- Content -->
+            <div class="col-lg-8 ml-auto">
+                
+                <!-- SPINNER DE CARGA -->
+                <div class="text-center py-5" *ngIf="load_data">
+                    <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status">
+                        <span class="visually-hidden">Cargando...</span>
+                    </div>
+                    <p class="mt-3 text-muted">Cargando detalle de la orden...</p>
+                </div>
+
+                <!-- CONTENIDO PRINCIPAL -->
+                <div *ngIf="!load_data && venta">
+                    
+                    <!-- Header con botón volver -->
+                    <div class="d-flex align-items-center justify-content-between mb-4">
+                        <button 
+                            type="button" 
+                            class="btn btn-outline-secondary"
+                            (click)="volverAOrdenes()">
+                            <i class="cxi-arrow-left mr-2"></i>
+                            Volver a mis órdenes
+                        </button>
+                        
+                        <button 
+                            type="button" 
+                            class="btn btn-primary"
+                            (click)="descargarComprobante()"
+                            [disabled]="descargando_pdf">
+                            <span *ngIf="!descargando_pdf">
+                                <i class="cxi-download mr-2"></i>
+                                Descargar PDF
+                            </span>
+                            <span *ngIf="descargando_pdf">
+                                <span class="spinner-border spinner-border-sm mr-2"></span>
+                                Descargando...
+                            </span>
+                        </button>
+                    </div>
+
+                    <!-- Información Principal de la Orden -->
+                    <div class="card border-0 shadow-sm mb-4">
+                        <div class="card-body">
+                            <div class="row align-items-center">
+                                <div class="col-lg-8 mb-3 mb-lg-0">
+                                    <h1 class="h3 mb-3">
+                                        <i class="cxi-bag text-primary mr-2"></i>
+                                        Orden {{ venta.nventa }}
+                                    </h1>
+                                    <div class="d-flex flex-wrap align-items-center gap-3">
+                                        <span class="badge badge-lg" [ngClass]="getEstadoClase(venta.estado)">
+                                            <i [class]="getEstadoIcono(venta.estado) + ' mr-1'"></i>
+                                            {{ venta.estado }}
+                                        </span>
+                                        <span class="text-muted">
+                                            <i class="cxi-calendar mr-1"></i>
+                                            {{ formatearFecha(venta.createdAt) }}
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class="col-lg-4 text-lg-right">
+                                    <p class="text-muted mb-2">Total pagado</p>
+                                    <h2 class="h2 mb-0 text-primary">${{ venta.subtotal.toFixed(2) }}</h2>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Progreso del Envío -->
+                    <div class="card border-0 shadow-sm mb-4" *ngIf="venta.estado !== 'Cancelado'">
+                        <div class="card-header bg-light">
+                            <h3 class="h5 mb-0">
+                                <i class="cxi-truck mr-2"></i>
+                                Estado del envío
+                            </h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="steps">
+                                <div class="row">
+                                    <div 
+                                        class="col-md-4 mb-3 mb-md-0"
+                                        *ngFor="let paso of pasos_envio; let i = index">
+                                        <div class="text-center">
+                                            <!-- Icono del paso -->
+                                            <div 
+                                                class="step-icon mb-3"
+                                                [class.completed]="paso.completado"
+                                                [class.active]="paso.activo">
+                                                <i [class]="paso.icono + ' step-icon-inner'"></i>
+                                            </div>
+                                            
+                                            <!-- Título y descripción -->
+                                            <h6 class="mb-1" [class.text-primary]="paso.activo">
+                                                {{ paso.titulo }}
+                                            </h6>
+                                            <p class="text-muted mb-0 small">
+                                                {{ paso.descripcion }}
+                                            </p>
+                                        </div>
+
+                                        <!-- Línea conectora (excepto en el último) -->
+                                        <div 
+                                            class="step-connector" 
+                                            *ngIf="i < pasos_envio.length - 1"
+                                            [class.completed]="paso.completado"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Productos -->
+                    <div class="card border-0 shadow-sm mb-4">
+                        <div class="card-header bg-light">
+                            <h3 class="h5 mb-0">
+                                <i class="cxi-box mr-2"></i>
+                                Productos ({{ detalles.length }})
+                            </h3>
+                        </div>
+                        <div class="card-body p-0">
+                            <div class="table-responsive">
+                                <table class="table mb-0">
+                                    <thead class="bg-light">
+                                        <tr>
+                                            <th class="border-0 py-3">Producto</th>
+                                            <th class="border-0 py-3">Variedad</th>
+                                            <th class="border-0 py-3 text-center">Cantidad</th>
+                                            <th class="border-0 py-3 text-right">Precio Unit.</th>
+                                            <th class="border-0 py-3 text-right">Subtotal</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr *ngFor="let detalle of detalles">
+                                            <!-- Producto -->
+                                            <td class="py-3">
+                                                <div class="d-flex align-items-center">
+                                                    <img 
+                                                        [src]="_clienteService.url + 'obtener_portada/' + detalle.producto.portada" 
+                                                        [alt]="detalle.producto.titulo"
+                                                        class="rounded"
+                                                        style="width: 60px; height: 60px; object-fit: cover;">
+                                                    <div class="ml-3">
+                                                        <h6 class="mb-0">{{ detalle.producto.titulo }}</h6>
+                                                        <small class="text-muted">{{ detalle.producto.categoria }}</small>
+                                                    </div>
+                                                </div>
+                                            </td>
+
+                                            <!-- Variedad -->
+                                            <td class="py-3">
+                                                <span class="badge badge-light">
+                                                    {{ detalle.variedad || 'Estándar' }}
+                                                </span>
+                                            </td>
+
+                                            <!-- Cantidad -->
+                                            <td class="py-3 text-center">
+                                                <strong>{{ detalle.cantidad }}</strong>
+                                            </td>
+
+                                            <!-- Precio unitario -->
+                                            <td class="py-3 text-right">
+                                                ${{ (detalle.subtotal / detalle.cantidad).toFixed(2) }}
+                                            </td>
+
+                                            <!-- Subtotal -->
+                                            <td class="py-3 text-right">
+                                                <strong>${{ detalle.subtotal.toFixed(2) }}</strong>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Resumen de la Orden -->
+                    <div class="row">
+                        <!-- Información de Envío -->
+                        <div class="col-lg-6 mb-4 mb-lg-0">
+                            <div class="card border-0 shadow-sm h-100">
+                                <div class="card-header bg-light">
+                                    <h3 class="h5 mb-0">
+                                        <i class="cxi-location mr-2"></i>
+                                        Información de envío
+                                    </h3>
+                                </div>
+                                <div class="card-body">
+                                    <h6 class="mb-3">
+                                        <i class="cxi-user mr-2 text-primary"></i>
+                                        {{ venta.direccion.destinatario }}
+                                    </h6>
+                                    
+                                    <div class="mb-2">
+                                        <i class="cxi-location mr-2 text-muted"></i>
+                                        <small class="text-muted">Dirección:</small><br>
+                                        <span class="ml-4">{{ venta.direccion.direccion }}</span>
+                                    </div>
+
+                                    <div class="mb-2" *ngIf="venta.direccion.municipio">
+                                        <i class="cxi-map mr-2 text-muted"></i>
+                                        <small class="text-muted">Ubicación:</small><br>
+                                        <span class="ml-4">{{ venta.direccion.municipio }}, {{ venta.direccion.pais }}</span>
+                                    </div>
+
+                                    <div class="mb-2">
+                                        <i class="cxi-mail mr-2 text-muted"></i>
+                                        <small class="text-muted">Código Postal:</small>
+                                        <span class="ml-2">{{ venta.direccion.zip }}</span>
+                                    </div>
+
+                                    <div class="mb-2">
+                                        <i class="cxi-phone mr-2 text-muted"></i>
+                                        <small class="text-muted">Teléfono:</small>
+                                        <span class="ml-2">{{ venta.direccion.telefono }}</span>
+                                    </div>
+
+                                    <div>
+                                        <i class="cxi-user-circle mr-2 text-muted"></i>
+                                        <small class="text-muted">DUI:</small>
+                                        <span class="ml-2">{{ venta.direccion.dui }}</span>
+                                    </div>
+
+                                    <hr>
+
+                                    <div class="bg-light p-3 rounded">
+                                        <small class="text-muted d-block mb-2">Método de envío:</small>
+                                        <div class="d-flex align-items-center justify-content-between">
+                                            <span>
+                                                <i class="cxi-truck mr-2"></i>
+                                                {{ venta.envio_titulo }}
+                                            </span>
+                                            <strong>${{ venta.envio_precio.toFixed(2) }}</strong>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Resumen de Pago -->
+                        <div class="col-lg-6">
+                            <div class="card border-0 shadow-sm h-100">
+                                <div class="card-header bg-light">
+                                    <h3 class="h5 mb-0">
+                                        <i class="cxi-dollar mr-2"></i>
+                                        Resumen de pago
+                                    </h3>
+                                </div>
+                                <div class="card-body">
+                                    <!-- Subtotal productos -->
+                                    <div class="d-flex justify-content-between mb-3">
+                                        <span class="text-muted">Subtotal de productos:</span>
+                                        <strong>${{ getSubtotalProductos().toFixed(2) }}</strong>
+                                    </div>
+
+                                    <!-- Envío -->
+                                    <div class="d-flex justify-content-between mb-3">
+                                        <span class="text-muted">Envío:</span>
+                                        <strong>${{ venta.envio_precio.toFixed(2) }}</strong>
+                                    </div>
+
+                                    <!-- Descuento (si existe) -->
+                                    <div class="d-flex justify-content-between mb-3 text-success" *ngIf="getDescuento() > 0">
+                                        <span>
+                                            <i class="cxi-tag mr-1"></i>
+                                            Descuento aplicado:
+                                        </span>
+                                        <strong>-${{ getDescuento().toFixed(2) }}</strong>
+                                    </div>
+
+                                    <!-- Cupón (si existe) -->
+                                    <div *ngIf="venta.cupon" class="mb-3">
+                                        <div class="bg-light p-3 rounded">
+                                            <small class="text-muted d-block mb-1">Cupón aplicado:</small>
+                                            <div class="d-flex align-items-center">
+                                                <i class="cxi-tag mr-2 text-success"></i>
+                                                <strong class="text-success">{{ venta.cupon }}</strong>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <hr class="my-3">
+
+                                    <!-- Total -->
+                                    <div class="d-flex justify-content-between align-items-center mb-4">
+                                        <h5 class="mb-0">Total:</h5>
+                                        <h4 class="mb-0 text-primary">${{ venta.subtotal.toFixed(2) }}</h4>
+                                    </div>
+
+                                    <!-- Información de pago -->
+                                    <div class="bg-light p-3 rounded">
+                                        <small class="text-muted d-block mb-2">Información de pago:</small>
+                                        <div class="mb-2">
+                                            <i class="cxi-paypal mr-2 text-primary"></i>
+                                            <span>PayPal</span>
+                                        </div>
+                                        <div>
+                                            <small class="text-muted">ID de transacción:</small><br>
+                                            <code class="small">{{ venta.transaccion }}</code>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Notas (si existen) -->
+                    <div class="card border-0 shadow-sm mt-4" *ngIf="venta.nota">
+                        <div class="card-header bg-light">
+                            <h3 class="h5 mb-0">
+                                <i class="cxi-message mr-2"></i>
+                                Notas de la orden
+                            </h3>
+                        </div>
+                        <div class="card-body">
+                            <p class="mb-0">{{ venta.nota }}</p>
+                        </div>
+                    </div>
+
+                    <!-- Acciones adicionales -->
+                    <div class="card border-0 shadow-sm mt-4">
+                        <div class="card-body">
+                            <div class="row align-items-center">
+                                <div class="col-md-8 mb-3 mb-md-0">
+                                    <h6 class="mb-2">¿Necesitas ayuda con tu orden?</h6>
+                                    <p class="text-muted mb-0">
+                                        Si tienes alguna pregunta o problema con tu pedido, no dudes en contactarnos.
+                                    </p>
+                                </div>
+                                <div class="col-md-4 text-md-right">
+                                    <a 
+                                        [routerLink]="['/contacto']" 
+                                        class="btn btn-outline-primary btn-block">
+                                        <i class="cxi-mail mr-2"></i>
+                                        Contactar soporte
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Estado de error -->
+                <div class="text-center py-5" *ngIf="!load_data && !venta">
+                    <i class="cxi-close-circle text-danger" style="font-size: 5rem;"></i>
+                    <h4 class="mt-4 mb-3">Orden no encontrada</h4>
+                    <p class="text-muted mb-4">
+                        No pudimos encontrar la información de esta orden.
+                    </p>
+                    <button 
+                        type="button" 
+                        class="btn btn-primary"
+                        (click)="volverAOrdenes()">
+                        <i class="cxi-arrow-left mr-2"></i>
+                        Volver a mis órdenes
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+</main>
+
+<app-footer></app-footer>

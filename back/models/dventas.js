@@ -3,7 +3,7 @@
 var mongoose = require('mongoose');
 var Schema = mongoose.Schema;
 var DetalleVentaSchema = Schema({
-    producto: {type: Schema.ObjectId, ref: 'producto', required: true},
+    producto: {type: Schema.ObjectId, ref: 'Producto', required: true},
     venta: {type: Schema.ObjectId, ref: 'venta', required: true},
     subtotal: {type: Number, required: true},
     cantidad: {type: Number, required: true},

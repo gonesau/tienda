@@ -1,4 +1,4 @@
-// back/controllers/VentaController.js - ACTUALIZACIÓN PARA DESCUENTOS
+// back/controllers/VentaController.js - COMPLETO CON TODAS LAS FUNCIONES
 var Venta = require('../models/ventas');
 var DetalleVenta = require('../models/dventas');
 var Carrito = require('../models/carrito');
@@ -8,9 +8,9 @@ var Cupon = require('../models/cupon');
 var Descuento = require('../models/descuento');
 const { generar_comprobante_pdf } = require('./PdfGenerator');
 
-/**
- * Obtiene el descuento activo actual
- */
+// NOTA: El modelo 'producto' debe estar en minúsculas en el schema
+// Si el modelo se exporta como 'Producto', verificar el nombre del modelo en producto.js
+
 /**
  * Obtiene el descuento activo actual - VERSIÓN CORREGIDA
  */
@@ -23,22 +23,19 @@ const obtener_descuento_aplicable = async function() {
             return null;
         }
 
-        // Fecha actual en formato ISO (sin conversión a timestamp)
         const hoy = new Date();
-        hoy.setHours(0, 0, 0, 0); // Resetear a inicio del día para comparación limpia
+        hoy.setHours(0, 0, 0, 0);
 
         console.log('=== DEBUG DESCUENTOS ===');
         console.log('Fecha actual:', hoy.toISOString());
         console.log('Total descuentos encontrados:', descuentos.length);
 
         for (let descuento of descuentos) {
-            // Las fechas vienen como strings del modelo, convertirlas a Date
             const fechaInicio = new Date(descuento.fecha_inicio);
             const fechaFin = new Date(descuento.fecha_fin);
             
-            // Resetear horas para comparación de solo fechas
             fechaInicio.setHours(0, 0, 0, 0);
-            fechaFin.setHours(23, 59, 59, 999); // Fin del día
+            fechaFin.setHours(23, 59, 59, 999);
 
             console.log('---');
             console.log('Descuento:', descuento.titulo);
@@ -47,7 +44,6 @@ const obtener_descuento_aplicable = async function() {
             console.log('Fecha fin:', fechaFin.toISOString());
             console.log('¿Está activo?', hoy >= fechaInicio && hoy <= fechaFin);
 
-            // Comparar usando objetos Date directamente
             if (hoy >= fechaInicio && hoy <= fechaFin) {
                 console.log('✓ DESCUENTO ACTIVO ENCONTRADO:', descuento.titulo);
                 return descuento;
@@ -135,7 +131,6 @@ const registro_compra_cliente = async function(req, res) {
             });
         }
 
-        // Generar número de venta único
         let correlativo = parseInt(config.correlativo) + 1;
         let nventa = config.serie + '-' + correlativo.toString().padStart(7, '0');
 
@@ -156,7 +151,6 @@ const registro_compra_cliente = async function(req, res) {
                 });
             }
 
-            // Validar stock
             if (producto.stock < detalle.cantidad) {
                 return res.status(400).send({ 
                     message: `Stock insuficiente para ${producto.titulo}. Disponible: ${producto.stock}`,
@@ -164,7 +158,6 @@ const registro_compra_cliente = async function(req, res) {
                 });
             }
 
-            // Calcular precio con descuento si aplica
             const precio_original = producto.precio;
             const precio_final = tiene_descuento 
                 ? calcular_precio_con_descuento(precio_original, porcentaje_descuento)
@@ -204,7 +197,6 @@ const registro_compra_cliente = async function(req, res) {
                 });
             }
 
-            // Validar límite de usos
             if (cupon.limite <= 0) {
                 return res.status(400).send({ 
                     message: 'Este cupón ya no tiene usos disponibles',
@@ -212,21 +204,18 @@ const registro_compra_cliente = async function(req, res) {
                 });
             }
 
-            // Calcular descuento según tipo (sobre el precio YA con descuento)
             if (cupon.tipo === 'Porcentaje') {
                 descuento_cupon = subtotal_productos * (cupon.valor / 100);
             } else if (cupon.tipo === 'Valor fijo') {
                 descuento_cupon = cupon.valor;
             }
 
-            // Validar que el descuento no sea mayor al subtotal
             if (descuento_cupon > subtotal_productos) {
                 descuento_cupon = subtotal_productos;
             }
 
             cupon_codigo = cupon.codigo;
 
-            // Reducir límite del cupón
             await Cupon.findByIdAndUpdate(cupon._id, {
                 $inc: { limite: -1 }
             });
@@ -276,13 +265,11 @@ const registro_compra_cliente = async function(req, res) {
         for (let detalle of data.detalles) {
             let producto = await Producto.findById(detalle.producto);
 
-            // Calcular precio final con descuento
             const precio_original = producto.precio;
             const precio_con_descuento = tiene_descuento 
                 ? calcular_precio_con_descuento(precio_original, porcentaje_descuento)
                 : precio_original;
 
-            // Crear detalle de venta
             let detalleData = {
                 producto: detalle.producto,
                 venta: venta._id,
@@ -294,7 +281,6 @@ const registro_compra_cliente = async function(req, res) {
             let detalleVenta = await DetalleVenta.create(detalleData);
             detalles_guardados.push(detalleVenta);
 
-            // Actualizar stock y ventas del producto
             await Producto.findByIdAndUpdate(
                 producto._id,
                 {
@@ -305,7 +291,6 @@ const registro_compra_cliente = async function(req, res) {
                 }
             );
 
-            // Eliminar producto del carrito
             await Carrito.findByIdAndDelete(detalle._id);
         }
 
@@ -405,7 +390,6 @@ const validar_cupon_cliente = async function(req, res) {
     }
 }
 
-
 /**
  * Lista todas las ventas de un cliente con filtros
  */
@@ -420,7 +404,6 @@ const listar_ventas_cliente = async function(req, res) {
     try {
         const clienteId = req.params['id'];
         
-        // Verificar que el usuario solo pueda ver sus propias órdenes
         if (req.user.sub !== clienteId) {
             return res.status(403).send({ 
                 message: 'No tienes permiso para ver estas órdenes',
@@ -428,7 +411,6 @@ const listar_ventas_cliente = async function(req, res) {
             });
         }
 
-        // Obtener parámetros de filtro y paginación
         const { 
             filtro = '', 
             estado = '', 
@@ -438,15 +420,12 @@ const listar_ventas_cliente = async function(req, res) {
 
         const skip = (parseInt(page) - 1) * parseInt(limit);
 
-        // Construir query de búsqueda
         let query = { cliente: clienteId };
 
-        // Filtro por estado
         if (estado && estado !== 'todos') {
             query.estado = estado;
         }
 
-        // Filtro por número de venta o transacción
         if (filtro && filtro.trim() !== '') {
             query.$or = [
                 { nventa: new RegExp(filtro, 'i') },
@@ -454,7 +433,6 @@ const listar_ventas_cliente = async function(req, res) {
             ];
         }
 
-        // Obtener ventas con populate de direcciones
         const ventas = await Venta.find(query)
             .populate('direccion')
             .sort({ createdAt: -1 })
@@ -462,7 +440,6 @@ const listar_ventas_cliente = async function(req, res) {
             .skip(skip)
             .lean();
 
-        // Para cada venta, obtener la cantidad de productos
         const ventasConDetalles = await Promise.all(
             ventas.map(async (venta) => {
                 const cantidadProductos = await DetalleVenta.countDocuments({ 
@@ -476,7 +453,6 @@ const listar_ventas_cliente = async function(req, res) {
             })
         );
 
-        // Contar total de documentos para paginación
         const total = await Venta.countDocuments(query);
 
         return res.status(200).send({ 
@@ -512,30 +488,45 @@ const obtener_venta_cliente = async function(req, res) {
     try {
         const ventaId = req.params['id'];
 
-        // Obtener venta con populate
+        console.log('=== OBTENIENDO DETALLE DE VENTA ===');
+        console.log('ID de venta:', ventaId);
+        console.log('Usuario autenticado:', req.user.sub);
+
+        if (!ventaId) {
+            return res.status(400).send({ 
+                message: 'ID de venta requerido',
+                data: undefined 
+            });
+        }
+
         const venta = await Venta.findById(ventaId)
             .populate('cliente')
             .populate('direccion');
 
         if (!venta) {
+            console.log('Venta no encontrada');
             return res.status(404).send({ 
                 message: 'Venta no encontrada',
                 data: undefined 
             });
         }
 
-        // Verificar que la venta pertenezca al usuario
+        console.log('Venta encontrada:', venta._id);
+        console.log('Cliente de la venta:', venta.cliente._id.toString());
+
         if (venta.cliente._id.toString() !== req.user.sub) {
+            console.log('Permiso denegado');
             return res.status(403).send({ 
-                message: 'No tienes permiso para ver esta orden',
+                message: 'No tienes permiso para ver esta venta',
                 data: undefined 
             });
         }
 
-        // Obtener detalles de la venta con productos
         const detalles = await DetalleVenta.find({ venta: ventaId })
             .populate('producto')
             .sort({ createdAt: 1 });
+
+        console.log('Detalles encontrados:', detalles.length);
 
         return res.status(200).send({ 
             data: {
@@ -547,8 +538,9 @@ const obtener_venta_cliente = async function(req, res) {
     } catch (error) {
         console.error('Error obteniendo venta:', error);
         return res.status(500).send({ 
-            message: 'Error al obtener la orden',
-            data: undefined 
+            message: 'Error al obtener la venta',
+            data: undefined,
+            error: error.message
         });
     }
 }
@@ -574,7 +566,6 @@ const obtener_estadisticas_cliente = async function(req, res) {
             });
         }
 
-        // Estadísticas básicas
         const totalOrdenes = await Venta.countDocuments({ cliente: clienteId });
         
         const ordenesCompletadas = await Venta.countDocuments({ 
@@ -587,7 +578,6 @@ const obtener_estadisticas_cliente = async function(req, res) {
             estado: { $in: ['Procesando', 'Enviado'] }
         });
 
-        // Calcular total gastado
         const ventasCompletadas = await Venta.find({ 
             cliente: clienteId, 
             estado: 'Entregado' 
@@ -615,9 +605,6 @@ const obtener_estadisticas_cliente = async function(req, res) {
         });
     }
 }
-
-
-
 
 module.exports = {
     registro_compra_cliente,

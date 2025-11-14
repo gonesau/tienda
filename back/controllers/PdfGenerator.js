@@ -9,17 +9,21 @@ var Config = require('../models/config');
  * Genera PDF del comprobante de venta
  */
 const generar_comprobante_pdf = async function (req, res) {
+    console.log('=== INICIO GENERACIÓN PDF ===');
+    console.log('Usuario autenticado:', req.user ? 'Sí' : 'No');
+    console.log('req.user:', req.user);
+
+    // Verificar autenticación
     if (!req.user) {
+        console.error('Usuario no autenticado');
         return res.status(401).send({
-            message: 'No autorizado',
+            message: 'No autorizado - Token inválido o expirado',
             data: undefined
         });
     }
 
     try {
         const ventaId = req.params['id'];
-
-        console.log('=== INICIO GENERACIÓN PDF ===');
         console.log('ID de venta:', ventaId);
 
         // Validar ID
@@ -66,16 +70,15 @@ const generar_comprobante_pdf = async function (req, res) {
         console.log('Cliente:', venta.cliente.nombres, venta.cliente.apellidos);
         console.log('Dirección:', venta.direccion.destinatario);
 
-        // Verificar que la venta pertenezca al usuario
-        // IMPORTANTE: req.user.sub viene del JWT (helpers/jwt.js)
+        // Verificar permisos - el cliente solo puede ver sus propias ventas
         const clienteId = venta.cliente._id.toString();
-        const usuarioId = req.user.sub || req.user._id;
+        const usuarioId = req.user.sub || req.user._id.toString();
 
         console.log('Cliente ID:', clienteId);
         console.log('Usuario ID:', usuarioId);
-        console.log('req.user completo:', req.user);
 
         if (clienteId !== usuarioId) {
+            console.error('El usuario no tiene permiso para ver esta venta');
             return res.status(403).send({
                 message: 'No tienes permiso para ver esta venta',
                 data: undefined
@@ -85,6 +88,8 @@ const generar_comprobante_pdf = async function (req, res) {
         // Obtener detalles de la venta
         const detalles = await DetalleVenta.find({ venta: ventaId })
             .populate('producto');
+
+        console.log('Detalles encontrados:', detalles.length);
 
         // Obtener configuración
         const config = await Config.findById({ _id: "68daa75d1e1062bf51932fa2" });
@@ -194,7 +199,7 @@ const generar_comprobante_pdf = async function (req, res) {
                 .text(item.producto.titulo.substring(0, 25), itemCodeX, position)
                 .text(item.variedad, itemDescriptionX, position)
                 .text(item.cantidad.toString(), itemQtyX, position)
-                .text(`$${item.producto.precio.toFixed(2)}`, itemPriceX, position)
+                .text(`$${(item.subtotal / item.cantidad).toFixed(2)}`, itemPriceX, position)
                 .text(`$${item.subtotal.toFixed(2)}`, itemTotalX, position);
 
             position += 20;
@@ -288,15 +293,21 @@ const generar_comprobante_pdf = async function (req, res) {
         // Finalizar PDF
         doc.end();
 
+        console.log('=== PDF GENERADO EXITOSAMENTE ===');
+
     } catch (error) {
         console.error('Error generando PDF:', error);
-        res.status(500).send({
-            message: 'Error al generar el comprobante',
-            data: undefined
-        });
+        
+        // Si ya se empezó a enviar la respuesta, no podemos enviar JSON
+        if (!res.headersSent) {
+            res.status(500).send({
+                message: 'Error al generar el comprobante',
+                data: undefined,
+                error: error.message
+            });
+        }
     }
 }
-
 module.exports = {
     generar_comprobante_pdf
 }
