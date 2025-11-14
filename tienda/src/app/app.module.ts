@@ -20,10 +20,12 @@ import { ShowProductoComponent } from './components/productos/show-producto/show
 import { CarritoComponent } from './components/carrito/carrito.component';
 import { DireccionesComponent } from './components/usuario/direcciones/direcciones.component';
 import { ContactoComponent } from './components/contacto/contacto.component';
+import { IndexOrdenesComponent } from './components/usuario/ordenes/index-ordenes/index-ordenes.component';
+import { DetalleOrdenComponent } from './components/usuario/ordenes/detalle-orden/detalle-orden.component';
 
 
 @NgModule({
-  declarations: [AppComponent, InicioComponent, NavComponent, FooterComponent, LoginComponent, PerfilComponent, SidebarComponent, IndexProductoComponent, ShowProductoComponent, CarritoComponent, DireccionesComponent, ContactoComponent],
+  declarations: [AppComponent, InicioComponent, NavComponent, FooterComponent, LoginComponent, PerfilComponent, SidebarComponent, IndexProductoComponent, ShowProductoComponent, CarritoComponent, DireccionesComponent, ContactoComponent, IndexOrdenesComponent, DetalleOrdenComponent],
   imports: [BrowserModule, AppRoutingModule, FormsModule, HttpClientModule, routing, NgbPaginationModule],
   providers: [],
   bootstrap: [AppComponent],

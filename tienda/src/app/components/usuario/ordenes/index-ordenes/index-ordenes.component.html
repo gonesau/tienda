@@ -1,0 +1,29 @@
+<app-nav></app-nav>
+
+<main class="cs-page-wrapper">  
+        <!-- Breadcrumb -->
+    <nav class="bg-secondary mb-3" aria-label="breadcrumb">
+        <div class="container">
+            <ol class="breadcrumb breadcrumb-alt mb-0">
+                <li class="breadcrumb-item">
+                    <a [routerLink]="['/']"><i class="cxi-home"></i></a>
+                </li>
+                <li class="breadcrumb-item active" aria-current="page">
+                    <a [routerLink]="['/cuenta/perfil']">Mi perfil</a>
+                    
+                </li>
+                <li class="breadcrumb-item active" aria-current="page">Mis órdenes</li>
+            </ol>
+        </div>
+    </nav>
+
+    <section class="container pt-3 pt-lg-4 pb-5 pb-lg-6">
+        <div class="row pb-2 pb-lg-0">
+        <aside class="col-lg-3 mb-4 mb-lg-0">
+                <app-sidebar></app-sidebar>
+            </aside>
+        </div>
+    </section>
+</main>
+
+<app-footer></app-footer>

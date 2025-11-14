@@ -28,36 +28,28 @@
             <div id="account-menu" class="collapse d-lg-block">
                 <div class="list-group list-group-flush border-top">
                     <!-- Mi perfil -->
-                    <a 
-                        [routerLink]="['/cuenta/perfil']" 
-                        routerLinkActive="active"
+                    <a [routerLink]="['/cuenta/perfil']" routerLinkActive="active"
                         class="list-group-item list-group-item-action d-flex align-items-center">
                         <i class="cxi-profile font-size-lg mr-2"></i>
                         <span>Mi perfil</span>
                     </a>
 
                     <!-- Mis Direcciones -->
-                    <a 
-                        [routerLink]="['/cuenta/direcciones']" 
-                        routerLinkActive="active"
+                    <a [routerLink]="['/cuenta/direcciones']" routerLinkActive="active"
                         class="list-group-item list-group-item-action d-flex align-items-center">
-                        <i class="cxi-bag font-size-lg mr-2"></i>
+                        <i class="cxi-home font-size-lg mr-2"></i>
                         <span>Direcciones</span>
                     </a>
 
-                    <!-- Lista de deseos (deshabilitado temporalmente) -->
-                    <a 
-                        href="javascript:void(0)"
-                        class="list-group-item list-group-item-action d-flex align-items-center disabled"
-                        style="cursor: not-allowed; opacity: 0.6;">
-                        <i class="cxi-heart font-size-lg mr-2"></i>
-                        <span>Lista de deseos</span>
-                        <span class="badge badge-secondary ml-auto">Próximamente</span>
+                    <!-- Mis ordenes -->
+                    <a [routerLink]="['/cuenta/ordenes']" routerLinkActive="active"
+                        class="list-group-item list-group-item-action d-flex align-items-center">
+                        <i class="cxi-bag font-size-lg mr-2"></i>
+                        <span>Mis ordenes</span>
                     </a>
 
                     <!-- Recientemente visto (deshabilitado temporalmente) -->
-                    <a 
-                        href="javascript:void(0)"
+                    <a href="javascript:void(0)"
                         class="list-group-item list-group-item-action d-flex align-items-center disabled"
                         style="cursor: not-allowed; opacity: 0.6;">
                         <i class="cxi-eye font-size-lg mr-2"></i>
@@ -66,8 +58,7 @@
                     </a>
 
                     <!-- Mis reseñas (deshabilitado temporalmente) -->
-                    <a 
-                        href="javascript:void(0)"
+                    <a href="javascript:void(0)"
                         class="list-group-item list-group-item-action d-flex align-items-center disabled"
                         style="cursor: not-allowed; opacity: 0.6;">
                         <i class="cxi-star font-size-lg mr-2"></i>
@@ -81,9 +72,7 @@
                     </div>
 
                     <!-- Cerrar sesión -->
-                    <a 
-                        href="javascript:void(0)" 
-                        (click)="logout()"
+                    <a href="javascript:void(0)" (click)="logout()"
                         class="list-group-item list-group-item-action d-flex align-items-center text-danger">
                         <i class="cxi-logout font-size-lg mr-2"></i>
                         <span>Cerrar sesión</span>
