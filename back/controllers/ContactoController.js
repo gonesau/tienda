@@ -13,7 +13,6 @@ const validaciones = {
         if (nombre.length > 100) {
             return { valido: false, mensaje: 'El nombre no puede exceder 100 caracteres' };
         }
-        // Solo letras, espacios, acentos y ñ
         const regex = /^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/;
         if (!regex.test(nombre)) {
             return { valido: false, mensaje: 'El nombre solo puede contener letras' };
@@ -25,7 +24,6 @@ const validaciones = {
         if (!email) {
             return { valido: false, mensaje: 'El email es requerido' };
         }
-        // Validación de email sin dependencias
         const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!regex.test(email)) {
             return { valido: false, mensaje: 'El formato del email es inválido' };
@@ -38,7 +36,6 @@ const validaciones = {
 
     validarTelefono: (telefono) => {
         if (telefono && telefono.trim() !== '') {
-            // Eliminar guiones y espacios para validar
             const telefonoLimpio = telefono.replace(/[-\s]/g, '');
             if (!/^\d{8,15}$/.test(telefonoLimpio)) {
                 return { valido: false, mensaje: 'El teléfono debe tener entre 8 y 15 dígitos' };
@@ -74,7 +71,6 @@ const validaciones = {
 const sanitizarTexto = (texto) => {
     if (!texto) return '';
     
-    // Reemplazar caracteres HTML especiales
     const mapeo = {
         '&': '&amp;',
         '<': '&lt;',
@@ -101,7 +97,6 @@ const normalizarEmail = (email) => {
 const esSpam = (data) => {
     const textoCompleto = `${data.nombre} ${data.email} ${data.asunto} ${data.mensaje}`.toLowerCase();
     
-    // Palabras clave de spam comunes
     const palabrasSpam = [
         'viagra', 'casino', 'lottery', 'bitcoin', 'cryptocurrency',
         'click here', 'buy now', 'limited offer', 'act now',
@@ -115,7 +110,6 @@ const esSpam = (data) => {
         }
     }
 
-    // Detectar múltiples URLs (posible spam)
     const urlCount = (textoCompleto.match(/https?:\/\//g) || []).length;
     if (urlCount > 3) {
         return true;
@@ -126,22 +120,19 @@ const esSpam = (data) => {
 
 /**
  * Rate limiting simple (en memoria)
- * En producción, usar Redis o similar
  */
 const rateLimitMap = new Map();
 
 const verificarRateLimit = (ip) => {
     const ahora = Date.now();
-    const limite = 5; // 5 mensajes
-    const ventana = 60 * 60 * 1000; // 1 hora
+    const limite = 5;
+    const ventana = 60 * 60 * 1000;
 
     if (!rateLimitMap.has(ip)) {
         rateLimitMap.set(ip, []);
     }
 
     const intentos = rateLimitMap.get(ip);
-    
-    // Limpiar intentos antiguos
     const intentosRecientes = intentos.filter(tiempo => ahora - tiempo < ventana);
     
     if (intentosRecientes.length >= limite) {
@@ -158,17 +149,15 @@ const verificarRateLimit = (ip) => {
 };
 
 /**
- * Envía mensaje de contacto
+ * Envía mensaje de contacto (PÚBLICO)
  */
 const enviar_mensaje_contacto = async (req, res) => {
     try {
-        // Obtener IP del cliente
         const ip = req.headers['x-forwarded-for'] || 
                    req.connection.remoteAddress || 
                    req.socket.remoteAddress ||
                    req.ip;
 
-        // Verificar rate limiting
         const rateLimit = verificarRateLimit(ip);
         if (!rateLimit.permitido) {
             return res.status(429).send({
@@ -179,7 +168,6 @@ const enviar_mensaje_contacto = async (req, res) => {
 
         let data = req.body;
 
-        // Validar que los datos existan
         if (!data) {
             return res.status(400).send({
                 success: false,
@@ -187,7 +175,6 @@ const enviar_mensaje_contacto = async (req, res) => {
             });
         }
 
-        // Validar cada campo
         const validacionNombre = validaciones.validarNombre(data.nombre);
         if (!validacionNombre.valido) {
             return res.status(400).send({
@@ -228,7 +215,6 @@ const enviar_mensaje_contacto = async (req, res) => {
             });
         }
 
-        // Detectar spam
         if (esSpam(data)) {
             console.log('Mensaje detectado como spam:', { ip, email: data.email });
             return res.status(400).send({
@@ -237,7 +223,6 @@ const enviar_mensaje_contacto = async (req, res) => {
             });
         }
 
-        // Sanitizar datos
         const datosLimpios = {
             nombre: sanitizarTexto(data.nombre),
             email: normalizarEmail(data.email),
@@ -249,15 +234,12 @@ const enviar_mensaje_contacto = async (req, res) => {
             user_agent: req.headers['user-agent'] || ''
         };
 
-        // Si el usuario está autenticado, agregar su ID
         if (req.user && req.user.sub) {
             datosLimpios.cliente = req.user.sub;
         }
 
-        // Guardar en la base de datos
         const registro = await Contacto.create(datosLimpios);
 
-        // Log para auditoría
         console.log('Nuevo mensaje de contacto:', {
             id: registro._id,
             email: registro.email,
@@ -277,7 +259,6 @@ const enviar_mensaje_contacto = async (req, res) => {
     } catch (error) {
         console.error('Error en enviar_mensaje_contacto:', error);
         
-        // Errores de validación de Mongoose
         if (error.name === 'ValidationError') {
             const mensajes = Object.values(error.errors).map(err => err.message);
             return res.status(400).send({
@@ -294,7 +275,7 @@ const enviar_mensaje_contacto = async (req, res) => {
 };
 
 /**
- * Obtiene todos los mensajes de contacto (solo admin)
+ * Obtiene todos los mensajes de contacto (ADMIN)
  */
 const listar_mensajes_admin = async (req, res) => {
     try {
@@ -305,21 +286,33 @@ const listar_mensajes_admin = async (req, res) => {
             });
         }
 
-        const { estado, page = 1, limit = 20 } = req.query;
+        const { filtro, estado, page = 1, limit = 50 } = req.query;
         const skip = (page - 1) * limit;
 
-        let filtro = {};
+        let query = {};
+        
+        // Filtro por estado
         if (estado && ['pendiente', 'leido', 'respondido', 'cerrado'].includes(estado)) {
-            filtro.estado = estado;
+            query.estado = estado;
         }
 
-        const mensajes = await Contacto.find(filtro)
+        // Filtro por texto (nombre, email, asunto, mensaje)
+        if (filtro && filtro.trim() !== '') {
+            query.$or = [
+                { nombre: new RegExp(filtro, 'i') },
+                { email: new RegExp(filtro, 'i') },
+                { asunto: new RegExp(filtro, 'i') },
+                { mensaje: new RegExp(filtro, 'i') }
+            ];
+        }
+
+        const mensajes = await Contacto.find(query)
             .populate('cliente', 'nombres apellidos email')
             .sort({ createdAt: -1 })
             .limit(parseInt(limit))
             .skip(parseInt(skip));
 
-        const total = await Contacto.countDocuments(filtro);
+        const total = await Contacto.countDocuments(query);
 
         return res.status(200).send({
             success: true,
@@ -341,7 +334,138 @@ const listar_mensajes_admin = async (req, res) => {
     }
 };
 
+/**
+ * Obtiene un mensaje específico (ADMIN)
+ */
+const obtener_mensaje_admin = async (req, res) => {
+    try {
+        if (!req.user || req.user.role !== 'admin') {
+            return res.status(403).send({
+                success: false,
+                message: 'No tienes permisos para acceder a esta información'
+            });
+        }
+
+        const id = req.params['id'];
+
+        const mensaje = await Contacto.findById(id)
+            .populate('cliente', 'nombres apellidos email telefono');
+
+        if (!mensaje) {
+            return res.status(404).send({
+                success: false,
+                message: 'Mensaje no encontrado'
+            });
+        }
+
+        return res.status(200).send({
+            success: true,
+            data: mensaje
+        });
+
+    } catch (error) {
+        console.error('Error en obtener_mensaje_admin:', error);
+        return res.status(500).send({
+            success: false,
+            message: 'Error al obtener el mensaje'
+        });
+    }
+};
+
+/**
+ * Actualiza el estado de un mensaje (ADMIN)
+ */
+const actualizar_estado_mensaje_admin = async (req, res) => {
+    try {
+        if (!req.user || req.user.role !== 'admin') {
+            return res.status(403).send({
+                success: false,
+                message: 'No tienes permisos para realizar esta acción'
+            });
+        }
+
+        const id = req.params['id'];
+        const { estado } = req.body;
+
+        // Validar estado
+        const estadosValidos = ['pendiente', 'leido', 'respondido', 'cerrado'];
+        if (!estado || !estadosValidos.includes(estado)) {
+            return res.status(400).send({
+                success: false,
+                message: 'Estado inválido'
+            });
+        }
+
+        const mensaje = await Contacto.findByIdAndUpdate(
+            id,
+            { estado },
+            { new: true }
+        );
+
+        if (!mensaje) {
+            return res.status(404).send({
+                success: false,
+                message: 'Mensaje no encontrado'
+            });
+        }
+
+        return res.status(200).send({
+            success: true,
+            message: 'Estado actualizado correctamente',
+            data: mensaje
+        });
+
+    } catch (error) {
+        console.error('Error en actualizar_estado_mensaje_admin:', error);
+        return res.status(500).send({
+            success: false,
+            message: 'Error al actualizar el estado'
+        });
+    }
+};
+
+/**
+ * Elimina un mensaje (ADMIN)
+ */
+const eliminar_mensaje_admin = async (req, res) => {
+    try {
+        if (!req.user || req.user.role !== 'admin') {
+            return res.status(403).send({
+                success: false,
+                message: 'No tienes permisos para realizar esta acción'
+            });
+        }
+
+        const id = req.params['id'];
+
+        const mensaje = await Contacto.findByIdAndDelete(id);
+
+        if (!mensaje) {
+            return res.status(404).send({
+                success: false,
+                message: 'Mensaje no encontrado'
+            });
+        }
+
+        return res.status(200).send({
+            success: true,
+            message: 'Mensaje eliminado correctamente',
+            data: mensaje
+        });
+
+    } catch (error) {
+        console.error('Error en eliminar_mensaje_admin:', error);
+        return res.status(500).send({
+            success: false,
+            message: 'Error al eliminar el mensaje'
+        });
+    }
+};
+
 module.exports = {
     enviar_mensaje_contacto,
-    listar_mensajes_admin
+    listar_mensajes_admin,
+    obtener_mensaje_admin,
+    actualizar_estado_mensaje_admin,
+    eliminar_mensaje_admin
 };

@@ -1,48 +1,354 @@
 <app-sidebar></app-sidebar>
 
 <main class="admin-content">
-
-    <div class="admin-main">
-        <div class="mb-4 pb-4 border-bottom">
-            <div class="row">
-                <div class="col-md-3 col-sm-4 mb-sm-0 mb-3">
-                    //Aquí el nombre del cliente
-                    <h3 class="mb-2 fs-lg">Annette Black</h3>
-                    <span class="d-block mb-3 fs-sm text-muted">1 day ago</span>
-                    <div class="mt-n1 star-rating">
-                        <i class="sr-star ci-star-filled active"></i>
-                        <i class="sr-star ci-star-filled active"></i>
-                        <i class="sr-star ci-star-filled active"></i>
-                        <i class="sr-star ci-star-filled active"></i>
-                        <i class="sr-star ci-star"></i>
-                    </div>
-                </div>
-                <div class="col">
-                    <p class="mb-3">
-                        <a class="me-1 fw-bold text-decoration-none" href="#">@Devon Lane</a>
-                        Egestas fermentum natoque sollicitudin mauris. Facilisis praesent urna sed rhoncus quis pharetra
-                        pellentesque erat sagittis.
-                    </p>
-                    <div class="d-flex justify-content-between">
-                        <a class="nav-link p-0 fs-sm" href="#">
-                            <i class="ci-chat me-2 fs-base align-middle mt-n1"></i>
-                            Reply
-                        </a>
-                        <div class="d-flex">
-                            <a class="nav-link me-3 p-0 fs-sm" href="#">
-                                <i class="ci-like me-2 fs-base align-middle mt-n1 text-success"></i>
-                                2
-                            </a>
-                            <a class="nav-link p-0 fs-sm" href="#">
-                                <i class="ci-dislike me-2 fs-base align-middle mt-n1 text-danger"></i>
-                                1
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+  <div class="admin-main">
+    
+    <!-- Page Header -->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-4 pb-3 border-bottom">
+      <div class="mb-3 mb-md-0">
+        <h1 class="h2 mb-2">Mensajes de Contacto</h1>
+        <p class="text-muted mb-0">Gestiona los mensajes recibidos de los clientes</p>
+      </div>
+      <div class="d-flex gap-2">
+        <span class="badge bg-warning text-dark">
+          {{ obtener_contador_estado('pendiente') }} Pendientes
+        </span>
+        <span class="badge bg-info">
+          {{ obtener_contador_estado('leido') }} Leídos
+        </span>
+        <span class="badge bg-success">
+          {{ obtener_contador_estado('respondido') }} Respondidos
+        </span>
+      </div>
     </div>
-    <!-- List of messages -->
 
+    <!-- Loading State -->
+    <div class="card" *ngIf="load_data">
+      <div class="card-body text-center py-5">
+        <div class="spinner-border text-primary mb-3" role="status" style="width: 3rem; height: 3rem;">
+          <span class="visually-hidden">Cargando...</span>
+        </div>
+        <p class="text-muted mb-0">Cargando mensajes...</p>
+      </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="card" *ngIf="!load_data">
+      
+      <!-- Filters & Actions -->
+      <div class="card-header bg-light">
+        <div class="row g-3 align-items-center">
+          <!-- Buscador -->
+          <div class="col-12 col-lg-6">
+            <div class="input-group">
+              <span class="input-group-text bg-white">
+                <i class="fas fa-search text-muted"></i>
+              </span>
+              <input
+                type="text"
+                class="form-control"
+                placeholder="Buscar por nombre, email, asunto o mensaje..."
+                name="filtro"
+                [(ngModel)]="filtro"
+                (keyup.enter)="filtrar()"
+              />
+              <button class="btn btn-primary" type="button" (click)="filtrar()">
+                Buscar
+              </button>
+              <button 
+                class="btn btn-outline-secondary" 
+                type="button" 
+                (click)="resetear()"
+                *ngIf="filtro || filtro_estado">
+                <i class="fas fa-times"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- Filtro por estado -->
+          <div class="col-12 col-lg-4">
+            <select 
+              class="form-select"
+              [(ngModel)]="filtro_estado"
+              (change)="filtrar_por_estado()">
+              <option *ngFor="let estado of estados" [value]="estado.value">
+                {{ estado.label }}
+              </option>
+            </select>
+          </div>
+
+          <!-- Contador -->
+          <div class="col-12 col-lg-2 text-end">
+            <span class="text-muted small">
+              Total: {{ mensajes_filtrados.length }} mensaje(s)
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Lista de mensajes -->
+      <div class="card-body p-0">
+        
+        <!-- Empty State -->
+        <div *ngIf="mensajes_filtrados.length === 0" class="text-center py-5">
+          <i class="fas fa-inbox text-muted mb-3" style="font-size: 4rem; display: block;"></i>
+          <h5 class="text-muted mb-2">No hay mensajes</h5>
+          <p class="text-muted small mb-3" *ngIf="filtro || filtro_estado">
+            No se encontraron resultados con los filtros aplicados
+          </p>
+          <p class="text-muted small mb-3" *ngIf="!filtro && !filtro_estado">
+            Aún no has recibido ningún mensaje de contacto
+          </p>
+          <button 
+            class="btn btn-outline-secondary btn-sm" 
+            (click)="resetear()" 
+            *ngIf="filtro || filtro_estado">
+            <i class="fas fa-times me-1"></i>Limpiar filtros
+          </button>
+        </div>
+
+        <!-- Lista de mensajes -->
+        <div *ngIf="mensajes_filtrados.length > 0">
+          <div 
+            *ngFor="let mensaje of mensajes_filtrados | slice: (page - 1) * pageSize : page * pageSize; let i = index"
+            class="border-bottom p-4 mensaje-item"
+            [class.bg-light]="mensaje.estado === 'pendiente'">
+            
+            <div class="row">
+              <!-- Información del remitente -->
+              <div class="col-md-3 col-sm-4 mb-sm-0 mb-3">
+                <div class="d-flex align-items-start">
+                  <!-- Avatar -->
+                  <div class="flex-shrink-0 me-3">
+                    <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center" 
+                         style="width: 48px; height: 48px; font-size: 1.2rem;">
+                      {{ mensaje.nombre?.charAt(0).toUpperCase() }}
+                    </div>
+                  </div>
+                  
+                  <!-- Datos del remitente -->
+                  <div class="flex-grow-1">
+                    <h6 class="mb-1 fw-bold">{{ mensaje.nombre }}</h6>
+                    <small class="d-block text-muted mb-1">
+                      <i class="fas fa-envelope me-1"></i>
+                      {{ mensaje.email }}
+                    </small>
+                    <small class="d-block text-muted" *ngIf="mensaje.telefono">
+                      <i class="fas fa-phone me-1"></i>
+                      {{ mensaje.telefono }}
+                    </small>
+                    <small class="d-block text-muted mt-2">
+                      <i class="far fa-clock me-1"></i>
+                      {{ obtener_tiempo_transcurrido(mensaje.createdAt) }}
+                    </small>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Contenido del mensaje -->
+              <div class="col-md-7 col-sm-8">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                  <h5 class="mb-0 fw-bold">{{ mensaje.asunto }}</h5>
+                  <span 
+                    class="badge ms-2"
+                    [ngClass]="'bg-' + obtener_badge_estado(mensaje.estado)">
+                    {{ obtener_label_estado(mensaje.estado) }}
+                  </span>
+                </div>
+                
+                <p class="mb-3 text-muted">
+                  {{ truncar_texto(mensaje.mensaje, 200) }}
+                </p>
+
+                <!-- Metadatos -->
+                <div class="d-flex gap-3 text-muted small">
+                  <span *ngIf="mensaje.ip_address">
+                    <i class="fas fa-globe me-1"></i>
+                    IP: {{ mensaje.ip_address }}
+                  </span>
+                  <span>
+                    <i class="far fa-calendar me-1"></i>
+                    {{ mensaje.createdAt | date: 'dd/MM/yyyy HH:mm' }}
+                  </span>
+                </div>
+              </div>
+
+              <!-- Acciones -->
+              <div class="col-md-2 col-12 mt-md-0 mt-3">
+                <div class="d-flex flex-column gap-2">
+                  <!-- Dropdown de estado -->
+                  <div class="dropdown">
+                    <button 
+                      class="btn btn-sm btn-outline-primary dropdown-toggle w-100" 
+                      type="button" 
+                      id="dropdownEstado{{ i }}" 
+                      data-bs-toggle="dropdown" 
+                      aria-expanded="false"
+                      [disabled]="load_btn">
+                      <i class="fas fa-tag me-1"></i>
+                      Estado
+                    </button>
+                    <ul class="dropdown-menu" aria-labelledby="dropdownEstado{{ i }}">
+                      <li>
+                        <a 
+                          class="dropdown-item" 
+                          href="javascript:void(0)"
+                          (click)="cambiar_estado(mensaje, 'pendiente')"
+                          [class.active]="mensaje.estado === 'pendiente'">
+                          <span class="badge bg-warning text-dark me-2">●</span>
+                          Pendiente
+                        </a>
+                      </li>
+                      <li>
+                        <a 
+                          class="dropdown-item" 
+                          href="javascript:void(0)"
+                          (click)="cambiar_estado(mensaje, 'leido')"
+                          [class.active]="mensaje.estado === 'leido'">
+                          <span class="badge bg-info me-2">●</span>
+                          Leído
+                        </a>
+                      </li>
+                      <li>
+                        <a 
+                          class="dropdown-item" 
+                          href="javascript:void(0)"
+                          (click)="cambiar_estado(mensaje, 'respondido')"
+                          [class.active]="mensaje.estado === 'respondido'">
+                          <span class="badge bg-success me-2">●</span>
+                          Respondido
+                        </a>
+                      </li>
+                      <li><hr class="dropdown-divider"></li>
+                      <li>
+                        <a 
+                          class="dropdown-item" 
+                          href="javascript:void(0)"
+                          (click)="cambiar_estado(mensaje, 'cerrado')"
+                          [class.active]="mensaje.estado === 'cerrado'">
+                          <span class="badge bg-secondary me-2">●</span>
+                          Cerrado
+                        </a>
+                      </li>
+                    </ul>
+                  </div>
+
+                  <!-- Botón responder (mailto) -->
+                  <a 
+                    href="mailto:{{ mensaje.email }}?subject=Re: {{ mensaje.asunto }}" 
+                    class="btn btn-sm btn-outline-success w-100"
+                    title="Responder por email">
+                    <i class="fas fa-reply me-1"></i>
+                    Responder
+                  </a>
+
+                  <!-- Botón eliminar -->
+                  <button
+                    class="btn btn-sm btn-outline-danger w-100"
+                    type="button"
+                    (click)="abrirModalEliminar(mensaje)"
+                    title="Eliminar mensaje">
+                    <i class="fas fa-trash-alt me-1"></i>
+                    Eliminar
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Paginación -->
+      <div class="card-footer bg-light" *ngIf="mensajes_filtrados.length > pageSize">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-center gap-3">
+          <div class="text-muted small">
+            Mostrando {{ (page - 1) * pageSize + 1 }} - 
+            {{ page * pageSize > mensajes_filtrados.length ? mensajes_filtrados.length : page * pageSize }} 
+            de {{ mensajes_filtrados.length }} mensajes
+          </div>
+          <ngb-pagination
+            [(page)]="page"
+            [pageSize]="pageSize"
+            [collectionSize]="mensajes_filtrados.length"
+            [maxSize]="5"
+            [rotate]="true"
+            [boundaryLinks]="true"
+            size="sm">
+          </ngb-pagination>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
 </main>
+
+<!-- Modal de Confirmación -->
+<div 
+  class="modal fade" 
+  id="deleteModal" 
+  tabindex="-1" 
+  aria-labelledby="deleteModalLabel"
+  aria-hidden="true"
+  data-bs-backdrop="static"
+  data-bs-keyboard="false">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content" *ngIf="mensajeAEliminar">
+      <div class="modal-header border-0">
+        <h5 class="modal-title" id="deleteModalLabel">
+          <i class="fas fa-exclamation-triangle text-danger me-2"></i>
+          Confirmar Eliminación
+        </h5>
+        <button 
+          type="button" 
+          class="btn-close" 
+          (click)="cerrarModal()"
+          [disabled]="load_btn"
+          aria-label="Close">
+        </button>
+      </div>
+      <div class="modal-body">
+        <p class="mb-3">¿Estás seguro de eliminar este mensaje?</p>
+        <div class="alert alert-warning mb-0">
+          <div class="d-flex align-items-start">
+            <i class="fas fa-envelope fa-2x text-warning me-3 mt-1"></i>
+            <div>
+              <strong>{{ mensajeAEliminar.nombre }}</strong><br>
+              <small class="text-muted">
+                Email: {{ mensajeAEliminar.email }}<br>
+                Asunto: {{ mensajeAEliminar.asunto }}<br>
+                Fecha: {{ mensajeAEliminar.createdAt | date: 'dd/MM/yyyy HH:mm' }}
+              </small>
+            </div>
+          </div>
+        </div>
+        <div class="alert alert-danger mt-3 mb-0">
+          <i class="fas fa-exclamation-circle me-2"></i>
+          <small><strong>Advertencia:</strong> Esta acción no se puede deshacer.</small>
+        </div>
+      </div>
+      <div class="modal-footer border-0">
+        <button 
+          type="button" 
+          class="btn btn-secondary" 
+          (click)="cerrarModal()"
+          [disabled]="load_btn">
+          Cancelar
+        </button>
+        <button 
+          type="button" 
+          class="btn btn-danger"
+          (click)="confirmarEliminacion()"
+          [disabled]="load_btn">
+          <span *ngIf="!load_btn">
+            <i class="fas fa-trash-alt me-1"></i>Eliminar
+          </span>
+          <span *ngIf="load_btn">
+            <span class="spinner-border spinner-border-sm me-1"></span>
+            Eliminando...
+          </span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
