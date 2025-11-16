@@ -1,6 +1,7 @@
 import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { NgbPaginationModule } from '@ng-bootstrap/ng-bootstrap';
+import { RatingModule } from 'ng-starrating';
 
 import { FormsModule } from '@angular/forms';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
@@ -26,7 +27,7 @@ import { DetalleOrdenComponent } from './components/usuario/ordenes/detalle-orde
 
 @NgModule({
   declarations: [AppComponent, InicioComponent, NavComponent, FooterComponent, LoginComponent, PerfilComponent, SidebarComponent, IndexProductoComponent, ShowProductoComponent, CarritoComponent, DireccionesComponent, ContactoComponent, IndexOrdenesComponent, DetalleOrdenComponent],
-  imports: [BrowserModule, AppRoutingModule, FormsModule, HttpClientModule, routing, NgbPaginationModule],
+  imports: [BrowserModule, AppRoutingModule, FormsModule, HttpClientModule, routing, NgbPaginationModule, RatingModule],
   providers: [],
   bootstrap: [AppComponent],
 })

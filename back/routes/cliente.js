@@ -37,4 +37,7 @@ api.post('/enviar_mensaje_contacto', contactoController.enviar_mensaje_contacto)
 // Ruta privada - Solo para administradores
 api.get('/listar_mensajes_contacto_admin', auth.auth, contactoController.listar_mensajes_admin);
 
+// Rutas para reviews
+
+
 module.exports = api;

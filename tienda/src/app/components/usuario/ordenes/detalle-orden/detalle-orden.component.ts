@@ -23,6 +23,9 @@ export class DetalleOrdenComponent implements OnInit, OnDestroy {
   public load_data = true;
   public descargando_pdf = false;
 
+  //Rating estrella
+  public totalstar: 5;
+
   private destroy$ = new Subject<void>();
 
   // Información de envío
