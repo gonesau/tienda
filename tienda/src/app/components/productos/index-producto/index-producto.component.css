@@ -28,9 +28,7 @@
 /* ========================================
    CONTENEDOR DE CARDS
    ======================================== */
-.product-grid,
-.row,
-.cards-container {
+.product-grid{
     overflow: visible !important; /* permite que el hover sobresalga */
 }
 
@@ -192,7 +190,7 @@ del {
    ======================================== */
 .card-footer {
     position: absolute;
-    bottom: 0;
+    top: 100%;
     left: 0;
     right: 0;
     background-color: #fff;
@@ -209,7 +207,11 @@ del {
 .card-product:hover .card-footer {
     transform: translateY(0);
     opacity: 1;
+    z-index: 10;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
 }
+
+
 
 /* Botones */
 .btn-primary {

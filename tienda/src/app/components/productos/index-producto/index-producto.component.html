@@ -274,7 +274,7 @@
                     <ng-container *ngIf="productos.length >= 1">
                         <div class="col pb-sm-2 mb-4"
                             *ngFor="let producto of productos | slice:(page-1)*pageSize:(page-1)*pageSize + pageSize">
-                            <div class="card card-product mx-auto h-100">
+                            <div class="card card-product reveal-footer mx-auto h-100">
                                 <!-- Badge de descuento -->
                                 <span *ngIf="producto.tiene_descuento" 
                                       class="badge badge-danger position-absolute"
