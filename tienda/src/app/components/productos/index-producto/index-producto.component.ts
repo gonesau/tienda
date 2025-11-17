@@ -3,8 +3,9 @@ import { Component, OnInit, AfterViewInit, OnDestroy } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ClienteService } from 'src/app/services/cliente.service';
 import { GuestService } from 'src/app/services/guest.service';
+import { ReviewService } from 'src/app/services/review.service';
 import { Global } from 'src/app/services/global';
-import { Subject } from 'rxjs';
+import { Subject, forkJoin } from 'rxjs';
 import { takeUntil, debounceTime, distinctUntilChanged } from 'rxjs/operators';
 declare var noUiSlider: any;
 declare var $: any;
@@ -39,12 +40,18 @@ export class IndexProductoComponent implements OnInit, AfterViewInit, OnDestroy 
   public tiene_descuento = false;
   public load_descuento = true;
 
+  // Variables para reviews
+  public reviews_por_producto: { [key: string]: any } = {};
+  public load_reviews = true;
+
   private destroy$ = new Subject<void>();
   private searchSubject$ = new Subject<string>();
+  public Math = Math;
 
   constructor(
     private _clienteService: ClienteService,
     private _guestService: GuestService,
+    private _reviewService: ReviewService,
     private _route: ActivatedRoute,
     private _router: Router
   ) {
@@ -77,7 +84,6 @@ export class IndexProductoComponent implements OnInit, AfterViewInit, OnDestroy 
       .pipe(takeUntil(this.destroy$))
       .subscribe(params => {
         this.route_categoria = params['categoria'] || null;
-        // Esperar a que se cargue el descuento antes de cargar productos
         setTimeout(() => {
           this.cargarProductos();
         }, 500);
@@ -96,7 +102,7 @@ export class IndexProductoComponent implements OnInit, AfterViewInit, OnDestroy 
   }
 
   /**
-   * Carga el descuento activo - MEJORADO CON DEBUG
+   * Carga el descuento activo
    */
   private cargarDescuentoActivo(): void {
     console.log('📊 Cargando descuento activo...');
@@ -106,24 +112,15 @@ export class IndexProductoComponent implements OnInit, AfterViewInit, OnDestroy 
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (response) => {
-          console.log('✅ Respuesta descuento:', response);
-          
           this.descuento_activo = response.data;
           this.tiene_descuento = !!this.descuento_activo;
           this.load_descuento = false;
           
           if (this.tiene_descuento) {
-            console.log('🎉 DESCUENTO ACTIVO:');
-            console.log('  - Título:', this.descuento_activo.titulo);
-            console.log('  - Porcentaje:', this.descuento_activo.descuento + '%');
-            console.log('  - Banner:', this.descuento_activo.banner);
-          } else {
-            console.log('ℹ️ No hay descuentos activos en este momento');
+            console.log('🎉 DESCUENTO ACTIVO:', this.descuento_activo.descuento + '%');
           }
           
-          // Si hay productos cargados, aplicar descuento
           if (this.tiene_descuento && this.productos.length > 0) {
-            console.log('🔄 Aplicando descuento a productos ya cargados...');
             this.aplicarDescuentoAProductos();
           }
         },
@@ -137,16 +134,98 @@ export class IndexProductoComponent implements OnInit, AfterViewInit, OnDestroy 
   }
 
   /**
-   * Aplica el descuento activo a todos los productos - MEJORADO
+   * Carga las reviews de todos los productos
+   */
+  private cargarReviewsProductos(): void {
+    if (!this.productos || this.productos.length === 0) {
+      this.load_reviews = false;
+      return;
+    }
+
+    console.log('⭐ Cargando reviews para', this.productos.length, 'productos');
+    this.load_reviews = true;
+
+    // Crear array de observables para cargar reviews
+    const reviewsObservables = this.productos.map(producto => 
+      this._reviewService.listar_reviews_producto(producto._id)
+    );
+
+    forkJoin(reviewsObservables)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (responses: any[]) => {
+          // Mapear reviews a cada producto
+          responses.forEach((response, index) => {
+            const producto = this.productos[index];
+            if (response && response.estadisticas) {
+              this.reviews_por_producto[producto._id] = {
+                total: response.estadisticas.total || 0,
+                promedio: response.estadisticas.promedio || 0,
+                distribucion: response.estadisticas.distribucion || {}
+              };
+              
+              // Actualizar producto con estadísticas
+              producto.rating_promedio = response.estadisticas.promedio || 0;
+              producto.total_reviews = response.estadisticas.total || 0;
+            } else {
+              this.reviews_por_producto[producto._id] = {
+                total: 0,
+                promedio: 0,
+                distribucion: {}
+              };
+              producto.rating_promedio = 0;
+              producto.total_reviews = 0;
+            }
+          });
+
+          console.log('✅ Reviews cargadas:', this.reviews_por_producto);
+          this.load_reviews = false;
+        },
+        error: (error) => {
+          console.error('❌ Error cargando reviews:', error);
+          this.load_reviews = false;
+        }
+      });
+  }
+
+  /**
+   * Obtiene las estadísticas de reviews de un producto
+   */
+  getReviewsProducto(productoId: string): any {
+    return this.reviews_por_producto[productoId] || {
+      total: 0,
+      promedio: 0,
+      distribucion: {}
+    };
+  }
+
+  /**
+   * Genera array de números para estrellas llenas
+   */
+  getArrayEstrellasLlenas(productoId: string): number[] {
+    const stats = this.getReviewsProducto(productoId);
+    const cantidad = Math.round(stats.promedio);
+    return Array(cantidad).fill(0);
+  }
+
+  /**
+   * Genera array de números para estrellas vacías
+   */
+  getArrayEstrellasVacias(productoId: string): number[] {
+    const stats = this.getReviewsProducto(productoId);
+    const cantidad = 5 - Math.round(stats.promedio);
+    return Array(cantidad).fill(0);
+  }
+
+  /**
+   * Aplica el descuento activo a todos los productos
    */
   private aplicarDescuentoAProductos(): void {
     if (!this.tiene_descuento || !this.descuento_activo) {
-      console.log('⚠️ No hay descuento para aplicar');
       return;
     }
 
     const porcentaje = this.descuento_activo.descuento;
-    console.log(`🔧 Aplicando ${porcentaje}% de descuento a ${this.productos.length} productos`);
 
     this.productos = this.productos.map(producto => {
       const productoConDescuento = { ...producto };
@@ -154,7 +233,6 @@ export class IndexProductoComponent implements OnInit, AfterViewInit, OnDestroy 
       productoConDescuento.precio_con_descuento = this.calcularPrecioConDescuento(producto.precio);
       productoConDescuento.tiene_descuento = true;
       productoConDescuento.porcentaje_descuento = porcentaje;
-      
       return productoConDescuento;
     });
 
@@ -164,11 +242,8 @@ export class IndexProductoComponent implements OnInit, AfterViewInit, OnDestroy 
       productoConDescuento.precio_con_descuento = this.calcularPrecioConDescuento(producto.precio);
       productoConDescuento.tiene_descuento = true;
       productoConDescuento.porcentaje_descuento = porcentaje;
-      
       return productoConDescuento;
     });
-
-    console.log('✅ Descuento aplicado a todos los productos');
   }
 
   /**
@@ -243,7 +318,7 @@ export class IndexProductoComponent implements OnInit, AfterViewInit, OnDestroy 
   }
 
   /**
-   * Carga productos desde el servidor - MEJORADO
+   * Carga productos desde el servidor
    */
   cargarProductos(): void {
     console.log('📦 Cargando productos...');
@@ -256,13 +331,15 @@ export class IndexProductoComponent implements OnInit, AfterViewInit, OnDestroy 
           console.log('✅ Productos cargados:', response.data?.length || 0);
           this.productos_constante = response.data || [];
           
-          // Aplicar descuento si existe
           if (this.tiene_descuento) {
-            console.log('🔄 Aplicando descuento a productos recién cargados...');
             this.aplicarDescuentoAProductos();
           }
           
           this.aplicarFiltros();
+          
+          // Cargar reviews después de cargar productos
+          this.cargarReviewsProductos();
+          
           this.load_data = false;
         },
         error: (error) => {
@@ -270,6 +347,7 @@ export class IndexProductoComponent implements OnInit, AfterViewInit, OnDestroy 
           this.productos_constante = [];
           this.productos = [];
           this.load_data = false;
+          this.load_reviews = false;
         }
       });
   }
@@ -280,7 +358,6 @@ export class IndexProductoComponent implements OnInit, AfterViewInit, OnDestroy 
   aplicarFiltros(): void {
     let resultado = [...this.productos_constante];
 
-    // Filtro de búsqueda por texto
     if (this.filter_producto && this.filter_producto.trim() !== '') {
       const search = new RegExp(this.filter_producto, 'i');
       resultado = resultado.filter(item =>
@@ -290,30 +367,24 @@ export class IndexProductoComponent implements OnInit, AfterViewInit, OnDestroy 
       );
     }
 
-    // Filtro por categoría de ruta
     if (this.route_categoria) {
       resultado = resultado.filter(item =>
         item.categoria.toLowerCase() === this.route_categoria.toLowerCase()
       );
     }
 
-    // Filtro por categoría seleccionada
     if (this.filter_cat_producto !== 'todos') {
       resultado = resultado.filter(item =>
         item.categoria === this.filter_cat_producto
       );
     }
 
-    // Filtro por rango de precios (usar precio con descuento si existe)
     resultado = resultado.filter(item => {
       const precioFinal = this.getPrecioFinal(item);
       return precioFinal >= this.precio_min && precioFinal <= this.precio_max;
     });
 
-    // Aplicar ordenamiento
     this.productos = this.aplicarOrdenamiento(resultado);
-    
-    // Resetear paginación
     this.page = 1;
   }
 
@@ -331,7 +402,7 @@ export class IndexProductoComponent implements OnInit, AfterViewInit, OnDestroy 
         resultado.sort((a, b) => this.getPrecioFinal(b) - this.getPrecioFinal(a));
         break;
       case 'calificacionpromedio':
-        resultado.sort((a, b) => (b.calificacion_promedio || 0) - (a.calificacion_promedio || 0));
+        resultado.sort((a, b) => (b.rating_promedio || 0) - (a.rating_promedio || 0));
         break;
       case 'ordenarA_Z':
         resultado.sort((a, b) => a.titulo.localeCompare(b.titulo));
@@ -346,9 +417,7 @@ export class IndexProductoComponent implements OnInit, AfterViewInit, OnDestroy 
     return resultado;
   }
 
-  buscar_categorias(): void {
-    // Implementar si es necesario
-  }
+  buscar_categorias(): void {}
 
   buscar_productos(): void {
     this.searchSubject$.next(this.filter_producto);
@@ -391,14 +460,9 @@ export class IndexProductoComponent implements OnInit, AfterViewInit, OnDestroy 
   private verificarAutenticacion(): boolean {
     if (!this._clienteService.isAuthenticated()) {
       this.mostrarAdvertencia('Debes iniciar sesión para agregar productos a tu carrito');
-      
-      setTimeout(() => {
-        this._router.navigate(['/login']);
-      }, 1500);
-      
+      setTimeout(() => { this._router.navigate(['/login']); }, 1500);
       return false;
     }
-    
     return true;
   }
 

@@ -3,12 +3,11 @@
 <main class="cs-page-wrapper">
     <!-- Banner de Descuento Activo -->
     <div class="container-fluid px-0" *ngIf="tiene_descuento && !load_descuento">
-        <div class="position-relative" style="max-height: 300px; overflow: hidden;">
+        <div class="discount-banner-wrapper">
             <img 
                 [src]="url + 'obtener_banner_descuento/' + descuento_activo.banner" 
                 [alt]="descuento_activo.titulo"
-                class="w-100"
-                style="object-fit: cover; object-position: center;">
+                class="w-100">
             <div class="position-absolute" style="top: 20px; right: 20px;">
                 <span class="badge badge-danger badge-pill px-4 py-2" style="font-size: 1.2rem;">
                     <i class="cxi-tag mr-2"></i>
@@ -289,15 +288,24 @@
                                          [alt]="producto.titulo"
                                          class="card-img-top">
                                     
+                                    <!-- ⭐ RATING DINÁMICO DE ESTRELLAS ⭐ -->
                                     <div class="card-product-widgets-top">
-                                        <div class="star-rating ml-auto">
-                                            <i class="sr-star cxi-star-filled active"></i>
-                                            <i class="sr-star cxi-star-filled active"></i>
-                                            <i class="sr-star cxi-star-filled active"></i>
-                                            <i class="sr-star cxi-star-filled active"></i>
-                                            <i class="sr-star cxi-star-filled active"></i>
+                                        <div class="star-rating ml-auto" 
+                                             *ngIf="!load_reviews"
+                                             [title]="'Calificación: ' + getReviewsProducto(producto._id).promedio + ' de 5 estrellas'">
+                                            <!-- Estrellas llenas -->
+                                            <i *ngFor="let star of getArrayEstrellasLlenas(producto._id)" 
+                                               class="sr-star cxi-star-filled active"></i>
+                                            <!-- Estrellas vacías -->
+                                            <i *ngFor="let star of getArrayEstrellasVacias(producto._id)" 
+                                               class="sr-star cxi-star"></i>
+                                            <!-- Total de reviews (opcional) -->
+                                            <span class="star-rating-text" *ngIf="getReviewsProducto(producto._id).total > 0">
+                                                ({{ getReviewsProducto(producto._id).total }})
+                                            </span>
                                         </div>
                                     </div>
+
                                     <div class="card-product-widgets-bottom">
                                         <span class="btn-wishlist ml-auto"
                                               data-toggle="tooltip" 
