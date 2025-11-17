@@ -3,10 +3,10 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ClienteService } from 'src/app/services/cliente.service';
 import { GuestService } from 'src/app/services/guest.service';
-import { Global } from 'src/app/services/global';
-import { Subject } from 'rxjs';
-import { takeUntil, finalize } from 'rxjs/operators';
 import { ReviewService } from 'src/app/services/review.service';
+import { Global } from 'src/app/services/global';
+import { Subject, forkJoin } from 'rxjs';
+import { takeUntil, finalize } from 'rxjs/operators';
 declare var tns: any;
 declare var lightGallery: any;
 declare var iziToast: any;
@@ -35,6 +35,8 @@ export class ShowProductoComponent implements OnInit, OnDestroy {
   public precio_original: number = 0;
   public precio_con_descuento: number = 0;
   public porcentaje_ahorro: number = 0;
+
+  // Variables para reviews
   public reviews: Array<any> = [];
   public estadisticas_reviews: any = {
     total: 0,
@@ -45,14 +47,20 @@ export class ShowProductoComponent implements OnInit, OnDestroy {
   public pagina_reviews = 1;
   public reviews_por_pagina = 5;
 
+  // Estado de carga general
+  public load_data = true;
+
+  // Exponer Math para usar en template
+  public Math = Math;
+
   private destroy$ = new Subject<void>();
 
   constructor(
     private _route: ActivatedRoute,
     private _guestService: GuestService,
     private _clientService: ClienteService,
-    private _router: Router,
-    private _reviewService: ReviewService
+    private _reviewService: ReviewService,
+    private _router: Router
   ) {
     this.token = localStorage.getItem('token');
     this.url = Global.url;
@@ -63,9 +71,7 @@ export class ShowProductoComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe(params => {
         this.slug = params.slug;
-        this.cargarProducto();
-        this.cargarDescuentoActivo();
-        this.cargarReviews();
+        this.inicializarComponente();
       });
   }
 
@@ -75,69 +81,59 @@ export class ShowProductoComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Carga el descuento activo
+   * Inicializa el componente cargando todos los datos en paralelo
    */
-  private cargarDescuentoActivo(): void {
-    this.load_descuento = true;
-    this._guestService.obtener_descuento_activo()
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: (response) => {
-          this.descuento_activo = response.data;
-          this.tiene_descuento = !!this.descuento_activo;
-          this.load_descuento = false;
+  private inicializarComponente(): void {
+    this.load_data = true;
 
-          // Si hay descuento y producto cargado, calcular precios
-          if (this.tiene_descuento && this.producto._id) {
-            this.calcularPreciosConDescuento();
-          }
-        },
-        error: (error) => {
-          console.error('Error cargando descuento:', error);
-          this.descuento_activo = null;
-          this.tiene_descuento = false;
-          this.load_descuento = false;
+    // Cargar producto y descuento en paralelo
+    forkJoin({
+      producto: this._guestService.obtener_producto_slug_publico(this.slug),
+      descuento: this._guestService.obtener_descuento_activo()
+    })
+    .pipe(
+      takeUntil(this.destroy$),
+      finalize(() => {
+        this.load_data = false;
+      })
+    )
+    .subscribe({
+      next: (response) => {
+        // Procesar producto
+        this.producto = response.producto.data;
+        this.precio_original = this.producto.precio;
+
+        // Configurar variedad inicial
+        if (this.producto.variedades && this.producto.variedades.length > 0) {
+          this.carrito_data.variedad = this.producto.variedades[0].titulo;
+        } else {
+          this.carrito_data.variedad = 'Estándar';
         }
-      });
-  }
 
-  /**
-   * Carga los datos del producto
-   */
-  private cargarProducto(): void {
-    this._guestService.obtener_producto_slug_publico(this.slug)
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: (response) => {
-          this.producto = response.data;
-          this.precio_original = this.producto.precio;
+        // Procesar descuento
+        this.descuento_activo = response.descuento.data;
+        this.tiene_descuento = !!this.descuento_activo;
+        this.load_descuento = false;
 
-          // Configurar variedad inicial
-          if (this.producto.variedades && this.producto.variedades.length > 0) {
-            this.carrito_data.variedad = this.producto.variedades[0].titulo;
-          } else {
-            this.carrito_data.variedad = 'Estándar';
-          }
-
-          // Calcular precios con descuento si existe
-          if (this.tiene_descuento) {
-            this.calcularPreciosConDescuento();
-          }
-
-          // Cargar productos recomendados
-          this.cargarProductosRecomendados();
-
-          // Inicializar carruseles
-          setTimeout(() => {
-            this.inicializarCarruseles();
-          }, 500);
-        },
-        error: (error) => {
-          console.error('Error cargando producto:', error);
-          this.mostrarError('No se pudo cargar el producto');
-          this._router.navigate(['/productos']);
+        if (this.tiene_descuento) {
+          this.calcularPreciosConDescuento();
         }
-      });
+
+        // Cargar reviews y productos recomendados
+        this.cargarReviews();
+        this.cargarProductosRecomendados();
+
+        // Inicializar carruseles después de que el DOM esté listo
+        setTimeout(() => {
+          this.inicializarCarruseles();
+        }, 500);
+      },
+      error: (error) => {
+        console.error('Error cargando datos:', error);
+        this.mostrarError('No se pudo cargar el producto');
+        this._router.navigate(['/productos']);
+      }
+    });
   }
 
   /**
@@ -209,6 +205,137 @@ export class ShowProductoComponent implements OnInit, OnDestroy {
   }
 
   /**
+   * Carga las reseñas del producto - CORREGIDO
+   */
+  private cargarReviews(): void {
+    if (!this.producto._id) {
+      setTimeout(() => this.cargarReviews(), 500);
+      return;
+    }
+
+    this.load_reviews = true;
+
+    this._reviewService.listar_reviews_producto(this.producto._id)
+      .pipe(
+        takeUntil(this.destroy$),
+        finalize(() => {
+          this.load_reviews = false;
+        })
+      )
+      .subscribe({
+        next: (response: any) => {
+          console.log('=== RESPONSE REVIEWS ===', response);
+          
+          // Asegurar que tenemos datos válidos
+          this.reviews = Array.isArray(response.data) ? response.data : [];
+          
+          this.estadisticas_reviews = response.estadisticas || {
+            total: 0,
+            promedio: 0,
+            distribucion: { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 }
+          };
+
+          console.log('Reviews cargadas:', this.reviews.length);
+          console.log('Estadísticas:', this.estadisticas_reviews);
+        },
+        error: (error) => {
+          console.error('Error cargando reviews:', error);
+          this.reviews = [];
+          this.estadisticas_reviews = {
+            total: 0,
+            promedio: 0,
+            distribucion: { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 }
+          };
+        }
+      });
+  }
+
+  /**
+   * Obtiene el porcentaje de una calificación específica
+   */
+  getPorcentajeRating(rating: number): number {
+    if (!this.estadisticas_reviews || this.estadisticas_reviews.total === 0) {
+      return 0;
+    }
+
+    const cantidad = this.estadisticas_reviews.distribucion[rating] || 0;
+    return (cantidad / this.estadisticas_reviews.total) * 100;
+  }
+
+  /**
+   * Formatea fecha de la reseña
+   */
+  formatearFechaReview(fecha: string): string {
+    if (!fecha) return '';
+    
+    try {
+      const fechaObj = new Date(fecha);
+      const ahora = new Date();
+      const diferencia = ahora.getTime() - fechaObj.getTime();
+      const dias = Math.floor(diferencia / (1000 * 60 * 60 * 24));
+
+      if (dias === 0) return 'Hoy';
+      if (dias === 1) return 'Ayer';
+      if (dias < 7) return `Hace ${dias} días`;
+      if (dias < 30) {
+        const semanas = Math.floor(dias / 7);
+        return `Hace ${semanas} ${semanas === 1 ? 'semana' : 'semanas'}`;
+      }
+      if (dias < 365) {
+        const meses = Math.floor(dias / 30);
+        return `Hace ${meses} ${meses === 1 ? 'mes' : 'meses'}`;
+      }
+
+      return fechaObj.toLocaleDateString('es-ES', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      });
+    } catch (e) {
+      return fecha;
+    }
+  }
+
+  /**
+   * Genera array de números para estrellas - CORREGIDO
+   */
+  getArrayEstrellas(cantidad: number): number[] {
+    return Array(Math.round(cantidad)).fill(0);
+  }
+
+  /**
+   * Obtiene las reviews paginadas
+   */
+  get reviewsPaginadas(): Array<any> {
+    const inicio = (this.pagina_reviews - 1) * this.reviews_por_pagina;
+    const fin = inicio + this.reviews_por_pagina;
+    return this.reviews.slice(inicio, fin);
+  }
+
+  /**
+   * Obtiene el total de páginas
+   */
+  get totalPaginasReviews(): number {
+    return Math.ceil(this.reviews.length / this.reviews_por_pagina);
+  }
+
+  /**
+   * Cambia de página en las reviews
+   */
+  cambiarPaginaReviews(pagina: number): void {
+    if (pagina < 1 || pagina > this.totalPaginasReviews) {
+      return;
+    }
+    this.pagina_reviews = pagina;
+    
+    // Scroll al inicio de las reviews
+    const reviewsSection = document.getElementById('reviews-section');
+    if (reviewsSection) {
+      reviewsSection.scrollIntoView({ behavior: 'smooth' });
+    }
+  }
+
+  /**
    * Inicializa carruseles
    */
   private inicializarCarruseles(): void {
@@ -258,22 +385,10 @@ export class ShowProductoComponent implements OnInit, OnDestroy {
           nav: false,
           controlsContainer: "#custom-controls-related",
           responsive: {
-            0: {
-              items: 1,
-              gutter: 20
-            },
-            480: {
-              items: 2,
-              gutter: 24
-            },
-            700: {
-              items: 3,
-              gutter: 24
-            },
-            1100: {
-              items: 4,
-              gutter: 30
-            }
+            0: { items: 1, gutter: 20 },
+            480: { items: 2, gutter: 24 },
+            700: { items: 3, gutter: 24 },
+            1100: { items: 4, gutter: 30 }
           }
         });
       }
@@ -291,14 +406,9 @@ export class ShowProductoComponent implements OnInit, OnDestroy {
 
     if (!token || !userId) {
       this.mostrarAdvertencia('Debes iniciar sesión para agregar productos a tu carrito');
-
-      setTimeout(() => {
-        this._router.navigate(['/login']);
-      }, 1500);
-
+      setTimeout(() => { this._router.navigate(['/login']); }, 1500);
       return false;
     }
-
     return true;
   }
 
@@ -306,11 +416,8 @@ export class ShowProductoComponent implements OnInit, OnDestroy {
    * Agrega producto al carrito
    */
   agregar_producto(): void {
-    if (!this.verificarAutenticacion()) {
-      return;
-    }
+    if (!this.verificarAutenticacion()) return;
 
-    // Validar variedad
     if (this.producto.variedades && this.producto.variedades.length > 0) {
       if (!this.carrito_data.variedad) {
         this.mostrarError('Por favor selecciona una variedad');
@@ -320,7 +427,6 @@ export class ShowProductoComponent implements OnInit, OnDestroy {
       this.carrito_data.variedad = 'Estándar';
     }
 
-    // Validar stock
     if (this.carrito_data.cantidad > this.producto.stock) {
       this.mostrarError(`Solo hay ${this.producto.stock} unidades disponibles`);
       return;
@@ -345,7 +451,6 @@ export class ShowProductoComponent implements OnInit, OnDestroy {
       .subscribe({
         next: (response) => {
           this.btn_cart = false;
-
           if (response.data == undefined) {
             this.mostrarInfo('Este producto ya se encuentra en tu carrito de compras');
           } else {
@@ -354,7 +459,6 @@ export class ShowProductoComponent implements OnInit, OnDestroy {
         },
         error: (error) => {
           this.btn_cart = false;
-
           if (error.status === 401 || error.status === 403) {
             this.mostrarError('Tu sesión ha expirado. Por favor inicia sesión nuevamente');
             setTimeout(() => {
@@ -369,142 +473,6 @@ export class ShowProductoComponent implements OnInit, OnDestroy {
       });
   }
 
-
-  /**
-   * Carga las reseñas del producto
-   */
-  private cargarReviews(): void {
-    if (!this.producto._id) {
-      setTimeout(() => this.cargarReviews(), 500);
-      return;
-    }
-
-    this.load_reviews = true;
-
-    (this._reviewService.listar_reviews_producto(this.producto._id) as any)
-      .pipe(
-        takeUntil(this.destroy$),
-        finalize(() => {
-          this.load_reviews = false;
-        })
-      )
-      .subscribe({
-        next: (response: any) => {
-          this.reviews = response.data || [];
-          this.estadisticas_reviews = response.estadisticas || {
-            total: 0,
-            promedio: 0,
-            distribucion: { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 }
-          };
-        },
-        error: (error) => {
-          console.error('Error cargando reviews:', error);
-          this.reviews = [];
-        }
-      });
-  }
-
-  /**
-   * Obtiene el porcentaje de una calificación específica
-   */
-  getPorcentajeRating(rating: number): number {
-    if (!this.estadisticas_reviews || this.estadisticas_reviews.total === 0) {
-      return 0;
-    }
-
-    const cantidad = this.estadisticas_reviews.distribucion[rating] || 0;
-    return (cantidad / this.estadisticas_reviews.total) * 100;
-  }
-
-  /**
-   * Obtiene la clase de color para la barra de progreso
-   */
-  getColorBarra(rating: number): string {
-    if (rating === 5) return 'bg-success';
-    if (rating === 4) return 'bg-info';
-    if (rating === 3) return 'bg-warning';
-    if (rating === 2) return 'bg-orange';
-    return 'bg-danger';
-  }
-
-  /**
-   * Formatea fecha de la reseña
-   */
-  formatearFechaReview(fecha: string): string {
-    if (!fecha) return '';
-    
-    try {
-      const fechaObj = new Date(fecha);
-      const ahora = new Date();
-      const diferencia = ahora.getTime() - fechaObj.getTime();
-      const dias = Math.floor(diferencia / (1000 * 60 * 60 * 24));
-
-      if (dias === 0) return 'Hoy';
-      if (dias === 1) return 'Ayer';
-      if (dias < 7) return `Hace ${dias} días`;
-      if (dias < 30) {
-        const semanas = Math.floor(dias / 7);
-        return `Hace ${semanas} ${semanas === 1 ? 'semana' : 'semanas'}`;
-      }
-      if (dias < 365) {
-        const meses = Math.floor(dias / 30);
-        return `Hace ${meses} ${meses === 1 ? 'mes' : 'meses'}`;
-      }
-
-      return fechaObj.toLocaleDateString('es-ES', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric'
-      });
-    } catch (e) {
-      return fecha;
-    }
-  }
-
-  /**
-   * Genera array de estrellas para visualización
-   */
-  getArrayEstrellas(rating: number): boolean[] {
-    return Array(5).fill(false).map((_, index) => index < rating);
-  }
-
-  /**
-   * Obtiene las reviews paginadas
-   */
-  get reviewsPaginadas(): Array<any> {
-    const inicio = (this.pagina_reviews - 1) * this.reviews_por_pagina;
-    const fin = inicio + this.reviews_por_pagina;
-    return this.reviews.slice(inicio, fin);
-  }
-
-  /**
-   * Obtiene el total de páginas
-   */
-  get totalPaginasReviews(): number {
-    return Math.ceil(this.reviews.length / this.reviews_por_pagina);
-  }
-
-  /**
-   * Cambia de página en las reviews
-   */
-  cambiarPaginaReviews(pagina: number): void {
-    if (pagina < 1 || pagina > this.totalPaginasReviews) {
-      return;
-    }
-    this.pagina_reviews = pagina;
-    
-    // Scroll al inicio de las reviews
-    const reviewsSection = document.getElementById('reviews-section');
-    if (reviewsSection) {
-      reviewsSection.scrollIntoView({ behavior: 'smooth' });
-    }
-  }
-
-
-
-  /**
-   * Muestra mensaje de éxito
-   */
   private mostrarExito(mensaje: string): void {
     iziToast.success({
       title: '¡Agregado!',
@@ -517,9 +485,6 @@ export class ShowProductoComponent implements OnInit, OnDestroy {
     });
   }
 
-  /**
-   * Muestra mensaje de error
-   */
   private mostrarError(mensaje: string): void {
     iziToast.error({
       title: 'Ups...',
@@ -532,9 +497,6 @@ export class ShowProductoComponent implements OnInit, OnDestroy {
     });
   }
 
-  /**
-   * Muestra mensaje informativo
-   */
   private mostrarInfo(mensaje: string): void {
     iziToast.info({
       title: 'Ya está en tu carrito',
@@ -547,9 +509,6 @@ export class ShowProductoComponent implements OnInit, OnDestroy {
     });
   }
 
-  /**
-   * Muestra mensaje de advertencia
-   */
   private mostrarAdvertencia(mensaje: string): void {
     iziToast.warning({
       title: 'Inicia sesión',
