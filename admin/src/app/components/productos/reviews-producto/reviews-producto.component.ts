@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ProductoService } from 'src/app/services/producto.service';
-import { ReviewService } from '../../../services/review.service';
+import { ReviewService } from 'src/app/services/review.service';
 import { Global } from 'src/app/services/global';
 
 declare var iziToast: any;
@@ -33,6 +33,9 @@ export class ReviewsProductoComponent implements OnInit {
 
   // Filtros
   public filtro_rating: string = 'todos';
+
+  // Exponer Math para usar en el template
+  public Math = Math;
 
   constructor(
     private _route: ActivatedRoute,
@@ -99,20 +102,41 @@ export class ReviewsProductoComponent implements OnInit {
   cargar_reviews(): void {
     this.load_reviews = true;
     
+    console.log('=== DEBUG CARGAR REVIEWS ===');
+    console.log('ID del producto:', this.id);
+    console.log('Token:', this.token ? 'Presente' : 'No presente');
+    
     this._reviewService.listar_reviews_producto_admin(this.id, this.token).subscribe(
       (response) => {
+        console.log('✓ Respuesta del servidor:', response);
+        console.log('Reviews recibidas:', response.data);
+        console.log('Estadísticas recibidas:', response.estadisticas);
+        
         this.reviews = response.data || [];
         this.estadisticas = response.estadisticas || {
           total: 0,
           promedio: 0,
           distribucion: { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 }
         };
+        
+        console.log('Total de reviews cargadas:', this.reviews.length);
         this.load_reviews = false;
       },
       (error) => {
-        console.error('Error al cargar reviews:', error);
+        console.error('✗ Error al cargar reviews:', error);
+        console.error('Status:', error.status);
+        console.error('Mensaje:', error.message);
+        console.error('Error completo:', error);
+        
         this.reviews = [];
+        this.estadisticas = {
+          total: 0,
+          promedio: 0,
+          distribucion: { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 }
+        };
         this.load_reviews = false;
+        
+        this.mostrarError('Error al cargar las reseñas. Revisa la consola para más detalles.');
       }
     );
   }
