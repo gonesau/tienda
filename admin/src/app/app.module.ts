@@ -31,6 +31,8 @@ import { EditDescuentoComponent } from './components/descuento/edit-descuento/ed
 import { IndexDescuentoComponent } from './components/descuento/index-descuento/index-descuento.component';
 import { IndexContactoComponent } from './components/contacto/index-contacto/index-contacto.component';
 import { ReviewsProductoComponent } from './components/productos/reviews-producto/reviews-producto.component';
+import { IndexVentasComponent } from './components/ventas/index-ventas/index-ventas.component';
+import { DetalleVentaComponent } from './components/ventas/detalle-venta/detalle-venta.component';
 
 
 
@@ -57,7 +59,9 @@ import { ReviewsProductoComponent } from './components/productos/reviews-product
     EditDescuentoComponent,
     IndexDescuentoComponent,
     IndexContactoComponent,
-    ReviewsProductoComponent
+    ReviewsProductoComponent,
+    IndexVentasComponent,
+    DetalleVentaComponent
   ],
   imports: [
     BrowserModule,

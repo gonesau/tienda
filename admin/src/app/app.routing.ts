@@ -22,6 +22,7 @@ import { CreateDescuentoComponent } from "./components/descuento/create-descuent
 import { EditDescuentoComponent } from "./components/descuento/edit-descuento/edit-descuento.component";
 import { IndexContactoComponent } from "./components/contacto/index-contacto/index-contacto.component";
 import { ReviewsProductoComponent } from "./components/productos/reviews-producto/reviews-producto.component";
+import { IndexVentasComponent } from "./components/ventas/index-ventas/index-ventas.component";
 
 
 const appRoutes: Routes = [
@@ -63,6 +64,12 @@ const appRoutes: Routes = [
 
     //Ruta de Reviews 
     {path: 'reviews/:id', component: ReviewsProductoComponent, canActivate: [AdminGuard]},
+
+    //Ruta de Ventas
+    {path: 'ventas', component: IndexVentasComponent, canActivate: [AdminGuard]},
+    {path: 'ventas/:id', component: IndexVentasComponent, canActivate: [AdminGuard]},
+    
+    
 
   ]},
   {path: 'login', component: LoginComponent},
