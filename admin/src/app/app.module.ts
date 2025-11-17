@@ -30,6 +30,7 @@ import { CreateDescuentoComponent } from './components/descuento/create-descuent
 import { EditDescuentoComponent } from './components/descuento/edit-descuento/edit-descuento.component';
 import { IndexDescuentoComponent } from './components/descuento/index-descuento/index-descuento.component';
 import { IndexContactoComponent } from './components/contacto/index-contacto/index-contacto.component';
+import { ReviewsProductoComponent } from './components/productos/reviews-producto/reviews-producto.component';
 
 
 
@@ -55,7 +56,8 @@ import { IndexContactoComponent } from './components/contacto/index-contacto/ind
     CreateDescuentoComponent,
     EditDescuentoComponent,
     IndexDescuentoComponent,
-    IndexContactoComponent
+    IndexContactoComponent,
+    ReviewsProductoComponent
   ],
   imports: [
     BrowserModule,
