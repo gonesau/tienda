@@ -1,0 +1,138 @@
+/* ============================================
+   DASHBOARD INICIO - ESTILOS
+   ============================================ */
+
+/* --- KPI Cards --- */
+.kpi-card {
+  transition: all 0.3s ease;
+  border-left: 4px solid transparent;
+}
+
+.kpi-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1) !important;
+}
+
+.kpi-card:nth-child(1) {
+  border-left-color: #0d6efd;
+}
+
+.kpi-card:nth-child(2) {
+  border-left-color: #198754;
+}
+
+.kpi-card:nth-child(3) {
+  border-left-color: #ffc107;
+}
+
+.kpi-card:nth-child(4) {
+  border-left-color: #0dcaf0;
+}
+
+.kpi-icon {
+  transition: transform 0.3s ease;
+}
+
+.kpi-card:hover .kpi-icon {
+  transform: scale(1.1);
+}
+
+/* --- Charts Container --- */
+.chart-container {
+  position: relative;
+  width: 100%;
+}
+
+/* --- Cards --- */
+.card {
+  transition: all 0.3s ease;
+}
+
+.card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
+}
+
+/* --- Badge Animations --- */
+.badge {
+  animation: fadeIn 0.5s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* --- Table Styling --- */
+.table thead th {
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 0.8rem;
+  letter-spacing: 0.5px;
+  color: #495057;
+  border-bottom: 2px solid #dee2e6;
+}
+
+.table tbody tr {
+  transition: background-color 0.15s ease;
+}
+
+.table tbody tr:hover {
+  background-color: rgba(13, 110, 253, 0.05);
+}
+
+/* --- Responsive Design --- */
+@media (max-width: 767.98px) {
+  .kpi-card h3 {
+    font-size: 1.5rem;
+  }
+  
+  .chart-container {
+    height: 250px !important;
+  }
+}
+
+@media (max-width: 575.98px) {
+  .kpi-icon {
+    padding: 0.75rem !important;
+  }
+  
+  .kpi-icon i {
+    font-size: 1.5rem !important;
+  }
+}
+
+/* --- Loading Animation --- */
+.spinner-border {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* --- Card Header Styling --- */
+.card-header {
+  background-color: #f8f9fa;
+  border-bottom: 1px solid #dee2e6;
+}
+
+/* --- Button Group Styling --- */
+.btn-group .btn {
+  font-size: 0.875rem;
+}
+
+/* --- Smooth Transitions --- */
+* {
+  transition: all 0.3s ease;
+}
+
+button, a, .card, .badge {
+  transition: all 0.3s ease;
+}

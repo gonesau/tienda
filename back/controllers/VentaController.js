@@ -809,8 +809,9 @@ const actualizar_estado_venta_admin = async function(req, res) {
     }
 }
 
+
 /**
- * Obtiene estadísticas de ventas (ADMIN)
+ * Obtiene estadísticas mejoradas de ventas (ADMIN)
  */
 const obtener_estadisticas_ventas_admin = async function(req, res) {
     if (!req.user) {
@@ -828,7 +829,14 @@ const obtener_estadisticas_ventas_admin = async function(req, res) {
     }
 
     try {
-        // Total de ventas
+        const hoy = new Date();
+        const inicioMesActual = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
+        const finMesActual = new Date(hoy.getFullYear(), hoy.getMonth() + 1, 0, 23, 59, 59);
+        
+        const inicioMesAnterior = new Date(hoy.getFullYear(), hoy.getMonth() - 1, 1);
+        const finMesAnterior = new Date(hoy.getFullYear(), hoy.getMonth(), 0, 23, 59, 59);
+
+        // Ventas totales
         const totalVentas = await Venta.countDocuments();
 
         // Ventas por estado
@@ -836,9 +844,31 @@ const obtener_estadisticas_ventas_admin = async function(req, res) {
         const ventasEnviadas = await Venta.countDocuments({ estado: 'Enviado' });
         const ventasEntregadas = await Venta.countDocuments({ estado: 'Entregado' });
 
-        // Calcular ingresos totales
+        // Ventas mes actual
+        const ventasMesActual = await Venta.countDocuments({
+            createdAt: { $gte: inicioMesActual, $lte: finMesActual }
+        });
+
+        // Ventas mes anterior
+        const ventasMesAnterior = await Venta.countDocuments({
+            createdAt: { $gte: inicioMesAnterior, $lte: finMesAnterior }
+        });
+
+        // Ingresos totales
         const ventas = await Venta.find({}).select('subtotal');
         const totalIngresos = ventas.reduce((sum, venta) => sum + venta.subtotal, 0);
+
+        // Ingresos mes actual
+        const ventasMesActualData = await Venta.find({
+            createdAt: { $gte: inicioMesActual, $lte: finMesActual }
+        }).select('subtotal');
+        const ingresosMesActual = ventasMesActualData.reduce((sum, venta) => sum + venta.subtotal, 0);
+
+        // Ingresos mes anterior
+        const ventasMesAnteriorData = await Venta.find({
+            createdAt: { $gte: inicioMesAnterior, $lte: finMesAnterior }
+        }).select('subtotal');
+        const ingresosMesAnterior = ventasMesAnteriorData.reduce((sum, venta) => sum + venta.subtotal, 0);
 
         // Ticket promedio
         const ticketPromedio = totalVentas > 0 ? totalIngresos / totalVentas : 0;
@@ -850,7 +880,11 @@ const obtener_estadisticas_ventas_admin = async function(req, res) {
                 ticket_promedio: parseFloat(ticketPromedio.toFixed(2)),
                 ventas_procesando: ventasProcesando,
                 ventas_enviadas: ventasEnviadas,
-                ventas_entregadas: ventasEntregadas
+                ventas_entregadas: ventasEntregadas,
+                ventas_mes_actual: ventasMesActual,
+                ventas_mes_anterior: ventasMesAnterior,
+                ingresos_mes_actual: parseFloat(ingresosMesActual.toFixed(2)),
+                ingresos_mes_anterior: parseFloat(ingresosMesAnterior.toFixed(2))
             }
         });
 
@@ -862,8 +896,6 @@ const obtener_estadisticas_ventas_admin = async function(req, res) {
         });
     }
 }
-
-
 
 module.exports = {
     registro_compra_cliente,
