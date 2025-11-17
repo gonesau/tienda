@@ -138,70 +138,206 @@
                         </div>
                     </div>
 
-                    <!-- Productos -->
-                    <div class="card border-0 shadow-sm mb-4">
-                        <div class="card-header bg-light">
-                            <h3 class="h5 mb-0">
-                                <i class="cxi-box mr-2"></i>
-                                Productos ({{ detalles.length }})
-                            </h3>
-                        </div>
-                        <div class="card-body p-0">
-                            <div class="table-responsive">
-                                <table class="table mb-0">
-                                    <thead class="bg-light">
-                                        <tr>
-                                            <th class="border-0 py-3">Producto</th>
-                                            <th class="border-0 py-3">Variedad</th>
-                                            <th class="border-0 py-3 text-center">Cantidad</th>
-                                            <th class="border-0 py-3 text-right">Precio Unit.</th>
-                                            <th class="border-0 py-3 text-right">Subtotal</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <tr *ngFor="let detalle of detalles">
-                                            <!-- Producto -->
-                                            <td class="py-3">
-                                                <div class="d-flex align-items-center">
-                                                    <img 
-                                                        [src]="_clienteService.url + 'obtener_portada/' + detalle.producto.portada" 
-                                                        [alt]="detalle.producto.titulo"
-                                                        class="rounded"
-                                                        style="width: 60px; height: 60px; object-fit: cover;">
-                                                    <div class="ml-3">
-                                                        <h6 class="mb-0">{{ detalle.producto.titulo }}</h6>
-                                                        <small class="text-muted">{{ detalle.producto.categoria }}</small>
-                                                    </div>
-                                                </div>
-                                            </td>
-
-                                            <!-- Variedad -->
-                                            <td class="py-3">
-                                                <span class="badge badge-light">
-                                                    {{ detalle.variedad || 'Estándar' }}
-                                                </span>
-                                            </td>
-
-                                            <!-- Cantidad -->
-                                            <td class="py-3 text-center">
-                                                <strong>{{ detalle.cantidad }}</strong>
-                                            </td>
-
-                                            <!-- Precio unitario -->
-                                            <td class="py-3 text-right">
-                                                ${{ (detalle.subtotal / detalle.cantidad).toFixed(2) }}
-                                            </td>
-
-                                            <!-- Subtotal -->
-                                            <td class="py-3 text-right">
-                                                <strong>${{ detalle.subtotal.toFixed(2) }}</strong>
-                                            </td>
-                                        </tr>
-                                    </tbody>
-                                </table>
+<!-- Productos con botón de reseña -->
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-header bg-light">
+        <h3 class="h5 mb-0">
+            <i class="cxi-box mr-2"></i>
+            Productos ({{ detalles.length }})
+        </h3>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table mb-0">
+                <thead class="bg-light">
+                    <tr>
+                        <th class="border-0 py-3">Producto</th>
+                        <th class="border-0 py-3">Variedad</th>
+                        <th class="border-0 py-3 text-center">Cantidad</th>
+                        <th class="border-0 py-3 text-right">Precio Unit.</th>
+                        <th class="border-0 py-3 text-right">Subtotal</th>
+                        <th class="border-0 py-3 text-center">Reseña</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr *ngFor="let detalle of detalles">
+                        <!-- Producto -->
+                        <td class="py-3">
+                            <div class="d-flex align-items-center">
+                                <img 
+                                    [src]="_clienteService.url + 'obtener_portada/' + detalle.producto.portada" 
+                                    [alt]="detalle.producto.titulo"
+                                    class="rounded"
+                                    style="width: 60px; height: 60px; object-fit: cover;">
+                                <div class="ml-3">
+                                    <h6 class="mb-0">{{ detalle.producto.titulo }}</h6>
+                                    <small class="text-muted">{{ detalle.producto.categoria }}</small>
+                                </div>
                             </div>
-                        </div>
+                        </td>
+
+                        <!-- Variedad -->
+                        <td class="py-3">
+                            <span class="badge badge-light">
+                                {{ detalle.variedad || 'Estándar' }}
+                            </span>
+                        </td>
+
+                        <!-- Cantidad -->
+                        <td class="py-3 text-center">
+                            <strong>{{ detalle.cantidad }}</strong>
+                        </td>
+
+                        <!-- Precio unitario -->
+                        <td class="py-3 text-right">
+                            ${{ (detalle.subtotal / detalle.cantidad).toFixed(2) }}
+                        </td>
+
+                        <!-- Subtotal -->
+                        <td class="py-3 text-right">
+                            <strong>${{ detalle.subtotal.toFixed(2) }}</strong>
+                        </td>
+
+                        <!-- Botón de reseña -->
+                        <td class="py-3 text-center">
+                            <!-- Puede reseñar -->
+                            <button 
+                                *ngIf="puedeMostrarBotonReview(detalle.producto._id)"
+                                type="button" 
+                                class="btn btn-sm btn-outline-primary"
+                                (click)="abrirModalReview(detalle)">
+                                <i class="cxi-star mr-1"></i>
+                                Emitir Reseña
+                            </button>
+
+                            <!-- Ya tiene reseña -->
+                            <span 
+                                *ngIf="tieneReview(detalle.producto._id)"
+                                class="badge badge-success">
+                                <i class="cxi-check mr-1"></i>
+                                Reseña enviada
+                            </span>
+
+                            <!-- No puede reseñar -->
+                            <span 
+                                *ngIf="!puedeMostrarBotonReview(detalle.producto._id) && !tieneReview(detalle.producto._id)"
+                                class="text-muted small">
+                                -
+                            </span>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL DE RESEÑA -->
+<div class="modal fade" id="modalReview" tabindex="-1" role="dialog" aria-labelledby="modalReviewLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <!-- Header -->
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalReviewLabel">
+                    <i class="cxi-star text-warning mr-2"></i>
+                    Deja tu reseña
+                </h5>
+                <button type="button" class="close" (click)="cerrarModalReview()" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+
+            <!-- Body -->
+            <div class="modal-body" *ngIf="producto_review">
+                <!-- Información del producto -->
+                <div class="d-flex align-items-center mb-4 pb-3 border-bottom">
+                    <img 
+                        [src]="_clienteService.url + 'obtener_portada/' + producto_review.portada" 
+                        [alt]="producto_review.titulo"
+                        class="rounded"
+                        style="width: 60px; height: 60px; object-fit: cover;">
+                    <div class="ml-3">
+                        <h6 class="mb-1">{{ producto_review.titulo }}</h6>
+                        <small class="text-muted">{{ producto_review.categoria }}</small>
                     </div>
+                </div>
+
+                <!-- Rating de estrellas -->
+                <div class="form-group">
+                    <label class="font-weight-bold">
+                        Calificación <span class="text-danger">*</span>
+                    </label>
+                    <div class="mb-2">
+                        <star-rating 
+                            [value]="review_form.rating"
+                            [totalstars]="5"
+                            checkedcolor="#ffc107"
+                            uncheckedcolor="#e0e0e0"
+                            size="32px"
+                            readonly="false"
+                            (rate)="onRatingChange($event.newValue)">
+                        </star-rating>
+                    </div>
+                    <small class="text-muted">
+                        Selecciona de 1 a 5 estrellas según tu experiencia
+                    </small>
+                </div>
+
+                <!-- Texto de la reseña -->
+                <div class="form-group">
+                    <label class="font-weight-bold" for="reviewText">
+                        Tu reseña <span class="text-danger">*</span>
+                    </label>
+                    <textarea 
+                        id="reviewText"
+                        class="form-control" 
+                        rows="5" 
+                        [(ngModel)]="review_form.review"
+                        [disabled]="enviando_review"
+                        placeholder="Cuéntanos tu experiencia con este producto..."
+                        maxlength="1000"></textarea>
+                    <small class="form-text text-muted">
+                        Mínimo 10 caracteres, máximo 1000 
+                        ({{ review_form.review.length }}/1000)
+                    </small>
+                </div>
+
+                <!-- Información -->
+                <div class="alert alert-info mb-0" role="alert">
+                    <small>
+                        <i class="cxi-info-circle mr-1"></i>
+                        Tu reseña será pública y ayudará a otros clientes a tomar decisiones de compra.
+                    </small>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="modal-footer">
+                <button 
+                    type="button" 
+                    class="btn btn-secondary"
+                    (click)="cerrarModalReview()"
+                    [disabled]="enviando_review">
+                    Cancelar
+                </button>
+                <button 
+                    type="button" 
+                    class="btn btn-primary"
+                    (click)="enviarReview()"
+                    [disabled]="enviando_review">
+                    <span *ngIf="!enviando_review">
+                        <i class="cxi-check mr-2"></i>
+                        Enviar Reseña
+                    </span>
+                    <span *ngIf="enviando_review">
+                        <span class="spinner-border spinner-border-sm mr-2"></span>
+                        Enviando...
+                    </span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
 
                     <!-- Resumen de la Orden -->
                     <div class="row">

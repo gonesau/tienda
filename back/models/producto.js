@@ -17,6 +17,11 @@ var ProductoSchema = Schema({
     titulo_variedad : {type: String, required: false},
     categoria : {type: String, required: true},
     estado: {type: String, default: 'Edicion', required: true},
+    
+    // NUEVOS CAMPOS PARA REVIEWS
+    rating_promedio: {type: Number, default: 0},
+    total_reviews: {type: Number, default: 0},
+    
     createdAt: {type: Date, default: Date.now, required: true}
 });
 

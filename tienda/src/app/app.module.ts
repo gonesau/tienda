@@ -23,12 +23,12 @@ import { DireccionesComponent } from './components/usuario/direcciones/direccion
 import { ContactoComponent } from './components/contacto/contacto.component';
 import { IndexOrdenesComponent } from './components/usuario/ordenes/index-ordenes/index-ordenes.component';
 import { DetalleOrdenComponent } from './components/usuario/ordenes/detalle-orden/detalle-orden.component';
-
+import { ReviewService } from './services/review.service';
 
 @NgModule({
   declarations: [AppComponent, InicioComponent, NavComponent, FooterComponent, LoginComponent, PerfilComponent, SidebarComponent, IndexProductoComponent, ShowProductoComponent, CarritoComponent, DireccionesComponent, ContactoComponent, IndexOrdenesComponent, DetalleOrdenComponent],
   imports: [BrowserModule, AppRoutingModule, FormsModule, HttpClientModule, routing, NgbPaginationModule, RatingModule],
-  providers: [],
+  providers: [ReviewService],
   bootstrap: [AppComponent],
 })
 export class AppModule {}

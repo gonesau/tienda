@@ -317,321 +317,199 @@
     </section>
   </div>
 
-  <section class="container py-md-6 py-5 mb-2">
+  <!-- REEMPLAZAR LA SECCIÓN DE REVIEWS EN show-producto.component.html -->
+  <!-- DESPUÉS DEL CONTENIDO DEL PRODUCTO -->
+
+  <section class="container py-md-6 py-5 mb-2" id="reviews-section">
     <div class="row">
       <div class="col-lg-7 col-md-8 mb-md-0 mb-5">
-        <div class="row mb-sm-5 mb-4 pb-2 pb-md-4">
 
-          <!-- Rating -->
-          <div class="col-sm-5 mb-sm-0 mb-4">
-            <h3 class="h2 mb-3 pb-1">12 reviews</h3>
-            <div class="star-rating mb-3 pb-1">
-              <i class="sr-star cxi-star-filled active"></i>
-              <i class="sr-star cxi-star-filled active"></i>
-              <i class="sr-star cxi-star-filled active"></i>
-              <i class="sr-star cxi-star-filled active"></i>
-              <i class="sr-star cxi-star"></i>
+        <!-- SPINNER DE CARGA -->
+        <div class="text-center py-5" *ngIf="load_reviews">
+          <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Cargando reseñas...</span>
+          </div>
+          <p class="mt-3 text-muted">Cargando reseñas...</p>
+        </div>
+
+        <!-- CONTENIDO DE REVIEWS -->
+        <div *ngIf="!load_reviews">
+
+          <!-- Header con estadísticas -->
+          <div class="row mb-sm-5 mb-4 pb-2 pb-md-4">
+
+            <!-- Rating general -->
+            <div class="col-sm-5 mb-sm-0 mb-4">
+              <h3 class="h2 mb-3 pb-1">
+                {{ estadisticas_reviews.total }}
+                {{ estadisticas_reviews.total === 1 ? 'reseña' : 'reseñas' }}
+              </h3>
+
+              <!-- Estrellas promedio -->
+              <div class="star-rating mb-3 pb-1">
+                <i *ngFor="let estrella of getArrayEstrellas(Math.round(estadisticas_reviews.promedio))"
+                  class="sr-star cxi-star-filled active"></i>
+                <i *ngFor="let estrella of getArrayEstrellas(5 - Math.round(estadisticas_reviews.promedio))"
+                  class="sr-star cxi-star"></i>
+              </div>
+
+              <div class="font-size-sm text-muted" *ngIf="estadisticas_reviews.total > 0">
+                Calificación promedio: <strong>{{ estadisticas_reviews.promedio }}</strong> de 5
+              </div>
             </div>
-            <span class="font-size-sm text-muted">
-              9 out of 12 (75%) <br>
-              Customers recommended this product
-            </span>
+
+            <!-- Distribución de ratings -->
+            <div class="col-sm-7">
+
+              <!-- 5 estrellas -->
+              <div class="d-flex align-items-center mb-2">
+                <div class="text-nowrap text-muted mr-3">
+                  <span class="d-inline-block align-middle">5</span>
+                  <i class="cxi-star font-size-sm align-middle ml-1"></i>
+                </div>
+                <div class="w-100">
+                  <div class="progress" style="height: 4px;">
+                    <div class="progress-bar bg-success" role="progressbar" [style.width.%]="getPorcentajeRating(5)"
+                      [attr.aria-valuenow]="getPorcentajeRating(5)" aria-valuemin="0" aria-valuemax="100"></div>
+                  </div>
+                </div>
+                <span class="text-muted ml-3">{{ estadisticas_reviews.distribucion[5] || 0 }}</span>
+              </div>
+
+              <!-- 4 estrellas -->
+              <div class="d-flex align-items-center mb-2">
+                <div class="text-nowrap text-muted mr-3">
+                  <span class="d-inline-block align-middle">4</span>
+                  <i class="cxi-star font-size-sm align-middle ml-1"></i>
+                </div>
+                <div class="w-100">
+                  <div class="progress" style="height: 4px;">
+                    <div class="progress-bar" role="progressbar" style="background-color: #a7e453;"
+                      [style.width.%]="getPorcentajeRating(4)" [attr.aria-valuenow]="getPorcentajeRating(4)"
+                      aria-valuemin="0" aria-valuemax="100"></div>
+                  </div>
+                </div>
+                <span class="text-muted ml-3">{{ estadisticas_reviews.distribucion[4] || 0 }}</span>
+              </div>
+
+              <!-- 3 estrellas -->
+              <div class="d-flex align-items-center mb-2">
+                <div class="text-nowrap text-muted mr-3">
+                  <span class="d-inline-block align-middle">3</span>
+                  <i class="cxi-star font-size-sm align-middle ml-1"></i>
+                </div>
+                <div class="w-100">
+                  <div class="progress" style="height: 4px;">
+                    <div class="progress-bar" role="progressbar" style="background-color: #ffda75;"
+                      [style.width.%]="getPorcentajeRating(3)" [attr.aria-valuenow]="getPorcentajeRating(3)"
+                      aria-valuemin="0" aria-valuemax="100"></div>
+                  </div>
+                </div>
+                <span class="text-muted ml-3">{{ estadisticas_reviews.distribucion[3] || 0 }}</span>
+              </div>
+
+              <!-- 2 estrellas -->
+              <div class="d-flex align-items-center mb-2">
+                <div class="text-nowrap text-muted mr-3">
+                  <span class="d-inline-block align-middle">2</span>
+                  <i class="cxi-star font-size-sm align-middle ml-1"></i>
+                </div>
+                <div class="w-100">
+                  <div class="progress" style="height: 4px;">
+                    <div class="progress-bar bg-warning" role="progressbar" [style.width.%]="getPorcentajeRating(2)"
+                      [attr.aria-valuenow]="getPorcentajeRating(2)" aria-valuemin="0" aria-valuemax="100"></div>
+                  </div>
+                </div>
+                <span class="text-muted ml-3">{{ estadisticas_reviews.distribucion[2] || 0 }}</span>
+              </div>
+
+              <!-- 1 estrella -->
+              <div class="d-flex align-items-center">
+                <div class="text-nowrap text-muted mr-3">
+                  <span class="d-inline-block align-middle">1</span>
+                  <i class="cxi-star font-size-sm align-middle ml-1"></i>
+                </div>
+                <div class="w-100">
+                  <div class="progress" style="height: 4px;">
+                    <div class="progress-bar bg-danger" role="progressbar" [style.width.%]="getPorcentajeRating(1)"
+                      [attr.aria-valuenow]="getPorcentajeRating(1)" aria-valuemin="0" aria-valuemax="100"></div>
+                  </div>
+                </div>
+                <span class="text-muted ml-3">{{ estadisticas_reviews.distribucion[1] || 0 }}</span>
+              </div>
+            </div>
           </div>
 
-          <!-- Reviews -->
-          <div class="col-sm-7">
+          <!-- SIN RESEÑAS -->
+          <div class="text-center py-5" *ngIf="reviews.length === 0">
+            <i class="cxi-star text-muted" style="font-size: 4rem;"></i>
+            <h4 class="mt-4 mb-3">Aún no hay reseñas</h4>
+            <p class="text-muted mb-0">
+              Sé el primero en compartir tu opinión sobre este producto
+            </p>
+          </div>
 
-            <!-- 5 stars -->
-            <div class="d-flex align-items-center mb-2">
-              <div class="text-nowrap text-muted mr-3">
-                <span class="d-inline-block align-middle">5</span>
-                <i class="cxi-star font-size-sm align-middle ml-1"></i>
-              </div>
-              <div class="w-100">
-                <div class="progress" style="height: 4px;">
-                  <div class="progress-bar bg-success" role="progressbar" style="width: 80%;" aria-valuenow="60"
-                    aria-valuemin="0" aria-valuemax="100"></div>
+          <!-- LISTADO DE RESEÑAS -->
+          <div *ngIf="reviews.length > 0">
+
+            <!-- Review individual -->
+            <div class="mb-4 pb-4 border-bottom" *ngFor="let review of reviewsPaginadas">
+              <div class="row">
+                <!-- Info del cliente y rating -->
+                <div class="col-md-3 col-sm-4 mb-sm-0 mb-3">
+                  <h3 class="mb-2 font-size-lg">
+                    {{ review.cliente.nombres }} {{ review.cliente.apellidos }}
+                  </h3>
+                  <span class="d-block mb-3 font-size-sm text-muted">
+                    {{ formatearFechaReview(review.createdAt) }}
+                  </span>
+                  <div class="mt-n1 star-rating">
+                    <i *ngFor="let estrella of getArrayEstrellas(review.rating)"
+                      class="sr-star cxi-star-filled active"></i>
+                    <i *ngFor="let estrella of getArrayEstrellas(5 - review.rating)" class="sr-star cxi-star"></i>
+                  </div>
+                </div>
+
+                <!-- Contenido de la reseña -->
+                <div class="col">
+                  <p class="mb-0">{{ review.review }}</p>
                 </div>
               </div>
-              <span class="text-muted ml-3">7</span>
             </div>
 
-            <!-- 4 stars -->
-            <div class="d-flex align-items-center mb-2">
-              <div class="text-nowrap text-muted mr-3">
-                <span class="d-inline-block align-middle">4</span>
-                <i class="cxi-star font-size-sm align-middle ml-1"></i>
-              </div>
-              <div class="w-100">
-                <div class="progress" style="height: 4px;">
-                  <div class="progress-bar" role="progressbar" style="width: 50%; background-color: #a7e453;"
-                    aria-valuenow="27" aria-valuemin="0" aria-valuemax="100"></div>
-                </div>
-              </div>
-              <span class="text-muted ml-3">2</span>
-            </div>
+            <!-- Paginación -->
+            <nav class="mt-4 pt-4" aria-label="Paginación de reseñas" *ngIf="totalPaginasReviews > 1">
+              <ul class="pagination justify-content-center mb-0">
+                <!-- Página anterior -->
+                <li class="page-item" [class.disabled]="pagina_reviews === 1">
+                  <a class="page-link" href="javascript:void(0)" (click)="cambiarPaginaReviews(pagina_reviews - 1)">
+                    <i class="cxi-arrow-left"></i>
+                  </a>
+                </li>
 
-            <!-- 3 stars -->
-            <div class="d-flex align-items-center mb-2">
-              <div class="text-nowrap text-muted mr-3">
-                <span class="d-inline-block align-middle">3</span>
-                <i class="cxi-star font-size-sm align-middle ml-1"></i>
-              </div>
-              <div class="w-100">
-                <div class="progress" style="height: 4px;">
-                  <div class="progress-bar" role="progressbar" style="width: 30%; background-color: #ffda75;"
-                    aria-valuenow="17" aria-valuemin="0" aria-valuemax="100"></div>
-                </div>
-              </div>
-              <span class="text-muted ml-3">1</span>
-            </div>
+                <!-- Números de página -->
+                <li class="page-item" *ngFor="let p of [].constructor(totalPaginasReviews); let i = index"
+                  [class.active]="i + 1 === pagina_reviews">
+                  <a class="page-link" href="javascript:void(0)" (click)="cambiarPaginaReviews(i + 1)">
+                    {{ i + 1 }}
+                  </a>
+                </li>
 
-            <!-- 2 stars -->
-            <div class="d-flex align-items-center mb-2">
-              <div class="text-nowrap text-muted mr-3">
-                <span class="d-inline-block align-middle">2</span>
-                <i class="cxi-star font-size-sm align-middle ml-1"></i>
-              </div>
-              <div class="w-100">
-                <div class="progress" style="height: 4px;">
-                  <div class="progress-bar bg-warning" role="progressbar" style="width: 30%;" aria-valuenow="9"
-                    aria-valuemin="0" aria-valuemax="100"></div>
-                </div>
-              </div>
-              <span class="text-muted ml-3">1</span>
-            </div>
-
-            <!-- 1 star -->
-            <div class="d-flex align-items-center">
-              <div class="text-nowrap text-muted mr-3">
-                <span class="d-inline-block align-middle">1</span>
-                <i class="cxi-star font-size-sm align-middle ml-1"></i>
-              </div>
-              <div class="w-100">
-                <div class="progress" style="height: 4px;">
-                  <div class="progress-bar bg-danger" role="progressbar" style="width: 30%;" aria-valuenow="4"
-                    aria-valuemin="0" aria-valuemax="100"></div>
-                </div>
-              </div>
-              <span class="text-muted ml-3">1</span>
-            </div>
+                <!-- Página siguiente -->
+                <li class="page-item" [class.disabled]="pagina_reviews === totalPaginasReviews">
+                  <a class="page-link" href="javascript:void(0)" (click)="cambiarPaginaReviews(pagina_reviews + 1)">
+                    <i class="cxi-arrow-right"></i>
+                  </a>
+                </li>
+              </ul>
+            </nav>
           </div>
         </div>
-
-        <!-- Button + sorting -->
-        <div class="d-flex align-items-center justify-content-between mb-4 pb-2 pb-sm-4">
-          <a href="#modal-review" data-toggle="modal" class="btn btn-primary">Leave a review</a>
-          <div class="form-inline">
-            <label for="sort-orders" class="d-none d-sm-block font-weight-bold mr-2 pr-1">Sort by</label>
-            <select id="sort-orders" class="custom-select">
-              <option>Newest</option>
-              <option>Oldest</option>
-              <option>High rating</option>
-              <option>Low rating</option>
-            </select>
-          </div>
-        </div>
-
-        <!-- Review -->
-        <div class="mb-4 pb-4 border-bottom">
-          <div class="row">
-            <div class="col-md-3 col-sm-4 mb-sm-0 mb-3">
-              <h3 class="mb-2 font-size-lg">Devon Lane</h3>
-              <span class="d-block mb-3 font-size-sm text-muted">3 days ago</span>
-              <div class="mt-n1 star-rating">
-                <i class="sr-star cxi-star-filled active"></i>
-                <i class="sr-star cxi-star-filled active"></i>
-                <i class="sr-star cxi-star-filled active"></i>
-                <i class="sr-star cxi-star-filled active"></i>
-                <i class="sr-star cxi-star-filled active"></i>
-              </div>
-            </div>
-            <div class="col">
-              <p class="mb-3">Vel velit pulvinar montes, sit rhoncus odio molestie. Venenatis nunc fames ut proin
-                adipiscing sit. Etiam egestas elit varius a, vestibulum bibendum nibh sociis in. Ut facilisis sit eget
-                cum fringilla. Dapibus mauris viverra est sed risus quam lacinia.</p>
-              <div class="d-flex justify-content-end">
-                <a class="nav-link mr-3 p-0 font-size-sm" href="#">
-                  <i class="cxi-like mr-2 font-size-base align-middle mt-n1 text-success"></i>
-                  2
-                </a>
-                <a class="nav-link p-0 font-size-sm" href="#">
-                  <i class="cxi-dislike mr-2 font-size-base align-middle mt-n1 text-danger"></i>
-                  0
-                </a>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Review -->
-        <div class="mb-4 pb-4 border-bottom">
-          <div class="row">
-            <div class="col-md-3 col-sm-4 mb-sm-0 mb-3">
-              <h3 class="mb-2 font-size-lg">Annette Black</h3>
-              <span class="d-block mb-3 font-size-sm text-muted">November 29, 2020</span>
-              <div class="mt-n1 star-rating">
-                <i class="sr-star cxi-star-filled active"></i>
-                <i class="sr-star cxi-star-filled active"></i>
-                <i class="sr-star cxi-star-filled active"></i>
-                <i class="sr-star cxi-star-filled active"></i>
-                <i class="sr-star cxi-star"></i>
-              </div>
-            </div>
-            <div class="col">
-              <p class="mb-3">Amet ut augue dignissim lorem. Diam volutpat porttitor vel, pulvinar semper. Faucibus vel
-                accumsan mi diam magna. Nunc diam lorem semper rhoncus in ut. Quis risus viverra bibendum eu.</p>
-              <div class="d-flex justify-content-end">
-                <a class="nav-link mr-3 p-0 font-size-sm" href="#">
-                  <i class="cxi-like mr-2 font-size-base align-middle mt-n1 text-success"></i>
-                  5
-                </a>
-                <a class="nav-link p-0 font-size-sm" href="#">
-                  <i class="cxi-dislike mr-2 font-size-base align-middle mt-n1 text-danger"></i>
-                  1
-                </a>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Review -->
-        <div class="mb-4 pb-4 border-bottom">
-          <div class="row">
-            <div class="col-md-3 col-sm-4 mb-sm-0 mb-3">
-              <h3 class="mb-2 font-size-lg">Albert Flores</h3>
-              <span class="d-block mb-3 font-size-sm text-muted">November 5, 2020</span>
-              <div class="mt-n1 star-rating">
-                <i class="sr-star cxi-star-filled active"></i>
-                <i class="sr-star cxi-star-filled active"></i>
-                <i class="sr-star cxi-star-filled active"></i>
-                <i class="sr-star cxi-star-filled active"></i>
-                <i class="sr-star cxi-star"></i>
-              </div>
-            </div>
-            <div class="col">
-              <p class="mb-3">Et, enim pellentesque ut malesuada interdum. Id odio proin molestie ac tellus ornare
-                lectus amet semper. Bibendum non nulla leo pharetra, mi ultrices proin rhoncus diam.</p>
-              <div class="d-flex justify-content-end">
-                <a class="nav-link mr-3 p-0 font-size-sm" href="#">
-                  <i class="cxi-like mr-2 font-size-base align-middle mt-n1 text-success"></i>
-                  0
-                </a>
-                <a class="nav-link p-0 font-size-sm" href="#">
-                  <i class="cxi-dislike mr-2 font-size-base align-middle mt-n1 text-danger"></i>
-                  0
-                </a>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Review -->
-        <div class="mb-4 pb-4 border-bottom">
-          <div class="row">
-            <div class="col-md-3 col-sm-4 mb-sm-0 mb-3">
-              <h3 class="mb-2 font-size-lg">Marvin McKinney</h3>
-              <span class="d-block mb-3 font-size-sm text-muted">October 13, 2020</span>
-              <div class="mt-n1 star-rating">
-                <i class="sr-star cxi-star-filled active"></i>
-                <i class="sr-star cxi-star-filled active"></i>
-                <i class="sr-star cxi-star-filled active"></i>
-                <i class="sr-star cxi-star-filled active"></i>
-                <i class="sr-star cxi-star-filled active"></i>
-              </div>
-            </div>
-            <div class="col">
-              <p class="mb-3">Eu duis ac, faucibus et egestas morbi elementum urna in. Feugiat natoque vestibulum, augue
-                nisi. Vulputate vitae felis quis mauris morbi massa ut. Dolor in amet volutpat facilisi luctus duis
-                mauris.</p>
-              <div class="d-flex justify-content-end">
-                <a class="nav-link mr-3 p-0 font-size-sm" href="#">
-                  <i class="cxi-like mr-2 font-size-base align-middle mt-n1 text-success"></i>
-                  9
-                </a>
-                <a class="nav-link p-0 font-size-sm" href="#">
-                  <i class="cxi-dislike mr-2 font-size-base align-middle mt-n1 text-danger"></i>
-                  2
-                </a>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Pagination: With icons -->
-        <nav class="mt-4 pt-4" aria-label="Reviews pagination">
-          <ul class="pagination justify-content-center mb-0">
-            <li class="page-item d-sm-none">
-              <span class="page-link page-link-static">1 / 4</span>
-            </li>
-            <li class="page-item active d-none d-sm-block" aria-current="page">
-              <span class="page-link">1
-                <span class="sr-only">(current)</span>
-              </span>
-            </li>
-            <li class="page-item d-none d-sm-block">
-              <a class="page-link" href="#">2</a>
-            </li>
-            <li class="page-item d-none d-sm-block">
-              <a class="page-link" href="#">3</a>
-            </li>
-            <li class="page-item d-none d-sm-block">
-              <a class="page-link" href="#">4</a>
-            </li>
-            <li class="page-item">
-              <a class="page-link" href="#">
-                <i class="cxi-arrow-right"></i>
-              </a>
-            </li>
-          </ul>
-        </nav>
       </div>
-      <!-- Card lateral derecha (Primera aparición - después del contenido) -->
+
+      <!-- Card lateral (tu código existente) -->
       <div class="col-md-4 offset-lg-1">
-        <!-- Product card -->
-        <div class="card card-product">
-          <div class="card-product-img">
-            <a [routerLink]="['/productos', producto.slug]" class="card-img-top d-block">
-              <img class="rounded" [src]="url + 'obtener_portada/' + producto.portada" [alt]="producto.titulo"
-                style="width: 100%; height: auto;">
-            </a>
-            <div class="card-product-widgets-top">
-              <div class="ml-auto star-rating">
-                <i class="sr-star cxi-star-filled active"></i>
-                <i class="sr-star cxi-star-filled active"></i>
-                <i class="sr-star cxi-star-filled active"></i>
-                <i class="sr-star cxi-star-filled active"></i>
-                <i class="sr-star cxi-star"></i>
-              </div>
-            </div>
-            <div class="card-product-widgets-bottom">
-              <a class="btn-wishlist ml-auto" href="javascript:void(0)" data-toggle="tooltip" data-placement="left"
-                title="Agregar a favoritos"></a>
-            </div>
-          </div>
-          <div class="card-body pb-2" style="background-color: white;">
-            <h3 class="card-product-title text-truncate mb-2">
-              <a [routerLink]="['/productos', producto.slug]" class="nav-link">{{ producto.titulo }}</a>
-            </h3>
-            <div class="d-flex align-items-center mb-3">
-              <span class="h5 d-inline-block text-danger mb-0">{{ producto.precio | currency }}</span>
-              <del class="d-inline-block ml-2 pl-1 text-muted" *ngIf="producto.precio_antes">
-                {{ producto.precio_antes | currency }}
-              </del>
-            </div>
-            <button type="button" class="btn btn-primary btn-block" style="margin-bottom: 1rem;"
-              (click)="agregar_producto()" [disabled]="btn_cart">
-              <span *ngIf="!btn_cart">
-                <i class="cxi-cart align-middle mt-n1 mr-2"></i>
-                Agregar al carrito
-              </span>
-              <span *ngIf="btn_cart">
-                <span class="spinner-border spinner-border-sm mr-2" role="status" aria-hidden="true"></span>
-                Agregando...
-              </span>
-            </button>
-          </div>
-        </div>
+        <!-- ... tu card existente ... -->
       </div>
     </div>
   </section>

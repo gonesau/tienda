@@ -399,3 +399,291 @@ a:focus {
     white-space: nowrap;
     border-width: 0;
 }
+
+
+/* AGREGAR A show-producto.component.css */
+
+/* === SECCIÓN DE REVIEWS === */
+
+/* Estrellas de rating */
+.star-rating {
+    display: inline-flex;
+    gap: 4px;
+    align-items: center;
+}
+
+.star-rating i {
+    color: #ffc107;
+    font-size: 1rem;
+    transition: transform 0.2s ease;
+}
+
+.star-rating i:hover {
+    transform: scale(1.1);
+}
+
+/* Rating en modal */
+star-rating {
+    display: flex;
+    justify-content: center;
+}
+
+/* Barras de progreso de calificaciones */
+.progress {
+    height: 4px;
+    background-color: #e9ecef;
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+.progress-bar {
+    transition: width 0.6s ease;
+}
+
+/* Colores personalizados para las barras */
+.bg-orange {
+    background-color: #ff9800 !important;
+}
+
+/* Review individual */
+.border-bottom:last-child {
+    border-bottom: none !important;
+}
+
+/* Nombre del reviewer */
+.font-size-lg {
+    font-weight: 600;
+    color: #333;
+}
+
+/* Texto de la reseña */
+.review-text {
+    line-height: 1.6;
+    color: #555;
+}
+
+/* Paginación de reviews */
+.pagination {
+    margin-top: 2rem;
+}
+
+.page-item.active .page-link {
+    background-color: #17696a;
+    border-color: #17696a;
+}
+
+.page-link {
+    color: #17696a;
+}
+
+.page-link:hover {
+    background-color: #f8f9fa;
+    border-color: #dee2e6;
+    color: #17696a;
+}
+
+/* Sin reseñas */
+.text-center.py-5 i {
+    opacity: 0.5;
+}
+
+/* === MODAL DE REVIEW === */
+
+/* Header del modal */
+.modal-header {
+    border-bottom: 1px solid #dee2e6;
+    background-color: #f8f9fa;
+}
+
+.modal-title {
+    color: #333;
+    font-weight: 600;
+}
+
+/* Body del modal */
+.modal-body {
+    padding: 1.5rem;
+}
+
+/* Información del producto en el modal */
+.modal-body .border-bottom {
+    border-color: #dee2e6 !important;
+}
+
+/* Textarea de la reseña */
+#reviewText {
+    resize: vertical;
+    min-height: 120px;
+}
+
+#reviewText:focus {
+    border-color: #17696a;
+    box-shadow: 0 0 0 0.2rem rgba(23, 105, 106, 0.25);
+}
+
+/* Alert en el modal */
+.alert-info {
+    background-color: #d1ecf1;
+    border-color: #bee5eb;
+    color: #0c5460;
+}
+
+/* Footer del modal */
+.modal-footer {
+    border-top: 1px solid #dee2e6;
+    background-color: #f8f9fa;
+}
+
+/* Botones del modal */
+.modal-footer .btn {
+    min-width: 120px;
+}
+
+/* === RESPONSIVE === */
+
+@media (max-width: 767px) {
+    /* Estrellas más pequeñas en móvil */
+    .star-rating i {
+        font-size: 0.875rem;
+    }
+
+    /* Rating en header */
+    .col-sm-5 {
+        text-align: center;
+    }
+
+    /* Paginación más compacta */
+    .pagination {
+        font-size: 0.875rem;
+    }
+
+    .page-link {
+        padding: 0.375rem 0.5rem;
+    }
+
+    /* Modal más compacto */
+    .modal-body {
+        padding: 1rem;
+    }
+
+    star-rating {
+        transform: scale(0.9);
+    }
+}
+
+@media (max-width: 576px) {
+    /* Texto de review */
+    .review-text {
+        font-size: 0.9rem;
+    }
+
+    /* Nombre del reviewer */
+    .font-size-lg {
+        font-size: 1rem !important;
+    }
+
+    /* Header de estadísticas */
+    .h2 {
+        font-size: 1.5rem;
+    }
+}
+
+/* === ANIMACIONES === */
+
+/* Fade in para reviews */
+@keyframes fadeInReview {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.border-bottom {
+    animation: fadeInReview 0.3s ease-out;
+}
+
+/* Hover en botón de reseña */
+.btn-outline-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* === ACCESIBILIDAD === */
+
+/* Focus visible */
+.page-link:focus,
+#reviewText:focus,
+.btn:focus {
+    outline: 2px solid #17696a;
+    outline-offset: 2px;
+}
+
+/* Alto contraste para lectores de pantalla */
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
+}
+
+
+/* AGREGAR A detalle-orden.component.css */
+
+/* === BOTÓN DE RESEÑA EN TABLA === */
+
+.btn-sm {
+    font-size: 0.875rem;
+    padding: 0.375rem 0.75rem;
+}
+
+.btn-outline-primary:hover {
+    background-color: #17696a;
+    border-color: #17696a;
+    color: white;
+}
+
+/* Badge de reseñado */
+.badge-success {
+    background-color: #28a745;
+    font-weight: 600;
+}
+
+/* === MODAL DE REVIEW === */
+
+.modal-content {
+    border-radius: 0.5rem;
+    border: none;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+}
+
+.modal-header {
+    border-top-left-radius: 0.5rem;
+    border-top-right-radius: 0.5rem;
+}
+
+/* Rating stars en el modal */
+star-rating {
+    cursor: pointer;
+}
+
+/* Contador de caracteres */
+.form-text {
+    font-size: 0.85rem;
+    color: #6c757d;
+}
+
+/* Spinner en botón */
+.spinner-border-sm {
+    width: 1rem;
+    height: 1rem;
+    border-width: 0.15em;
+}

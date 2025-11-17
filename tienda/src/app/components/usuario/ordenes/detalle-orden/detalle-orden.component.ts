@@ -1,9 +1,12 @@
+// tienda/src/app/components/usuario/ordenes/detalle-orden/detalle-orden.component.ts
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
 import { ClienteService } from 'src/app/services/cliente.service';
+import { ReviewService } from 'src/app/services/review.service';
 import { Subject } from 'rxjs';
 import { takeUntil, finalize } from 'rxjs/operators';
 declare var iziToast: any;
+declare var $: any;
 
 @Component({
   selector: 'app-detalle-orden',
@@ -23,8 +26,15 @@ export class DetalleOrdenComponent implements OnInit, OnDestroy {
   public load_data = true;
   public descargando_pdf = false;
 
-  //Rating estrella
-  public totalstar: 5;
+  // Sistema de reviews
+  public mostrar_modal_review = false;
+  public producto_review: any = null;
+  public review_form = {
+    review: '',
+    rating: 0
+  };
+  public enviando_review = false;
+  public reviews_estado: { [key: string]: { puede_resenar: boolean, tiene_review: boolean } } = {};
 
   private destroy$ = new Subject<void>();
 
@@ -58,6 +68,7 @@ export class DetalleOrdenComponent implements OnInit, OnDestroy {
 
   constructor(
     private _clienteService: ClienteService,
+    private _reviewService: ReviewService,
     private _router: Router,
     private _route: ActivatedRoute
   ) {
@@ -73,7 +84,6 @@ export class DetalleOrdenComponent implements OnInit, OnDestroy {
       return;
     }
 
-    // Obtener ID de la orden desde la URL
     this._route.params
       .pipe(takeUntil(this.destroy$))
       .subscribe(params => {
@@ -117,8 +127,8 @@ export class DetalleOrdenComponent implements OnInit, OnDestroy {
             this.venta = response.data.venta;
             this.detalles = response.data.detalles;
             
-            // Actualizar pasos de envío
             this.actualizarPasosEnvio();
+            this.verificarEstadoReviews();
           } else {
             this.mostrarError('No se pudo cargar la información de la orden');
             this._router.navigate(['/cuenta/ordenes']);
@@ -132,8 +142,173 @@ export class DetalleOrdenComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Actualiza el progreso de los pasos de envío
+   * Verifica el estado de las reviews para cada producto
    */
+  private verificarEstadoReviews(): void {
+    if (!this.venta || !this.detalles || this.detalles.length === 0) {
+      return;
+    }
+
+    this.detalles.forEach(detalle => {
+      const productoId = detalle.producto._id;
+      
+      this._reviewService.verificar_puede_resenar(productoId, this.venta._id, this.token)
+        .pipe(takeUntil(this.destroy$))
+        .subscribe({
+          next: (response) => {
+            this.reviews_estado[productoId] = {
+              puede_resenar: response.puede_resenar || false,
+              tiene_review: !!response.review_existente
+            };
+          },
+          error: (error) => {
+            console.error('Error verificando estado de review:', error);
+            this.reviews_estado[productoId] = {
+              puede_resenar: false,
+              tiene_review: false
+            };
+          }
+        });
+    });
+  }
+
+  /**
+   * Abre el modal para dejar una reseña
+   */
+  abrirModalReview(detalle: any): void {
+    const productoId = detalle.producto._id;
+    const estadoReview = this.reviews_estado[productoId];
+
+    if (!estadoReview || !estadoReview.puede_resenar) {
+      if (estadoReview && estadoReview.tiene_review) {
+        this.mostrarInfo('Ya has dejado una reseña para este producto');
+      } else {
+        this.mostrarError('No puedes dejar una reseña para este producto');
+      }
+      return;
+    }
+
+    this.producto_review = detalle.producto;
+    this.review_form = {
+      review: '',
+      rating: 0
+    };
+    this.mostrar_modal_review = true;
+
+    setTimeout(() => {
+      $('#modalReview').modal('show');
+    }, 100);
+  }
+
+  /**
+   * Cierra el modal de review
+   */
+  cerrarModalReview(): void {
+    $('#modalReview').modal('hide');
+    this.mostrar_modal_review = false;
+    this.producto_review = null;
+    this.review_form = {
+      review: '',
+      rating: 0
+    };
+  }
+
+  /**
+   * Maneja el cambio de rating
+   */
+  onRatingChange(rating: number): void {
+    this.review_form.rating = rating;
+  }
+
+  /**
+   * Envía la reseña
+   */
+  enviarReview(): void {
+    if (!this.validarReviewForm()) {
+      return;
+    }
+
+    if (!this.producto_review || !this.venta) {
+      this.mostrarError('Datos incompletos');
+      return;
+    }
+
+    const data = {
+      producto: this.producto_review._id,
+      venta: this.venta._id,
+      review: this.review_form.review.trim(),
+      rating: this.review_form.rating
+    };
+
+    this.enviando_review = true;
+
+    this._reviewService.crear_review(data, this.token)
+      .pipe(
+        takeUntil(this.destroy$),
+        finalize(() => {
+          this.enviando_review = false;
+        })
+      )
+      .subscribe({
+        next: (response) => {
+          this.mostrarExito('¡Gracias por tu reseña!');
+          this.cerrarModalReview();
+          
+          // Actualizar estado de reviews
+          this.reviews_estado[this.producto_review._id] = {
+            puede_resenar: false,
+            tiene_review: true
+          };
+        },
+        error: (error) => {
+          console.error('Error enviando review:', error);
+          this.mostrarError(error.message || 'Error al enviar la reseña');
+        }
+      });
+  }
+
+  /**
+   * Valida el formulario de review
+   */
+  private validarReviewForm(): boolean {
+    if (!this.review_form.review || this.review_form.review.trim().length < 10) {
+      this.mostrarError('La reseña debe tener al menos 10 caracteres');
+      return false;
+    }
+
+    if (this.review_form.review.trim().length > 1000) {
+      this.mostrarError('La reseña no puede exceder 1000 caracteres');
+      return false;
+    }
+
+    if (!this.review_form.rating || this.review_form.rating < 1 || this.review_form.rating > 5) {
+      this.mostrarError('Debes seleccionar una calificación del 1 al 5');
+      return false;
+    }
+
+    return true;
+  }
+
+  /**
+   * Verifica si se puede mostrar el botón de reseña
+   */
+  puedeMostrarBotonReview(productoId: string): boolean {
+    const estado = this.reviews_estado[productoId];
+    return estado && estado.puede_resenar && !estado.tiene_review;
+  }
+
+  /**
+   * Verifica si ya tiene reseña
+   */
+  tieneReview(productoId: string): boolean {
+    const estado = this.reviews_estado[productoId];
+    return estado && estado.tiene_review;
+  }
+
+  // ============================================
+  // MÉTODOS EXISTENTES (sin cambios)
+  // ============================================
+
   private actualizarPasosEnvio(): void {
     if (!this.venta) return;
 
@@ -155,9 +330,6 @@ export class DetalleOrdenComponent implements OnInit, OnDestroy {
     });
   }
 
-  /**
-   * Calcula el subtotal de productos
-   */
   getSubtotalProductos(): number {
     if (!this.detalles || this.detalles.length === 0) {
       return 0;
@@ -165,9 +337,6 @@ export class DetalleOrdenComponent implements OnInit, OnDestroy {
     return this.detalles.reduce((sum, item) => sum + item.subtotal, 0);
   }
 
-  /**
-   * Calcula el descuento aplicado
-   */
   getDescuento(): number {
     if (!this.venta) return 0;
     
@@ -178,9 +347,6 @@ export class DetalleOrdenComponent implements OnInit, OnDestroy {
     return descuento > 0 ? descuento : 0;
   }
 
-  /**
-   * Obtiene la clase CSS según el estado
-   */
   getEstadoClase(estado: string): string {
     const estadoMap: { [key: string]: string } = {
       'Procesando': 'badge-info',
@@ -191,9 +357,6 @@ export class DetalleOrdenComponent implements OnInit, OnDestroy {
     return estadoMap[estado] || 'badge-secondary';
   }
 
-  /**
-   * Obtiene el ícono según el estado
-   */
   getEstadoIcono(estado: string): string {
     const iconoMap: { [key: string]: string } = {
       'Procesando': 'cxi-time',
@@ -204,9 +367,6 @@ export class DetalleOrdenComponent implements OnInit, OnDestroy {
     return iconoMap[estado] || 'cxi-bag';
   }
 
-  /**
-   * Formatea fecha para mostrar
-   */
   formatearFecha(fecha: string): string {
     if (!fecha) return 'N/A';
     
@@ -225,36 +385,25 @@ export class DetalleOrdenComponent implements OnInit, OnDestroy {
     }
   }
 
-  /**
-   * Descarga PDF del comprobante
-   */
   descargarComprobante(): void {
     if (!this.idOrden || !this.token) return;
 
     this.descargando_pdf = true;
 
-    // Crear un elemento temporal para descargar
     const link = document.createElement('a');
     link.href = `${this._clienteService.url}generar_comprobante_pdf/${this.idOrden}?token=${this.token}`;
     link.target = '_blank';
     link.click();
 
-    // Simular tiempo de descarga
     setTimeout(() => {
       this.descargando_pdf = false;
     }, 2000);
   }
 
-  /**
-   * Vuelve a la lista de órdenes
-   */
   volverAOrdenes(): void {
     this._router.navigate(['/cuenta/ordenes']);
   }
 
-  /**
-   * Maneja errores de autenticación y otros
-   */
   private manejarError(error: any): void {
     if (error.status === 401 || error.status === 403) {
       this.mostrarError('Tu sesión ha expirado');
@@ -268,9 +417,6 @@ export class DetalleOrdenComponent implements OnInit, OnDestroy {
     }
   }
 
-  /**
-   * Muestra mensaje de error
-   */
   private mostrarError(mensaje: string): void {
     iziToast.error({
       title: 'Error',
@@ -283,15 +429,24 @@ export class DetalleOrdenComponent implements OnInit, OnDestroy {
     });
   }
 
-  /**
-   * Muestra mensaje de éxito
-   */
   private mostrarExito(mensaje: string): void {
     iziToast.success({
       title: '¡Éxito!',
       titleColor: '#1DC74C',
       color: '#FFF',
       class: 'text-success',
+      position: 'topRight',
+      message: mensaje,
+      timeout: 3000
+    });
+  }
+
+  private mostrarInfo(mensaje: string): void {
+    iziToast.info({
+      title: 'Información',
+      titleColor: '#17a2b8',
+      color: '#FFF',
+      class: 'text-info',
       position: 'topRight',
       message: mensaje,
       timeout: 3000
