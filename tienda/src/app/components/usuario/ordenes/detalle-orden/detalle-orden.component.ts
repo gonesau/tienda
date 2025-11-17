@@ -5,6 +5,7 @@ import { ClienteService } from 'src/app/services/cliente.service';
 import { ReviewService } from 'src/app/services/review.service';
 import { Subject } from 'rxjs';
 import { takeUntil, finalize } from 'rxjs/operators';
+import { Global } from 'src/app/services/global';
 declare var iziToast: any;
 declare var $: any;
 
@@ -17,11 +18,11 @@ export class DetalleOrdenComponent implements OnInit, OnDestroy {
   public token: string | null;
   public idCliente: string | null;
   public idOrden: string | null;
-  
+
   // Datos de la orden
   public venta: any = undefined;
   public detalles: Array<any> = [];
-  
+
   // Estados de carga
   public load_data = true;
   public descargando_pdf = false;
@@ -35,8 +36,9 @@ export class DetalleOrdenComponent implements OnInit, OnDestroy {
   };
   public enviando_review = false;
   public reviews_estado: { [key: string]: { puede_resenar: boolean, tiene_review: boolean } } = {};
-
+  public load_btn = false;
   private destroy$ = new Subject<void>();
+  public url: string;
 
   // Información de envío
   public pasos_envio = [
@@ -75,6 +77,8 @@ export class DetalleOrdenComponent implements OnInit, OnDestroy {
     this.token = localStorage.getItem('token');
     this.idCliente = localStorage.getItem('_id');
     this.idOrden = null;
+    this.token = localStorage.getItem('token');
+    this.url = Global.url;
   }
 
   ngOnInit(): void {
@@ -88,7 +92,7 @@ export class DetalleOrdenComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe(params => {
         this.idOrden = params['id'];
-        
+
         if (!this.idOrden) {
           this.mostrarError('ID de orden inválido');
           this._router.navigate(['/cuenta/ordenes']);
@@ -126,7 +130,7 @@ export class DetalleOrdenComponent implements OnInit, OnDestroy {
           if (response.data) {
             this.venta = response.data.venta;
             this.detalles = response.data.detalles;
-            
+
             this.actualizarPasosEnvio();
             this.verificarEstadoReviews();
           } else {
@@ -151,7 +155,7 @@ export class DetalleOrdenComponent implements OnInit, OnDestroy {
 
     this.detalles.forEach(detalle => {
       const productoId = detalle.producto._id;
-      
+
       this._reviewService.verificar_puede_resenar(productoId, this.venta._id, this.token)
         .pipe(takeUntil(this.destroy$))
         .subscribe({
@@ -253,7 +257,7 @@ export class DetalleOrdenComponent implements OnInit, OnDestroy {
         next: (response) => {
           this.mostrarExito('¡Gracias por tu reseña!');
           this.cerrarModalReview();
-          
+
           // Actualizar estado de reviews
           this.reviews_estado[this.producto_review._id] = {
             puede_resenar: false,
@@ -339,11 +343,11 @@ export class DetalleOrdenComponent implements OnInit, OnDestroy {
 
   getDescuento(): number {
     if (!this.venta) return 0;
-    
+
     const subtotalProductos = this.getSubtotalProductos();
     const totalConEnvio = subtotalProductos + this.venta.envio_precio;
     const descuento = totalConEnvio - this.venta.subtotal;
-    
+
     return descuento > 0 ? descuento : 0;
   }
 
@@ -369,7 +373,7 @@ export class DetalleOrdenComponent implements OnInit, OnDestroy {
 
   formatearFecha(fecha: string): string {
     if (!fecha) return 'N/A';
-    
+
     try {
       const fechaObj = new Date(fecha);
       const opciones: Intl.DateTimeFormatOptions = {
@@ -386,17 +390,41 @@ export class DetalleOrdenComponent implements OnInit, OnDestroy {
   }
 
   descargarComprobante(): void {
-    if (!this.idOrden || !this.token) return;
+    if (!this.venta._id) {
+      this.mostrarError('ID de venta no disponible');
+      return;
+    }
 
-    this.descargando_pdf = true;
+    this.load_btn = true;
 
+    const token = this.token;
+
+    if (!token) {
+      this.mostrarError('No se encontró el token de autenticación');
+      this.load_btn = false;
+      return;
+    }
+
+    // Crear la URL con el token como query parameter
+    const url = `${this.url}generar_comprobante_pdf/${this.venta._id}?token=${token}`;
+
+    console.log('Descargando PDF desde:', url);
+
+    // Crear un elemento <a> temporal para descargar
     const link = document.createElement('a');
-    link.href = `${this._clienteService.url}generar_comprobante_pdf/${this.idOrden}?token=${this.token}`;
+    link.href = url;
     link.target = '_blank';
-    link.click();
+    link.download = `Comprobante-${this.venta.nventa}.pdf`;
 
+    // Agregar al DOM, hacer click y remover
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    // Resetear botón después de 2 segundos
     setTimeout(() => {
-      this.descargando_pdf = false;
+      this.load_btn = false;
+      this.mostrarExito('Descarga iniciada');
     }, 2000);
   }
 

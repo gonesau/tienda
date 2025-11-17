@@ -1,3 +1,4 @@
+// back/controllers/PdfGenerator.js
 const PDFDocument = require('pdfkit');
 const fs = require('fs');
 const path = require('path');
@@ -12,10 +13,12 @@ const generar_comprobante_pdf = async function (req, res) {
     console.log('=== INICIO GENERACIÓN PDF ===');
     console.log('Usuario autenticado:', req.user ? 'Sí' : 'No');
     console.log('req.user:', req.user);
+    console.log('Headers recibidos:', req.headers);
+    console.log('Query params:', req.query);
 
     // Verificar autenticación
     if (!req.user) {
-        console.error('Usuario no autenticado');
+        console.error('❌ Usuario no autenticado');
         return res.status(401).send({
             message: 'No autorizado - Token inválido o expirado',
             data: undefined
@@ -28,7 +31,7 @@ const generar_comprobante_pdf = async function (req, res) {
 
         // Validar ID
         if (!ventaId || ventaId === 'undefined' || ventaId === 'null') {
-            console.error('ID de venta inválido:', ventaId);
+            console.error('❌ ID de venta inválido:', ventaId);
             return res.status(400).send({
                 message: 'ID de venta inválido',
                 data: undefined
@@ -43,7 +46,7 @@ const generar_comprobante_pdf = async function (req, res) {
         console.log('Venta encontrada:', venta ? 'Sí' : 'No');
 
         if (!venta) {
-            console.error('Venta no encontrada en la BD');
+            console.error('❌ Venta no encontrada en la BD');
             return res.status(404).send({
                 message: 'Venta no encontrada',
                 data: undefined
@@ -52,7 +55,7 @@ const generar_comprobante_pdf = async function (req, res) {
 
         // Validar que tenga cliente y dirección
         if (!venta.cliente) {
-            console.error('La venta no tiene cliente asociado');
+            console.error('❌ La venta no tiene cliente asociado');
             return res.status(500).send({
                 message: 'Error: venta sin cliente',
                 data: undefined
@@ -60,7 +63,7 @@ const generar_comprobante_pdf = async function (req, res) {
         }
 
         if (!venta.direccion) {
-            console.error('La venta no tiene dirección asociada');
+            console.error('❌ La venta no tiene dirección asociada');
             return res.status(500).send({
                 message: 'Error: venta sin dirección',
                 data: undefined
@@ -72,13 +75,13 @@ const generar_comprobante_pdf = async function (req, res) {
 
         // Verificar permisos - el cliente solo puede ver sus propias ventas
         const clienteId = venta.cliente._id.toString();
-        const usuarioId = req.user.sub || req.user._id.toString();
+        const usuarioId = req.user.sub;
 
         console.log('Cliente ID:', clienteId);
         console.log('Usuario ID:', usuarioId);
 
         if (clienteId !== usuarioId) {
-            console.error('El usuario no tiene permiso para ver esta venta');
+            console.error('❌ El usuario no tiene permiso para ver esta venta');
             return res.status(403).send({
                 message: 'No tienes permiso para ver esta venta',
                 data: undefined
@@ -293,10 +296,10 @@ const generar_comprobante_pdf = async function (req, res) {
         // Finalizar PDF
         doc.end();
 
-        console.log('=== PDF GENERADO EXITOSAMENTE ===');
+        console.log('✅ PDF GENERADO EXITOSAMENTE');
 
     } catch (error) {
-        console.error('Error generando PDF:', error);
+        console.error('❌ Error generando PDF:', error);
         
         // Si ya se empezó a enviar la respuesta, no podemos enviar JSON
         if (!res.headersSent) {
@@ -308,6 +311,7 @@ const generar_comprobante_pdf = async function (req, res) {
         }
     }
 }
+
 module.exports = {
     generar_comprobante_pdf
 }

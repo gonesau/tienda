@@ -252,20 +252,7 @@ export class CarritoComponent implements OnInit, OnDestroy {
 
             const ventaId = response.venta._id;
             const nventa = response.venta.nventa;
-
-            // Mostrar mensaje de éxito con opción de descargar PDF
-            iziToast.success({
-              title: '¡Compra exitosa!',
-              message: `Número de orden: ${nventa}`,
-              position: 'topRight',
-              timeout: 8000,
-              buttons: [
-                ['<button>Descargar Comprobante PDF</button>', (instance, toast) => {
-                  this.descargarComprobante(ventaId);
-                  instance.hide({ transitionOut: 'fadeOut' }, toast, 'button');
-                }, true]
-              ]
-            });
+            this.mostrarExito(`¡Compra realizada con éxito! N° de orden: ${nventa}`);
 
             // Limpiar carrito local
             this.carrito_compras = [];
