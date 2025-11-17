@@ -33,7 +33,7 @@ import { IndexContactoComponent } from './components/contacto/index-contacto/ind
 import { ReviewsProductoComponent } from './components/productos/reviews-producto/reviews-producto.component';
 import { IndexVentasComponent } from './components/ventas/index-ventas/index-ventas.component';
 import { DetalleVentaComponent } from './components/ventas/detalle-venta/detalle-venta.component';
-
+import { VentaService } from './services/venta.service';
 
 
 @NgModule({
@@ -74,7 +74,7 @@ import { DetalleVentaComponent } from './components/ventas/detalle-venta/detalle
       baseURL: '../../../assets/tinymce/',
     })
   ],
-  providers: [],
+  providers: [VentaService],
   bootstrap: [AppComponent]
 })
 export class AppModule { }

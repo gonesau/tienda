@@ -606,6 +606,265 @@ const obtener_estadisticas_cliente = async function(req, res) {
     }
 }
 
+
+/**
+ * Lista todas las ventas con filtros (ADMIN)
+ */
+const listar_ventas_admin = async function(req, res) {
+    if (!req.user) {
+        return res.status(401).send({ 
+            message: 'No autorizado',
+            data: [] 
+        });
+    }
+
+    if (req.user.role !== 'admin') {
+        return res.status(403).send({ 
+            message: 'No tienes permisos de administrador',
+            data: [] 
+        });
+    }
+
+    try {
+        const { filtro = '', desde = '', hasta = '' } = req.query;
+
+        let query = {};
+
+        // Filtro de búsqueda
+        if (filtro && filtro.trim() !== '') {
+            query.$or = [
+                { nventa: new RegExp(filtro, 'i') },
+                { transaccion: new RegExp(filtro, 'i') }
+            ];
+        }
+
+        // Filtro de fechas
+        if (desde || hasta) {
+            query.createdAt = {};
+            
+            if (desde) {
+                const fechaDesde = new Date(desde);
+                fechaDesde.setHours(0, 0, 0, 0);
+                query.createdAt.$gte = fechaDesde;
+            }
+            
+            if (hasta) {
+                const fechaHasta = new Date(hasta);
+                fechaHasta.setHours(23, 59, 59, 999);
+                query.createdAt.$lte = fechaHasta;
+            }
+        }
+
+        // Obtener ventas con populate
+        const ventas = await Venta.find(query)
+            .populate('cliente', 'nombres apellidos email telefono')
+            .populate('direccion')
+            .sort({ createdAt: -1 })
+            .lean();
+
+        // Agregar cantidad de productos a cada venta
+        const ventasConDetalles = await Promise.all(
+            ventas.map(async (venta) => {
+                const cantidadProductos = await DetalleVenta.countDocuments({ 
+                    venta: venta._id 
+                });
+                
+                return {
+                    ...venta,
+                    cantidad_productos: cantidadProductos
+                };
+            })
+        );
+
+        return res.status(200).send({ 
+            data: ventasConDetalles
+        });
+
+    } catch (error) {
+        console.error('Error listando ventas admin:', error);
+        return res.status(500).send({ 
+            message: 'Error al obtener las ventas',
+            data: [] 
+        });
+    }
+}
+
+/**
+ * Obtiene detalle de una venta específica (ADMIN)
+ */
+const obtener_venta_admin = async function(req, res) {
+    if (!req.user) {
+        return res.status(401).send({ 
+            message: 'No autorizado',
+            data: undefined 
+        });
+    }
+
+    if (req.user.role !== 'admin') {
+        return res.status(403).send({ 
+            message: 'No tienes permisos de administrador',
+            data: undefined 
+        });
+    }
+
+    try {
+        const ventaId = req.params['id'];
+
+        if (!ventaId) {
+            return res.status(400).send({ 
+                message: 'ID de venta requerido',
+                data: undefined 
+            });
+        }
+
+        // Obtener venta con populate
+        const venta = await Venta.findById(ventaId)
+            .populate('cliente')
+            .populate('direccion');
+
+        if (!venta) {
+            return res.status(404).send({ 
+                message: 'Venta no encontrada',
+                data: undefined 
+            });
+        }
+
+        // Obtener detalles de la venta
+        const detalles = await DetalleVenta.find({ venta: ventaId })
+            .populate('producto')
+            .sort({ createdAt: 1 });
+
+        return res.status(200).send({ 
+            data: {
+                venta: venta,
+                detalles: detalles
+            }
+        });
+
+    } catch (error) {
+        console.error('Error obteniendo venta admin:', error);
+        return res.status(500).send({ 
+            message: 'Error al obtener la venta',
+            data: undefined 
+        });
+    }
+}
+
+/**
+ * Actualiza el estado de una venta (ADMIN)
+ */
+const actualizar_estado_venta_admin = async function(req, res) {
+    if (!req.user) {
+        return res.status(401).send({ 
+            message: 'No autorizado',
+            data: undefined 
+        });
+    }
+
+    if (req.user.role !== 'admin') {
+        return res.status(403).send({ 
+            message: 'No tienes permisos de administrador',
+            data: undefined 
+        });
+    }
+
+    try {
+        const ventaId = req.params['id'];
+        const { estado } = req.body;
+
+        // Validar estado
+        const estadosValidos = ['Procesando', 'Enviado', 'Entregado', 'Cancelado'];
+        if (!estado || !estadosValidos.includes(estado)) {
+            return res.status(400).send({ 
+                message: 'Estado inválido',
+                data: undefined 
+            });
+        }
+
+        // Actualizar venta
+        const venta = await Venta.findByIdAndUpdate(
+            ventaId,
+            { estado },
+            { new: true }
+        ).populate('cliente');
+
+        if (!venta) {
+            return res.status(404).send({ 
+                message: 'Venta no encontrada',
+                data: undefined 
+            });
+        }
+
+        return res.status(200).send({ 
+            message: 'Estado actualizado correctamente',
+            data: venta 
+        });
+
+    } catch (error) {
+        console.error('Error actualizando estado:', error);
+        return res.status(500).send({ 
+            message: 'Error al actualizar el estado',
+            data: undefined 
+        });
+    }
+}
+
+/**
+ * Obtiene estadísticas de ventas (ADMIN)
+ */
+const obtener_estadisticas_ventas_admin = async function(req, res) {
+    if (!req.user) {
+        return res.status(401).send({ 
+            message: 'No autorizado',
+            data: undefined 
+        });
+    }
+
+    if (req.user.role !== 'admin') {
+        return res.status(403).send({ 
+            message: 'No tienes permisos de administrador',
+            data: undefined 
+        });
+    }
+
+    try {
+        // Total de ventas
+        const totalVentas = await Venta.countDocuments();
+
+        // Ventas por estado
+        const ventasProcesando = await Venta.countDocuments({ estado: 'Procesando' });
+        const ventasEnviadas = await Venta.countDocuments({ estado: 'Enviado' });
+        const ventasEntregadas = await Venta.countDocuments({ estado: 'Entregado' });
+
+        // Calcular ingresos totales
+        const ventas = await Venta.find({}).select('subtotal');
+        const totalIngresos = ventas.reduce((sum, venta) => sum + venta.subtotal, 0);
+
+        // Ticket promedio
+        const ticketPromedio = totalVentas > 0 ? totalIngresos / totalVentas : 0;
+
+        return res.status(200).send({ 
+            data: {
+                total_ventas: totalVentas,
+                total_ingresos: parseFloat(totalIngresos.toFixed(2)),
+                ticket_promedio: parseFloat(ticketPromedio.toFixed(2)),
+                ventas_procesando: ventasProcesando,
+                ventas_enviadas: ventasEnviadas,
+                ventas_entregadas: ventasEntregadas
+            }
+        });
+
+    } catch (error) {
+        console.error('Error obteniendo estadísticas:', error);
+        return res.status(500).send({ 
+            message: 'Error al obtener estadísticas',
+            data: undefined 
+        });
+    }
+}
+
+
+
 module.exports = {
     registro_compra_cliente,
     validar_cupon_cliente,
@@ -614,5 +873,11 @@ module.exports = {
     calcular_precio_con_descuento,
     listar_ventas_cliente,
     obtener_venta_cliente,
-    obtener_estadisticas_cliente
+    obtener_estadisticas_cliente,
+
+        // NUEVAS FUNCIONES ADMIN
+    listar_ventas_admin,
+    obtener_venta_admin,
+    actualizar_estado_venta_admin,
+    obtener_estadisticas_ventas_admin
 }

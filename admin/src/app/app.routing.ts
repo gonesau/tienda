@@ -1,5 +1,5 @@
-import {Routes, RouterModule} from "@angular/router";
-import {ModuleWithProviders} from "@angular/core";
+import { Routes, RouterModule } from "@angular/router";
+import { ModuleWithProviders } from "@angular/core";
 import { InicioComponent } from "./components/inicio/inicio.component";
 import { LoginComponent } from "./components/login/login.component";
 import { IndexClienteComponent } from "./components/clientes/index-cliente/index-cliente.component";
@@ -23,56 +23,57 @@ import { EditDescuentoComponent } from "./components/descuento/edit-descuento/ed
 import { IndexContactoComponent } from "./components/contacto/index-contacto/index-contacto.component";
 import { ReviewsProductoComponent } from "./components/productos/reviews-producto/reviews-producto.component";
 import { IndexVentasComponent } from "./components/ventas/index-ventas/index-ventas.component";
+import { DetalleVentaComponent } from "./components/ventas/detalle-venta/detalle-venta.component";
 
 
 const appRoutes: Routes = [
-  {path: '', redirectTo: '/inicio', pathMatch: 'full'},
-  {path: 'inicio', component: InicioComponent, canActivate: [AdminGuard]},
-  {path: 'panel', children: [
-    // Rutas de clientes
-    {path: 'clientes', component: IndexClienteComponent, canActivate: [AdminGuard]},
-    {path: 'clientes/registro', component: CreateClienteComponent, canActivate: [AdminGuard]},
-    {path: 'clientes/:id', component: EditClienteComponent, canActivate: [AdminGuard]},
+  { path: '', redirectTo: '/inicio', pathMatch: 'full' },
+  { path: 'inicio', component: InicioComponent, canActivate: [AdminGuard] },
+  {
+    path: 'panel', children: [
+      // Rutas de clientes
+      { path: 'clientes', component: IndexClienteComponent, canActivate: [AdminGuard] },
+      { path: 'clientes/registro', component: CreateClienteComponent, canActivate: [AdminGuard] },
+      { path: 'clientes/:id', component: EditClienteComponent, canActivate: [AdminGuard] },
 
-    // Rutas de productos
-    {path: 'productos', component: IndexProductoComponent, canActivate: [AdminGuard]},
-    {path: 'productos/registro', component: CreateProductoComponent, canActivate: [AdminGuard]},
-    {path: 'productos/:id', component: UpdateProductoComponent, canActivate: [AdminGuard]},
-    {path: 'productos/inventario/:id', component: InventarioProductoComponent, canActivate: [AdminGuard]},
+      // Rutas de productos
+      { path: 'productos', component: IndexProductoComponent, canActivate: [AdminGuard] },
+      { path: 'productos/registro', component: CreateProductoComponent, canActivate: [AdminGuard] },
+      { path: 'productos/:id', component: UpdateProductoComponent, canActivate: [AdminGuard] },
+      { path: 'productos/inventario/:id', component: InventarioProductoComponent, canActivate: [AdminGuard] },
 
-    //Ruta de Cupones
-    {path: 'cupones/registro', component: CreateCuponComponent, canActivate: [AdminGuard]},
-    {path: 'cupones', component: IndexCuponComponent, canActivate: [AdminGuard]},
-    {path: 'cupones/:id', component: UpdateCuponComponent, canActivate: [AdminGuard]},
+      //Ruta de Cupones
+      { path: 'cupones/registro', component: CreateCuponComponent, canActivate: [AdminGuard] },
+      { path: 'cupones', component: IndexCuponComponent, canActivate: [AdminGuard] },
+      { path: 'cupones/:id', component: UpdateCuponComponent, canActivate: [AdminGuard] },
 
-    // Ruta de Configuración
-    {path: 'configuraciones', component: ConfigComponent, canActivate: [AdminGuard]},
+      // Ruta de Configuración
+      { path: 'configuraciones', component: ConfigComponent, canActivate: [AdminGuard] },
 
-    // Ruta de Variedades de Producto
-    {path: 'productos/variedades/:id', component: VariedadProductoComponent, canActivate: [AdminGuard]},
+      // Ruta de Variedades de Producto
+      { path: 'productos/variedades/:id', component: VariedadProductoComponent, canActivate: [AdminGuard] },
 
-    // Ruta de Galeria de Producto
-    {path: 'productos/galeria/:id', component: GaleriaProductoComponent, canActivate: [AdminGuard]},
+      // Ruta de Galeria de Producto
+      { path: 'productos/galeria/:id', component: GaleriaProductoComponent, canActivate: [AdminGuard] },
 
-    // Ruta de Descuentos
-    {path: 'descuentos', component: IndexDescuentoComponent, canActivate: [AdminGuard]},
-    {path: 'descuentos/registro', component: CreateDescuentoComponent, canActivate: [AdminGuard]},
-    {path: 'descuentos/:id', component: EditDescuentoComponent, canActivate: [AdminGuard]}, 
+      // Ruta de Descuentos
+      { path: 'descuentos', component: IndexDescuentoComponent, canActivate: [AdminGuard] },
+      { path: 'descuentos/registro', component: CreateDescuentoComponent, canActivate: [AdminGuard] },
+      { path: 'descuentos/:id', component: EditDescuentoComponent, canActivate: [AdminGuard] },
 
-    // Ruta de Contacto
-    {path: 'contacto', component: IndexContactoComponent, canActivate: [AdminGuard]},
+      // Ruta de Contacto
+      { path: 'contacto', component: IndexContactoComponent, canActivate: [AdminGuard] },
 
-    //Ruta de Reviews 
-    {path: 'reviews/:id', component: ReviewsProductoComponent, canActivate: [AdminGuard]},
+      //Ruta de Reviews 
+      { path: 'reviews/:id', component: ReviewsProductoComponent, canActivate: [AdminGuard] },
 
-    //Ruta de Ventas
-    {path: 'ventas', component: IndexVentasComponent, canActivate: [AdminGuard]},
-    {path: 'ventas/:id', component: IndexVentasComponent, canActivate: [AdminGuard]},
-    
-    
+      // Ruta de Ventas
+      { path: 'ventas', component: IndexVentasComponent, canActivate: [AdminGuard] },
+      { path: 'ventas/:id', component: DetalleVentaComponent, canActivate: [AdminGuard] },
 
-  ]},
-  {path: 'login', component: LoginComponent},
+    ]
+  },
+  { path: 'login', component: LoginComponent },
 ];
 
 export const appRoutingProviders: any[] = [];

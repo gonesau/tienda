@@ -1,0 +1,110 @@
+/* ============================================
+   DETALLE VENTA - ESTILOS ESPECÍFICOS
+   ============================================ */
+
+/* --- Cards --- */
+.card {
+  border: none;
+  box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+}
+
+.card-header {
+  background-color: #f8f9fa;
+  border-bottom: 1px solid #dee2e6;
+}
+
+/* --- Tabla --- */
+.table {
+  font-size: 0.9rem;
+}
+
+.table thead th {
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 0.8rem;
+  letter-spacing: 0.5px;
+  color: #495057;
+  border-bottom: 2px solid #dee2e6;
+}
+
+.table tbody tr {
+  transition: background-color 0.15s ease;
+}
+
+.table tbody tr:hover {
+  background-color: rgba(13, 110, 253, 0.05);
+}
+
+/* --- Badges --- */
+.badge {
+  font-weight: 500;
+  padding: 0.35em 0.65em;
+  font-size: 0.75rem;
+}
+
+/* --- Enlaces --- */
+a {
+  color: #0d6efd;
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+/* --- Font monospace --- */
+.font-monospace {
+  font-family: 'Courier New', monospace;
+}
+
+/* --- Estilos de impresión --- */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  
+  .admin-sidebar {
+    display: none !important;
+  }
+  
+  .admin-header {
+    display: none !important;
+  }
+  
+  .card {
+    box-shadow: none !important;
+    border: 1px solid #dee2e6 !important;
+    page-break-inside: avoid;
+  }
+  
+  .card-header {
+    background-color: #f8f9fa !important;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+  
+  .badge {
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+  
+  .table {
+    page-break-inside: auto;
+  }
+  
+  .table tr {
+    page-break-inside: avoid;
+    page-break-after: auto;
+  }
+}
+
+/* --- Responsividad --- */
+@media (max-width: 767.98px) {
+  .table {
+    font-size: 0.85rem;
+  }
+  
+  .card-header h5 {
+    font-size: 1rem;
+  }
+}
