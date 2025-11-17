@@ -1,1 +1,361 @@
-<p>reviews-producto works!</p>
+<app-sidebar></app-sidebar>
+
+<main class="admin-content">
+    <div class="admin-main">
+
+        <!-- Page Header -->
+        <div
+            class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-4 pb-3 border-bottom">
+            <div class="mb-3 mb-md-0">
+                <h1 class="h2 mb-2">Reseñas del Producto</h1>
+                <p class="text-muted mb-0">Gestiona las opiniones y calificaciones de los clientes</p>
+            </div>
+            <a class="btn btn-outline-secondary" [routerLink]="['/panel/productos']">
+                <i class="fas fa-arrow-left me-2"></i>Volver
+            </a>
+        </div>
+
+        <!-- Loading State -->
+        <div class="card" *ngIf="load_data">
+            <div class="card-body text-center py-5">
+                <div class="spinner-border text-primary mb-3" role="status" style="width: 3rem; height: 3rem;">
+                    <span class="visually-hidden">Cargando...</span>
+                </div>
+                <p class="text-muted mb-0">Cargando producto...</p>
+            </div>
+        </div>
+
+        <!-- Producto no encontrado -->
+        <div class="card" *ngIf="!producto && !load_data">
+            <div class="card-body text-center py-5">
+                <i class="fas fa-box-open text-muted mb-3" style="font-size: 4rem; display: block;"></i>
+                <h4 class="mb-3">Producto no encontrado</h4>
+                <p class="text-muted mb-4">El producto que buscas no existe o fue eliminado</p>
+                <a class="btn btn-primary" [routerLink]="['/panel/productos']">
+                    <i class="fas fa-arrow-left me-2"></i>Volver a Productos
+                </a>
+            </div>
+        </div>
+
+        <!-- Contenido Principal -->
+        <div *ngIf="producto && !load_data">
+
+            <!-- Card del Producto -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-auto">
+                            <img [src]="url + 'obtener_portada/' + producto.portada" [alt]="producto.titulo"
+                                class="rounded" style="width: 100px; height: 100px; object-fit: cover;"
+                                onerror="this.src='assets/img/no-image.png'" />
+                        </div>
+                        <div class="col">
+                            <h3 class="mb-2">{{ producto.titulo }}</h3>
+                            <p class="text-muted mb-2">{{ producto.descripcion }}</p>
+                            <div class="d-flex gap-3 flex-wrap align-items-center">
+                                <span class="badge bg-primary fs-6">
+                                    <i class="fas fa-dollar-sign me-1"></i>
+                                    {{ producto.precio | currency:'USD' }}
+                                </span>
+                                <div class="d-flex align-items-center">
+                                    <div class="stars me-2">
+                                        <i *ngFor="let star of obtener_estrellas(Math.round(estadisticas.promedio))"
+                                            class="fas fa-star" [ngClass]="star ? 'text-warning' : 'text-muted'">
+                                        </i>
+                                    </div>
+                                    <span class="fw-bold text-primary">
+                                        {{ estadisticas.promedio || 0 }}
+                                    </span>
+                                    <span class="text-muted ms-2">
+                                        ({{ estadisticas.total }} {{ estadisticas.total === 1 ? 'reseña' : 'reseñas' }})
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row g-4">
+
+                <!-- Columna Principal -->
+                <div class="col-lg-8">
+
+                    <!-- Filtros -->
+                    <div class="card mb-4">
+                        <div class="card-header bg-light">
+                            <h5 class="mb-0">
+                                <i class="fas fa-filter me-2 text-primary"></i>Filtrar por Calificación
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="btn-group w-100" role="group">
+                                <button type="button" class="btn"
+                                    [ngClass]="filtro_rating === 'todos' ? 'btn-primary' : 'btn-outline-primary'"
+                                    (click)="filtrar_por_rating('todos')">
+                                    <i class="fas fa-list me-1"></i>Todas ({{ estadisticas.total }})
+                                </button>
+                                <button type="button" class="btn"
+                                    [ngClass]="filtro_rating === '5' ? 'btn-primary' : 'btn-outline-primary'"
+                                    (click)="filtrar_por_rating('5')">
+                                    <i class="fas fa-star me-1"></i>5 ({{ estadisticas.distribucion[5] }})
+                                </button>
+                                <button type="button" class="btn"
+                                    [ngClass]="filtro_rating === '4' ? 'btn-primary' : 'btn-outline-primary'"
+                                    (click)="filtrar_por_rating('4')">
+                                    <i class="fas fa-star me-1"></i>4 ({{ estadisticas.distribucion[4] }})
+                                </button>
+                                <button type="button" class="btn"
+                                    [ngClass]="filtro_rating === '3' ? 'btn-primary' : 'btn-outline-primary'"
+                                    (click)="filtrar_por_rating('3')">
+                                    <i class="fas fa-star me-1"></i>3 ({{ estadisticas.distribucion[3] }})
+                                </button>
+                                <button type="button" class="btn"
+                                    [ngClass]="filtro_rating === '2' ? 'btn-primary' : 'btn-outline-primary'"
+                                    (click)="filtrar_por_rating('2')">
+                                    <i class="fas fa-star me-1"></i>2 ({{ estadisticas.distribucion[2] }})
+                                </button>
+                                <button type="button" class="btn"
+                                    [ngClass]="filtro_rating === '1' ? 'btn-primary' : 'btn-outline-primary'"
+                                    (click)="filtrar_por_rating('1')">
+                                    <i class="fas fa-star me-1"></i>1 ({{ estadisticas.distribucion[1] }})
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Lista de Reviews -->
+                    <div class="card">
+                        <div class="card-header bg-light">
+                            <h5 class="mb-0">
+                                <i class="fas fa-comments me-2 text-primary"></i>
+                                Reseñas
+                                <span class="badge bg-primary ms-2">{{ reviews_filtradas.length }}</span>
+                            </h5>
+                        </div>
+                        <div class="card-body">
+
+                            <!-- Loading Reviews -->
+                            <div class="text-center py-5" *ngIf="load_reviews">
+                                <div class="spinner-border text-primary mb-3" role="status">
+                                    <span class="visually-hidden">Cargando...</span>
+                                </div>
+                                <p class="text-muted mb-0">Cargando reseñas...</p>
+                            </div>
+
+                            <!-- Empty State -->
+                            <div class="text-center py-5" *ngIf="!load_reviews && reviews_filtradas.length === 0">
+                                <i class="fas fa-comment-slash text-muted mb-3"
+                                    style="font-size: 4rem; display: block;"></i>
+                                <h5 class="text-muted mb-2">No hay reseñas</h5>
+                                <p class="text-muted mb-0" *ngIf="filtro_rating !== 'todos'">
+                                    No hay reseñas con {{ filtro_rating }} {{ filtro_rating === '1' ? 'estrella' :
+                                    'estrellas' }}
+                                </p>
+                                <p class="text-muted mb-0" *ngIf="filtro_rating === 'todos'">
+                                    Este producto aún no tiene reseñas de clientes
+                                </p>
+                            </div>
+
+                            <!-- Reviews List -->
+                            <div *ngIf="!load_reviews && reviews_filtradas.length > 0">
+                                <div class="review-item p-3 mb-3 border rounded"
+                                    *ngFor="let review of reviews_filtradas | slice: (page - 1) * pageSize : page * pageSize; let i = index">
+
+                                    <!-- Header de la Review -->
+                                    <div class="d-flex justify-content-between align-items-start mb-2">
+                                        <div class="d-flex align-items-center">
+                                            <div class="avatar-circle bg-primary text-white me-3">
+                                                {{ review.cliente?.nombres?.charAt(0) || 'C' }}{{
+                                                review.cliente?.apellidos?.charAt(0) || 'L' }}
+                                            </div>
+                                            <div>
+                                                <h6 class="mb-0">
+                                                    {{ review.cliente?.nombres }} {{ review.cliente?.apellidos }}
+                                                </h6>
+                                                <small class="text-muted">
+                                                    <i class="fas fa-calendar me-1"></i>
+                                                    {{ formatear_fecha(review.createdAt) }}
+                                                </small>
+                                            </div>
+                                        </div>
+                                        <div class="text-end">
+                                            <div class="stars mb-1">
+                                                <i *ngFor="let star of obtener_estrellas(review.rating)"
+                                                    class="fas fa-star"
+                                                    [ngClass]="star ? 'text-warning' : 'text-muted'">
+                                                </i>
+                                            </div>
+                                            <span class="badge bg-info">
+                                                Orden: {{ review.venta?.nventa || 'N/A' }}
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    <!-- Contenido de la Review -->
+                                    <div class="review-content">
+                                        <p class="mb-0">{{ review.review }}</p>
+                                    </div>
+
+                                    <!-- Footer de la Review -->
+                                    <div class="review-footer mt-2 pt-2 border-top">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <small class="text-muted">
+                                                <i class="fas fa-user me-1"></i>
+                                                Cliente verificado
+                                            </small>
+                                            <small class="text-muted">
+                                                ID: {{ review._id?.substring(0, 8) }}...
+                                            </small>
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </div>
+
+                        </div>
+
+                        <!-- Paginación -->
+                        <div class="card-footer bg-light" *ngIf="reviews_filtradas.length > pageSize">
+                            <div
+                                class="d-flex flex-column flex-md-row justify-content-between align-items-center gap-3">
+                                <div class="text-muted small">
+                                    Mostrando {{ (page - 1) * pageSize + 1 }} -
+                                    {{ page * pageSize > reviews_filtradas.length ? reviews_filtradas.length : page *
+                                    pageSize }}
+                                    de {{ reviews_filtradas.length }} reseñas
+                                </div>
+                                <ngb-pagination [(page)]="page" [pageSize]="pageSize"
+                                    [collectionSize]="reviews_filtradas.length" [maxSize]="5" [rotate]="true"
+                                    [boundaryLinks]="true" size="sm">
+                                </ngb-pagination>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Columna Lateral -->
+                <div class="col-lg-4">
+
+                    <!-- Resumen de Calificaciones -->
+                    <div class="card mb-4">
+                        <div class="card-header bg-light">
+                            <h5 class="mb-0">
+                                <i class="fas fa-chart-bar me-2 text-primary"></i>Resumen de Calificaciones
+                            </h5>
+                        </div>
+                        <div class="card-body">
+
+                            <!-- Calificación Promedio -->
+                            <div class="text-center mb-4">
+                                <div class="display-3 fw-bold text-primary mb-2">
+                                    {{ estadisticas.promedio || 0 }}
+                                </div>
+                                <div class="stars mb-2">
+                                    <i *ngFor="let star of obtener_estrellas(Math.round(estadisticas.promedio))"
+                                        class="fas fa-star fa-lg" [ngClass]="star ? 'text-warning' : 'text-muted'">
+                                    </i>
+                                </div>
+                                <p class="text-muted mb-0">
+                                    Basado en {{ estadisticas.total }} {{ estadisticas.total === 1 ? 'reseña' :
+                                    'reseñas' }}
+                                </p>
+                            </div>
+
+                            <hr>
+
+                            <!-- Distribución de Calificaciones -->
+                            <div class="rating-bars">
+                                <div class="rating-bar-item mb-3" *ngFor="let rating of [5, 4, 3, 2, 1]">
+                                    <div class="d-flex align-items-center mb-1">
+                                        <span class="me-2" style="width: 60px;">
+                                            <i class="fas fa-star text-warning me-1"></i>{{ rating }}
+                                        </span>
+                                        <div class="progress flex-grow-1" style="height: 8px;">
+                                            <div class="progress-bar" [ngClass]="{
+                          'bg-success': rating >= 4,
+                          'bg-info': rating === 3,
+                          'bg-warning': rating === 2,
+                          'bg-danger': rating === 1
+                        }" [style.width.%]="calcular_porcentaje_rating(rating)" role="progressbar">
+                                            </div>
+                                        </div>
+                                        <span class="ms-2 text-muted small" style="width: 50px; text-align: right;">
+                                            {{ estadisticas.distribucion[rating] }}
+                                            ({{ calcular_porcentaje_rating(rating).toFixed(0) }}%)
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+
+                    <!-- Información -->
+                    <div class="card mb-4">
+                        <div class="card-header bg-light">
+                            <h5 class="mb-0">
+                                <i class="fas fa-info-circle me-2 text-primary"></i>Información
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="small">
+                                <p class="mb-3">
+                                    <i class="fas fa-check-circle me-2 text-success"></i>
+                                    <strong>Reseñas Verificadas:</strong><br>
+                                    Solo los clientes que han comprado este producto pueden dejarcalificaciones
+                                </p>
+
+                                <p class="mb-3">
+                                    <i class="fas fa-shield-alt me-2 text-primary"></i>
+                                    <strong>Autenticidad:</strong><br>
+                                    Cada reseña está vinculada a una orden de compra real
+                                </p>
+
+                                <p class="mb-0">
+                                    <i class="fas fa-users me-2 text-info"></i>
+                                    <strong>Transparencia:</strong><br>
+                                    Las opiniones ayudan a otros clientes a tomar decisiones informadas
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Enlaces Rápidos -->
+                    <div class="card">
+                        <div class="card-header bg-light">
+                            <h5 class="mb-0">
+                                <i class="fas fa-link me-2 text-primary"></i>Enlaces Rápidos
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="d-grid gap-2">
+                                <a class="btn btn-outline-primary btn-sm"
+                                    [routerLink]="['/panel/productos', producto._id]">
+                                    <i class="fas fa-edit me-2"></i>Editar Producto
+                                </a>
+                                <a class="btn btn-outline-primary btn-sm"
+                                    [routerLink]="['/panel/productos/inventario', producto._id]">
+                                    <i class="fas fa-boxes me-2"></i>Inventario
+                                </a>
+                                <a class="btn btn-outline-primary btn-sm"
+                                    [routerLink]="['/panel/productos/variedades', producto._id]">
+                                    <i class="fas fa-sliders-h me-2"></i>Variedades
+                                </a>
+                                <a class="btn btn-outline-primary btn-sm"
+                                    [routerLink]="['/panel/productos/galeria', producto._id]">
+                                    <i class="fas fa-images me-2"></i>Galería
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+</main>

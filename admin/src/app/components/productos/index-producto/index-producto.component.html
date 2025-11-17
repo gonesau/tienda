@@ -2,9 +2,10 @@
 
 <main class="admin-content">
   <div class="admin-main">
-    
+
     <!-- Page Header -->
-    <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-4 pb-3 border-bottom">
+    <div
+      class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-4 pb-3 border-bottom">
       <div class="mb-3 mb-md-0">
         <h1 class="h2 mb-2">Productos</h1>
         <p class="text-muted mb-0">Administra el catálogo de productos de tu tienda</p>
@@ -26,7 +27,7 @@
 
     <!-- Main Content -->
     <div class="card" *ngIf="!load_data">
-      
+
       <!-- Filters & Actions -->
       <div class="card-header bg-light">
         <div class="row g-3 align-items-center">
@@ -36,32 +37,20 @@
               <span class="input-group-text bg-white">
                 <i class="fas fa-search text-muted"></i>
               </span>
-              <input
-                type="text"
-                class="form-control"
-                placeholder="Buscar por título de producto..."
-                name="filtro"
-                [(ngModel)]="filtro"
-                (keyup.enter)="filtrar()"
-              />
+              <input type="text" class="form-control" placeholder="Buscar por título de producto..." name="filtro"
+                [(ngModel)]="filtro" (keyup.enter)="filtrar()" />
               <button class="btn btn-primary" type="button" (click)="filtrar()">
                 Buscar
               </button>
-              <button 
-                class="btn btn-outline-secondary" 
-                type="button" 
-                (click)="resetear()"
-                *ngIf="filtro">
+              <button class="btn btn-outline-secondary" type="button" (click)="resetear()" *ngIf="filtro">
                 <i class="fas fa-times"></i>
               </button>
             </div>
           </div>
-          
+
           <!-- Exportar -->
           <div class="col-12 col-lg-4 text-lg-end">
-            <button 
-              class="btn btn-success w-100 w-lg-auto"
-              (click)="download_excel()"
+            <button class="btn btn-success w-100 w-lg-auto" (click)="download_excel()"
               [disabled]="productos.length === 0">
               <i class="fas fa-file-excel me-2"></i>Exportar Excel
             </button>
@@ -97,16 +86,10 @@
                   <p class="text-muted small mb-3" *ngIf="!filtro">
                     Comienza agregando tu primer producto
                   </p>
-                  <button 
-                    class="btn btn-outline-secondary btn-sm" 
-                    (click)="resetear()" 
-                    *ngIf="filtro">
+                  <button class="btn btn-outline-secondary btn-sm" (click)="resetear()" *ngIf="filtro">
                     <i class="fas fa-times me-1"></i>Limpiar filtro
                   </button>
-                  <a 
-                    class="btn btn-primary btn-sm" 
-                    [routerLink]="['/panel/productos/registro']"
-                    *ngIf="!filtro">
+                  <a class="btn btn-primary btn-sm" [routerLink]="['/panel/productos/registro']" *ngIf="!filtro">
                     <i class="fas fa-plus me-1"></i>Agregar Producto
                   </a>
                 </td>
@@ -125,12 +108,8 @@
                 <td>
                   <div class="d-flex align-items-center">
                     <div class="producto-thumb me-3">
-                      <img
-                        [src]="url + 'obtener_portada/' + item.portada"
-                        [alt]="item.titulo"
-                        class="img-fluid rounded"
-                        onerror="this.src='assets/img/no-image.png'"
-                      />
+                      <img [src]="url + 'obtener_portada/' + item.portada" [alt]="item.titulo" class="img-fluid rounded"
+                        onerror="this.src='assets/img/no-image.png'" />
                     </div>
                     <div>
                       <div class="fw-semibold">{{ item.titulo }}</div>
@@ -141,9 +120,7 @@
 
                 <!-- Stock -->
                 <td class="text-center d-none d-lg-table-cell">
-                  <span 
-                    class="badge"
-                    [ngClass]="{
+                  <span class="badge" [ngClass]="{
                       'bg-success': item.stock > 10,
                       'bg-warning text-dark': item.stock > 0 && item.stock <= 10,
                       'bg-danger': item.stock === 0
@@ -173,11 +150,8 @@
                 <!-- Acciones -->
                 <td class="text-center">
                   <div class="dropdown">
-                    <button
-                      class="btn btn-sm btn-outline-primary dropdown-toggle"
-                      type="button"
-                      data-bs-toggle="dropdown"
-                      aria-expanded="false">
+                    <button class="btn btn-sm btn-outline-primary dropdown-toggle" type="button"
+                      data-bs-toggle="dropdown" aria-expanded="false">
                       <i class="fas fa-cog"></i>
                     </button>
                     <ul class="dropdown-menu dropdown-menu-end">
@@ -201,12 +175,25 @@
                           <i class="fas fa-images fa-fw me-2"></i>Galería
                         </a>
                       </li>
-                      <li><hr class="dropdown-divider"></li>
                       <li>
-                        <button
-                          class="dropdown-item text-danger"
-                          type="button"
-                          (click)="abrirModalEliminar(item)">
+                        <hr class="dropdown-divider">
+                      </li>
+
+                      <!-- CORRECCIÓN: Cambiar de /panel/productos/reviews a /panel/reviews -->
+                      <li>
+                        <a class="dropdown-item" [routerLink]="['/panel/reviews', item._id]">
+                          <i class="fas fa-star fa-fw me-2 text-warning"></i>Reseñas
+                          <span class="badge bg-primary ms-1" *ngIf="item.total_reviews && item.total_reviews > 0">
+                            {{ item.total_reviews }}
+                          </span>
+                        </a>
+                      </li>
+                      <li>
+                        <hr class="dropdown-divider">
+                      </li>
+
+                      <li>
+                        <button class="dropdown-item text-danger" type="button" (click)="abrirModalEliminar(item)">
                           <i class="fas fa-trash-alt fa-fw me-2"></i>Eliminar
                         </button>
                       </li>
@@ -223,18 +210,12 @@
       <div class="card-footer bg-light" *ngIf="productos.length > pageSize">
         <div class="d-flex flex-column flex-md-row justify-content-between align-items-center gap-3">
           <div class="text-muted small">
-            Mostrando {{ (page - 1) * pageSize + 1 }} - 
-            {{ page * pageSize > productos.length ? productos.length : page * pageSize }} 
+            Mostrando {{ (page - 1) * pageSize + 1 }} -
+            {{ page * pageSize > productos.length ? productos.length : page * pageSize }}
             de {{ productos.length }} productos
           </div>
-          <ngb-pagination
-            [(page)]="page"
-            [pageSize]="pageSize"
-            [collectionSize]="productos.length"
-            [maxSize]="5"
-            [rotate]="true"
-            [boundaryLinks]="true"
-            size="sm">
+          <ngb-pagination [(page)]="page" [pageSize]="pageSize" [collectionSize]="productos.length" [maxSize]="5"
+            [rotate]="true" [boundaryLinks]="true" size="sm">
           </ngb-pagination>
         </div>
       </div>
@@ -245,14 +226,8 @@
 </main>
 
 <!-- Modal de Confirmación -->
-<div 
-  class="modal fade" 
-  id="deleteModal" 
-  tabindex="-1" 
-  aria-labelledby="deleteModalLabel"
-  aria-hidden="true"
-  data-bs-backdrop="static"
-  data-bs-keyboard="false">
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true"
+  data-bs-backdrop="static" data-bs-keyboard="false">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content" *ngIf="productoAEliminar">
       <div class="modal-header border-0">
@@ -260,25 +235,16 @@
           <i class="fas fa-exclamation-triangle text-danger me-2"></i>
           Confirmar Eliminación
         </h5>
-        <button 
-          type="button" 
-          class="btn-close" 
-          (click)="cerrarModal()"
-          [disabled]="load_btn"
-          aria-label="Close">
+        <button type="button" class="btn-close" (click)="cerrarModal()" [disabled]="load_btn" aria-label="Close">
         </button>
       </div>
       <div class="modal-body">
         <p class="mb-3">¿Estás seguro de eliminar este producto?</p>
         <div class="alert alert-warning mb-0">
           <div class="d-flex align-items-start">
-            <img
-              [src]="url + 'obtener_portada/' + productoAEliminar.portada"
-              [alt]="productoAEliminar.titulo"
-              class="rounded me-3"
-              style="width: 60px; height: 60px; object-fit: cover;"
-              onerror="this.src='assets/img/no-image.png'"
-            />
+            <img [src]="url + 'obtener_portada/' + productoAEliminar.portada" [alt]="productoAEliminar.titulo"
+              class="rounded me-3" style="width: 60px; height: 60px; object-fit: cover;"
+              onerror="this.src='assets/img/no-image.png'" />
             <div>
               <strong>{{ productoAEliminar.titulo }}</strong><br>
               <small class="text-muted">Precio: {{ productoAEliminar.precio | currency:'USD' }}</small><br>
@@ -288,22 +254,15 @@
         </div>
         <div class="alert alert-danger mt-3 mb-0">
           <i class="fas fa-exclamation-circle me-2"></i>
-          <small><strong>Advertencia:</strong> Esta acción eliminará el producto y toda su información asociada (inventario, variedades, galería).</small>
+          <small><strong>Advertencia:</strong> Esta acción eliminará el producto y toda su información asociada
+            (inventario, variedades, galería).</small>
         </div>
       </div>
       <div class="modal-footer border-0">
-        <button 
-          type="button" 
-          class="btn btn-secondary" 
-          (click)="cerrarModal()"
-          [disabled]="load_btn">
+        <button type="button" class="btn btn-secondary" (click)="cerrarModal()" [disabled]="load_btn">
           Cancelar
         </button>
-        <button 
-          type="button" 
-          class="btn btn-danger"
-          (click)="confirmarEliminacion()"
-          [disabled]="load_btn">
+        <button type="button" class="btn btn-danger" (click)="confirmarEliminacion()" [disabled]="load_btn">
           <span *ngIf="!load_btn">
             <i class="fas fa-trash-alt me-1"></i>Eliminar
           </span>

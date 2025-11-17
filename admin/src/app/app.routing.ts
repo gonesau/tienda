@@ -62,7 +62,7 @@ const appRoutes: Routes = [
     {path: 'contacto', component: IndexContactoComponent, canActivate: [AdminGuard]},
 
     //Ruta de Reviews 
-    {path: 'reviews', component: ReviewsProductoComponent, canActivate: [AdminGuard]},
+    {path: 'reviews/:id', component: ReviewsProductoComponent, canActivate: [AdminGuard]},
 
   ]},
   {path: 'login', component: LoginComponent},
