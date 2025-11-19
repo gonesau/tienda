@@ -4,109 +4,105 @@
     <!-- ============================================ -->
     <!-- CARRUSEL PRINCIPAL CON DESCUENTO ACTIVO -->
     <!-- ============================================ -->
-    <section class="cs-carousel cs-controls-onhover">
-        <div class="cs-carousel-inner" data-carousel-options=''>
-    
-          <!-- Slide 1 - Descuento Activo (SOLO SI EXISTE) -->
-          <div *ngIf="descuento_activo && !load_descuento" 
-               class="bg-size-cover py-xl-6" 
-               [style.background-image]="'url(' + url + 'obtener_banner_descuento/' + descuento_activo.banner + ')'">
-            <div class="container pt-5 pb-6">
-              <div class="row pb-lg-6">
-                <div class="col-lg-6 offset-lg-1 offset-xl-0 pb-4 pb-md-6">
-                  <h3 class="font-size-lg text-uppercase cs-from-left cs-delay-1">
-                    {{ formatear_fecha_descuento() }}
-                  </h3>
-                  <h2 class="display-2 mb-lg-5 pb-3 cs-from-left">
-                    {{ descuento_activo.titulo }} - {{ descuento_activo.descuento }}% OFF
-                  </h2>
-                  <div class="mb-4 cs-scale-up cs-delay-2">
-                    <a [routerLink]="['/productos']" class="btn btn-outline-primary btn-lg">
-                      Comprar ahora
-                    </a>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-    
-          <!-- Slide 2 - Nueva Colección -->
-          <div class="bg-size-cover py-xl-6" 
-               style="background-image: url(../../../assets/img/ecommerce/home/hero-slider/01.jpg);">
-            <div class="container pt-5 pb-6">
-              <div class="row pb-lg-6">
-                <div class="col-lg-6 offset-lg-1 offset-xl-0 pb-4 pb-md-6">
-                  <h3 class="font-size-lg text-uppercase cs-from-left cs-delay-1">Nueva Colección</h3>
-                  <h2 class="display-2 mb-lg-5 pb-3 cs-from-left">Moda Masculina 2025</h2>
-                  <div class="mb-4 cs-scale-up cs-delay-2">
-                    <a [routerLink]="['/productos']" class="btn btn-outline-primary btn-lg">
-                      Ver colección
-                    </a>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-    
-          <!-- Slide 3 - Temporada -->
-          <div class="bg-size-cover py-xl-6" 
-               style="background-image: url(../../../assets/img/ecommerce/home/hero-slider/02.jpg);">
-            <div class="container pt-5 pb-6">
-              <div class="row pb-lg-6">
-                <div class="col-lg-6 offset-lg-1 offset-xl-0 pb-4 pb-md-6">
-                  <h3 class="font-size-lg text-uppercase cs-from-top cs-delay-1">Nueva Temporada</h3>
-                  <h2 class="display-2 mb-lg-5 pb-3 cs-scale-down">Otoño-Invierno 2025</h2>
-                  <div class="mb-4 cs-scale-down cs-delay-2">
-                    <a [routerLink]="['/productos']" class="btn btn-outline-primary btn-lg">
-                      Explorar ahora
-                    </a>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-    
-          <!-- Slide 4 - Ofertas -->
-          <div class="bg-size-cover py-xl-6" 
-               style="background-image: url(../../../assets/img/ecommerce/home/hero-slider/04.jpg);">
-            <div class="container pt-5 pb-6">
-              <div class="row pb-lg-6">
-                <div class="col-lg-6 offset-lg-1 offset-xl-0 pb-4 pb-md-6">
-                  <h3 class="font-size-lg text-uppercase cs-from-top cs-delay-1">Mejores Precios</h3>
-                  <h2 class="display-2 mb-lg-5 pb-3 cs-scale-down">Ofertas Especiales</h2>
-                  <div class="mb-4 cs-scale-down cs-delay-2">
-                    <a [routerLink]="['/productos']" class="btn btn-outline-primary btn-lg">
-                      Ver ofertas
-                    </a>
-                  </div>
-                </div>
+<section class="cs-carousel cs-controls-onhover" *ngIf="!load_descuento">
+    <div class="cs-carousel-inner">
+
+      <!-- Slide 1 - Descuento Activo (SIEMPRE PRESENTE) -->
+      <div class="bg-size-cover py-xl-6" 
+           [style.background-image]="descuento_activo && descuento_activo.banner ? 
+                                      'url(' + url + 'obtener_banner_descuento/' + descuento_activo.banner + ')' : 
+                                      'url(assets/img/ecommerce/home/hero-slider/01.jpg)'"
+           [style.display]="descuento_activo ? 'block' : 'none'">
+        <div class="container pt-5 pb-6">
+          <div class="row pb-lg-6">
+            <div class="col-lg-6 offset-lg-1 offset-xl-0 pb-4 pb-md-6">
+              <h3 class="font-size-lg text-uppercase cs-from-left cs-delay-1">
+                {{ descuento_activo ? formatear_fecha_descuento() : '' }}
+              </h3>
+              <h2 class="display-2 mb-lg-5 pb-3 cs-from-left">
+                {{ descuento_activo ? descuento_activo.titulo + ' - ' + descuento_activo.descuento + '% OFF' : '' }}
+              </h2>
+              <div class="mb-4 cs-scale-up cs-delay-2">
+                <a [routerLink]="['/productos']" class="btn btn-outline-primary btn-lg">
+                  Comprar ahora
+                </a>
               </div>
             </div>
           </div>
         </div>
-    
-        <!-- Paginador -->
-        <div class="container position-relative">
-          <div class="row mt-lg-n5">
-            <div class="col-lg-7 col-md-8 col-sm-10 offset-lg-1 offset-xl-0">
-              <div class="position-relative">
-                <div id="pager" class="cs-pager cs-pager-inverse mb-xl-5 pb-5 pb-md-6">
-                  <button *ngIf="descuento_activo" type="button" data-nav="0">01</button>
-                  <button type="button" [attr.data-nav]="descuento_activo ? '1' : '0'">
-                    {{ descuento_activo ? '02' : '01' }}
-                  </button>
-                  <button type="button" [attr.data-nav]="descuento_activo ? '2' : '1'">
-                    {{ descuento_activo ? '03' : '02' }}
-                  </button>
-                  <button type="button" [attr.data-nav]="descuento_activo ? '3' : '2'">
-                    {{ descuento_activo ? '04' : '03' }}
-                  </button>
-                </div>
+      </div>
+
+      <!-- Slide 2 - Nueva Colección (SIEMPRE PRESENTE) -->
+      <div class="bg-size-cover py-xl-6" 
+           style="background-image: url(assets/img/ecommerce/home/hero-slider/01.jpg);">
+        <div class="container pt-5 pb-6">
+          <div class="row pb-lg-6">
+            <div class="col-lg-6 offset-lg-1 offset-xl-0 pb-4 pb-md-6">
+              <h3 class="font-size-lg text-uppercase cs-from-left cs-delay-1">Nueva Colección</h3>
+              <h2 class="display-2 mb-lg-5 pb-3 cs-from-left">Moda Masculina 2025</h2>
+              <div class="mb-4 cs-scale-up cs-delay-2">
+                <a [routerLink]="['/productos']" class="btn btn-outline-primary btn-lg">
+                  Ver colección
+                </a>
               </div>
             </div>
           </div>
         </div>
-    </section>
+      </div>
+
+      <!-- Slide 3 - Temporada (SIEMPRE PRESENTE) -->
+      <div class="bg-size-cover py-xl-6" 
+           style="background-image: url(assets/img/ecommerce/home/hero-slider/02.jpg);">
+        <div class="container pt-5 pb-6">
+          <div class="row pb-lg-6">
+            <div class="col-lg-6 offset-lg-1 offset-xl-0 pb-4 pb-md-6">
+              <h3 class="font-size-lg text-uppercase cs-from-top cs-delay-1">Nueva Temporada</h3>
+              <h2 class="display-2 mb-lg-5 pb-3 cs-scale-down">Otoño-Invierno 2025</h2>
+              <div class="mb-4 cs-scale-down cs-delay-2">
+                <a [routerLink]="['/productos']" class="btn btn-outline-primary btn-lg">
+                  Explorar ahora
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Slide 4 - Ofertas (SIEMPRE PRESENTE) -->
+      <div class="bg-size-cover py-xl-6" 
+           style="background-image: url(assets/img/ecommerce/home/hero-slider/04.jpg);">
+        <div class="container pt-5 pb-6">
+          <div class="row pb-lg-6">
+            <div class="col-lg-6 offset-lg-1 offset-xl-0 pb-4 pb-md-6">
+              <h3 class="font-size-lg text-uppercase cs-from-top cs-delay-1">Mejores Precios</h3>
+              <h2 class="display-2 mb-lg-5 pb-3 cs-scale-down">Ofertas Especiales</h2>
+              <div class="mb-4 cs-scale-down cs-delay-2">
+                <a [routerLink]="['/productos']" class="btn btn-outline-primary btn-lg">
+                  Ver ofertas
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Paginador -->
+    <div class="container position-relative">
+      <div class="row mt-lg-n5">
+        <div class="col-lg-7 col-md-8 col-sm-10 offset-lg-1 offset-xl-0">
+          <div class="position-relative">
+            <div id="pager" class="cs-pager cs-pager-inverse mb-xl-5 pb-5 pb-md-6">
+              <button type="button" data-nav="0">01</button>
+              <button type="button" data-nav="1">02</button>
+              <button type="button" data-nav="2">03</button>
+              <button type="button" data-nav="3">04</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+</section>
 
     <!-- ============================================ -->
     <!-- CATEGORÍAS PRINCIPALES -->

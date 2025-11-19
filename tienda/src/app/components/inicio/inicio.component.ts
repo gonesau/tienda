@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, AfterViewInit } from '@angular/core';
 import { ClienteService } from 'src/app/services/cliente.service';
 import { GuestService } from 'src/app/services/guest.service';
 import { Global } from 'src/app/services/global';
@@ -9,7 +9,7 @@ declare var tns: any;
   templateUrl: './inicio.component.html',
   styleUrls: ['./inicio.component.css']
 })
-export class InicioComponent implements OnInit {
+export class InicioComponent implements OnInit, AfterViewInit {
 
   public descuento_activo: any = null;
   public nuevos_productos: Array<any> = [];
@@ -22,6 +22,40 @@ export class InicioComponent implements OnInit {
   public load_nuevos = true;
   public load_tendencia = true;
   public load_categorias = true;
+
+  // Slides del carrusel principal (SIEMPRE 4 slides)
+  public slides_carrusel = [
+    {
+      tipo: 'descuento',
+      mostrar: false // Se actualiza cuando hay descuento
+    },
+    {
+      tipo: 'coleccion',
+      imagen: 'assets/img/ecommerce/home/hero-slider/01.jpg',
+      titulo: 'Moda Masculina 2025',
+      subtitulo: 'Nueva Colección',
+      boton: 'Ver colección',
+      mostrar: true
+    },
+    {
+      tipo: 'temporada',
+      imagen: 'assets/img/ecommerce/home/hero-slider/02.jpg',
+      titulo: 'Otoño-Invierno 2025',
+      subtitulo: 'Nueva Temporada',
+      boton: 'Explorar ahora',
+      mostrar: true
+    },
+    {
+      tipo: 'ofertas',
+      imagen: 'assets/img/ecommerce/home/hero-slider/04.jpg',
+      titulo: 'Ofertas Especiales',
+      subtitulo: 'Mejores Precios',
+      boton: 'Ver ofertas',
+      mostrar: true
+    }
+  ];
+
+  private slider_principal: any = null;
 
   constructor(
     private _clienteService: ClienteService,
@@ -38,6 +72,13 @@ export class InicioComponent implements OnInit {
     this.obtener_categorias();
   }
 
+  ngAfterViewInit(): void {
+    // Pequeño delay para asegurar que el DOM esté listo
+    setTimeout(() => {
+      this.inicializar_carrusel_categorias_principales();
+    }, 100);
+  }
+
   /**
    * Obtiene el descuento activo actual
    */
@@ -46,25 +87,28 @@ export class InicioComponent implements OnInit {
       response => {
         if (response.data) {
           this.descuento_activo = response.data;
+          this.slides_carrusel[0].mostrar = true; // Activar slide de descuento
           console.log('Descuento activo:', this.descuento_activo);
         } else {
           this.descuento_activo = null;
+          this.slides_carrusel[0].mostrar = false;
         }
         this.load_descuento = false;
         
-        // Inicializar carrusel después de cargar descuento
+        // Inicializar carrusel principal después de cargar descuento
         setTimeout(() => {
-          this.inicializar_carruseles();
-        }, 100);
+          this.inicializar_carrusel_principal();
+        }, 300);
       },
       error => {
         console.error('Error obteniendo descuento:', error);
         this.descuento_activo = null;
+        this.slides_carrusel[0].mostrar = false;
         this.load_descuento = false;
         
         setTimeout(() => {
-          this.inicializar_carruseles();
-        }, 100);
+          this.inicializar_carrusel_principal();
+        }, 300);
       }
     );
   }
@@ -75,7 +119,6 @@ export class InicioComponent implements OnInit {
   obtener_nuevos_productos() {
     this._clienteService.obtener_productos_publico('').subscribe(
       response => {
-        // Tomar los últimos 10 productos
         this.nuevos_productos = response.data.slice(0, 10);
         this.load_nuevos = false;
         
@@ -96,7 +139,6 @@ export class InicioComponent implements OnInit {
   obtener_productos_tendencia() {
     this._clienteService.obtener_productos_publico('').subscribe(
       response => {
-        // Ordenar por número de ventas y tomar los primeros 4
         this.productos_tendencia = response.data
           .sort((a: any, b: any) => b.nventas - a.nventas)
           .slice(0, 4);
@@ -173,7 +215,7 @@ export class InicioComponent implements OnInit {
    */
   generar_estrellas(puntos: number): Array<boolean> {
     const estrellas = [];
-    const rating = Math.round((puntos / 100) * 5); // Convertir puntos a escala de 5
+    const rating = Math.round((puntos / 100) * 5);
     
     for (let i = 0; i < 5; i++) {
       estrellas.push(i < rating);
@@ -183,33 +225,85 @@ export class InicioComponent implements OnInit {
   }
 
   /**
-   * Inicializa todos los carruseles
+   * Obtiene slides visibles
    */
-  inicializar_carruseles() {
+  get slides_visibles() {
+    return this.slides_carrusel.filter(slide => slide.mostrar);
+  }
+
+  /**
+   * Inicializa el carrusel principal
+   */
+  inicializar_carrusel_principal() {
+    if (this.slider_principal) {
+      try {
+        this.slider_principal.destroy();
+      } catch (e) {
+        console.log('Limpiando slider anterior');
+      }
+    }
+
     try {
-      // Carrusel principal de slides
-      tns({
+      const container = document.querySelector('.cs-carousel-inner');
+      const slides = container?.children.length || 0;
+
+      console.log('Inicializando carrusel con', slides, 'slides');
+
+      if (!container || slides === 0) {
+        console.warn('No hay slides para inicializar');
+        return;
+      }
+
+      this.slider_principal = tns({
         container: '.cs-carousel-inner',
-        controlsText: ['<i class="cxi-arrow-left"></i>', '<i class="cxi-arrow-right"></i>'],
+        items: 1,
+        slideBy: 1,
         mode: 'gallery',
-        navContainer: '#pager',
         autoplay: true,
         autoplayTimeout: 5000,
         autoplayHoverPause: true,
-        autoplayButtonOutput: false, // CRÍTICO: Oculta los botones stop/start
+        autoplayButtonOutput: false,
+        speed: 600,
+        nav: true,
+        navPosition: 'bottom',
+        navContainer: '#pager',
+        controls: true,
+        controlsPosition: 'bottom',
+        controlsText: ['<i class="cxi-arrow-left"></i>', '<i class="cxi-arrow-right"></i>'],
+        loop: true,
+        rewind: false,
         responsive: {
-          0: { controls: false },
-          991: { controls: true }
+          0: { 
+            controls: false,
+            nav: true
+          },
+          991: { 
+            controls: true,
+            nav: true
+          }
         }
       });
 
-      // Carrusel de categorías principales
+      console.log('✓ Carrusel principal inicializado');
+    } catch (error) {
+      console.error('Error inicializando carrusel principal:', error);
+    }
+  }
+
+  /**
+   * Inicializa carrusel de categorías principales
+   */
+  inicializar_carrusel_categorias_principales() {
+    try {
       tns({
         container: '.cs-carousel-inner-two',
         controls: false,
+        nav: false,
         autoplayButtonOutput: false,
+        mouseDrag: true,
         responsive: {
           0: {
+            items: 1,
             gutter: 20
           },
           400: {
@@ -217,6 +311,7 @@ export class InicioComponent implements OnInit {
             gutter: 20
           },
           520: {
+            items: 2,
             gutter: 30
           },
           768: {
@@ -226,7 +321,7 @@ export class InicioComponent implements OnInit {
         }
       });
     } catch (error) {
-      console.error('Error inicializando carruseles:', error);
+      console.error('Error inicializando carrusel categorías principales:', error);
     }
   }
 
@@ -240,6 +335,7 @@ export class InicioComponent implements OnInit {
       tns({
         container: '.cs-carousel-inner-three',
         controls: false,
+        nav: false,
         mouseDrag: true,
         autoplayButtonOutput: false,
         responsive: {
@@ -291,6 +387,7 @@ export class InicioComponent implements OnInit {
         controlsText: ['<i class="cxi-arrow-left"></i>', '<i class="cxi-arrow-right"></i>'],
         controlsContainer: '#custom-controls-trending',
         autoplayButtonOutput: false,
+        mouseDrag: true,
         responsive: {
           0: {
             items: 1,
@@ -325,8 +422,10 @@ export class InicioComponent implements OnInit {
       tns({
         container: '.cs-carousel-inner-five',
         controls: false,
+        nav: false,
         gutter: 30,
         autoplayButtonOutput: false,
+        mouseDrag: true,
         responsive: {
           0: { items: 1 },
           380: { items: 2 },
