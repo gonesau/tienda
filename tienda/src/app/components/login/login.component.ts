@@ -12,53 +12,47 @@ export class LoginComponent implements OnInit {
   public user: any = {};
   public usuario: any = {};
   public token: string | null;
+  public isLoading: boolean = false;
 
   constructor(
     private _clienteService: ClienteService,
     private _router: Router
   ) {
-    // Verificar autenticación al inicializar
     this.verificarAutenticacion();
   }
 
   ngOnInit(): void {
-    // Verificar nuevamente al cargar el componente
     this.verificarAutenticacion();
   }
 
   /**
-   * Verifica si el usuario ya está autenticado y redirige si es necesario
+   * Verifica si el usuario ya está autenticado
    */
   private verificarAutenticacion(): void {
     this.token = localStorage.getItem('token');
     const userId = localStorage.getItem('_id');
 
     if (this.token && userId) {
-      // Verificar que el token sea válido haciendo una petición al servidor
       this._clienteService.obtener_cliente_guest(userId, this.token).subscribe(
         response => {
           if (response.data) {
-            // Token válido, redirigir a inicio
             this._router.navigate(['/']);
           } else {
-            // Token inválido, limpiar localStorage
             this.limpiarSesion();
           }
         },
         error => {
-          // Error al verificar token, limpiar localStorage
           console.log('Error verificando token:', error);
           this.limpiarSesion();
         }
       );
     } else {
-      // No hay token, asegurar que localStorage esté limpio
       this.limpiarSesion();
     }
   }
 
   /**
-   * Limpia todos los datos de sesión del localStorage
+   * Limpia la sesión
    */
   private limpiarSesion(): void {
     localStorage.removeItem('token');
@@ -72,6 +66,7 @@ export class LoginComponent implements OnInit {
    * Maneja el proceso de login
    */
   login(loginForm): void {
+    // Validar formulario
     if (!loginForm.valid) {
       iziToast.error({
         title: 'Error',
@@ -84,26 +79,52 @@ export class LoginComponent implements OnInit {
       return;
     }
 
+    // Validar campos individualmente
+    if (!this.user.email || this.user.email.trim() === '') {
+      iziToast.error({
+        title: 'Error',
+        position: 'topRight',
+        message: 'El correo electrónico es requerido'
+      });
+      return;
+    }
+
+    if (!this.user.password || this.user.password.trim() === '') {
+      iziToast.error({
+        title: 'Error',
+        position: 'topRight',
+        message: 'La contraseña es requerida'
+      });
+      return;
+    }
+
+    // Mostrar indicador de carga
+    this.isLoading = true;
+
     const data = {
-      email: this.user.email.trim(),
+      email: this.user.email.trim().toLowerCase(),
       password: this.user.password
     };
 
+    console.log('Intentando login con:', { email: data.email });
+
     this._clienteService.login_cliente(data).subscribe(
       response => {
-        if (!response.data || !response.token) {
-          iziToast.show({
+        console.log('Respuesta del servidor:', response);
+        
+        this.isLoading = false;
+
+        // Verificar que la respuesta tenga los datos necesarios
+        if (!response || !response.data || !response.token) {
+          iziToast.error({
             title: 'Error',
-            titleColor: '#FF0000',
-            color: '#FFF',
-            class: 'text-danger',
             position: 'topRight',
-            message: 'Correo electrónico o contraseña incorrectos'
+            message: response?.message || 'Respuesta inválida del servidor'
           });
           return;
         }
 
-        // Guardar datos de sesión
+        // Login exitoso - guardar datos
         this.usuario = response.data;
         localStorage.setItem('token', response.token);
         localStorage.setItem('_id', response.data._id);
@@ -111,11 +132,8 @@ export class LoginComponent implements OnInit {
         localStorage.setItem('nombre_cliente', response.data.nombres);
 
         // Mostrar mensaje de éxito
-        iziToast.show({
+        iziToast.success({
           title: 'Éxito',
-          titleColor: '#1DC74C',
-          color: '#FFF',
-          class: 'text-success',
           position: 'topRight',
           message: `¡Bienvenido ${response.data.nombres}!`
         });
@@ -124,20 +142,36 @@ export class LoginComponent implements OnInit {
         this.user = {};
         loginForm.resetForm();
 
-        // Redirigir a inicio
+        // Redirigir
         setTimeout(() => {
           this._router.navigate(['/']);
         }, 500);
       },
       error => {
-        console.log('Error en login:', error);
-        iziToast.show({
+        console.error('Error en login:', error);
+        this.isLoading = false;
+
+        let mensajeError = 'Ocurrió un error inesperado';
+
+        // Manejar diferentes tipos de error
+        if (error.status === 0) {
+          mensajeError = 'No se pudo conectar con el servidor. Verifica tu conexión.';
+        } else if (error.status === 404) {
+          mensajeError = 'El correo electrónico no está registrado';
+        } else if (error.status === 401) {
+          mensajeError = 'La contraseña es incorrecta';
+        } else if (error.status === 400) {
+          mensajeError = error.message || 'Datos inválidos';
+        } else if (error.status === 500) {
+          mensajeError = 'Error en el servidor. Intenta nuevamente.';
+        } else if (error.message) {
+          mensajeError = error.message;
+        }
+
+        iziToast.error({
           title: 'Error',
-          titleColor: '#FF0000',
-          color: '#FFF',
-          class: 'text-danger',
           position: 'topRight',
-          message: error.error?.message || 'Ocurrió un error en el servidor. Por favor intente nuevamente.'
+          message: mensajeError
         });
       }
     );

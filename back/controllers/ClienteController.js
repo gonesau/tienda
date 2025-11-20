@@ -39,28 +39,60 @@ const registro_cliente = async function (req, res) {
 };
 
 const login_cliente = async function (req, res) {
-  var data = req.body;
-  var clientes_arr = [];
-  clientes_arr = await Cliente.find({ email: data.email });
-  if (clientes_arr.length == 0) {
-    return res
-      .status(404)
-      .send({ message: "El cliente no existe", data: undefined });
-  } else {
-    //Login
+  try {
+    var data = req.body;
+    
+    // Validar que se reciban email y password
+    if (!data.email || !data.password) {
+      return res.status(400).send({ 
+        message: "Email y contraseña son requeridos", 
+        data: undefined 
+      });
+    }
+
+    // Buscar cliente por email
+    var clientes_arr = await Cliente.find({ email: data.email.trim().toLowerCase() });
+    
+    if (clientes_arr.length == 0) {
+      return res.status(404).send({ 
+        message: "El correo electrónico no está registrado", 
+        data: undefined 
+      });
+    }
+
+    // Cliente encontrado
     let user = clientes_arr[0];
+    
+    // Comparar contraseñas
     bcrypt.compare(data.password, user.password, async function (error, check) {
-      if (check) {
-        return res.status(200).send({
-          data: user,
-          token: jwt.createToken(user),
-        });
-      } else {
-        res.status(400).send({
-          message: "Error al iniciar sesión, verifique sus credenciales",
-          data: undefined,
+      if (error) {
+        console.error('Error comparando contraseñas:', error);
+        return res.status(500).send({
+          message: "Error interno del servidor",
+          data: undefined
         });
       }
+
+      if (check) {
+        // Contraseña correcta - generar token
+        return res.status(200).send({
+          data: user,
+          token: jwt.createToken(user)
+        });
+      } else {
+        // Contraseña incorrecta
+        return res.status(401).send({
+          message: "La contraseña es incorrecta",
+          data: undefined
+        });
+      }
+    });
+
+  } catch (error) {
+    console.error('Error en login_cliente:', error);
+    return res.status(500).send({
+      message: "Error interno del servidor",
+      data: undefined
     });
   }
 };
@@ -95,22 +127,77 @@ const listar_clientes_filtro_admin = async function (req, res) {
 const registro_cliente_admin = async function (req, res) {
   if (req.user) {
     if (req.user.role == "admin") {
-      var data = req.body;
+      try {
+        var data = req.body;
 
-      bcrypt.hash("123456789", null, null, async function (err, hash) {
-        if (hash) {
-          data.password = hash;
-          let reg = await Cliente.create(data);
-          res.status(200).send({ data: reg });
+        // Validar que se reciba email
+        if (!data.email) {
+          return res.status(400).send({
+            message: 'El email es obligatorio',
+            data: undefined
+          });
         }
-      });
+
+        // Verificar si el email ya existe
+        var clientes_arr = await Cliente.find({ 
+          email: data.email.trim().toLowerCase() 
+        });
+
+        if (clientes_arr.length > 0) {
+          return res.status(400).send({
+            message: 'El email ya está registrado',
+            data: undefined
+          });
+        }
+
+        // Usar la contraseña proporcionada o una por defecto
+        const passwordToHash = data.password || '123456789';
+
+        bcrypt.hash(passwordToHash, null, null, async function (err, hash) {
+          if (err) {
+            console.error('Error al encriptar contraseña:', err);
+            return res.status(500).send({
+              message: 'Error al procesar la contraseña',
+              data: undefined
+            });
+          }
+
+          if (hash) {
+            data.password = hash;
+            data.email = data.email.trim().toLowerCase();
+            
+            let reg = await Cliente.create(data);
+            
+            return res.status(200).send({ 
+              data: reg,
+              message: 'Cliente creado exitosamente. Contraseña: ' + passwordToHash
+            });
+          } else {
+            return res.status(500).send({
+              message: 'Error al encriptar la contraseña',
+              data: undefined
+            });
+          }
+        });
+
+      } catch (error) {
+        console.error('Error en registro_cliente_admin:', error);
+        return res.status(500).send({
+          message: 'Error interno del servidor',
+          data: undefined
+        });
+      }
     } else {
-      res
-        .status(200)
-        .send({ message: "Error en el servidor", data: undefined });
+      return res.status(403).send({ 
+        message: 'No autorizado - Se requieren permisos de administrador',
+        data: undefined 
+      });
     }
   } else {
-    res.status(500).send({ message: "No autorizado" });
+    return res.status(401).send({ 
+      message: 'No autorizado - Token no proporcionado',
+      data: undefined 
+    });
   }
 };
 
