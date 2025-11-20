@@ -1,26 +1,25 @@
 <app-nav></app-nav>
 
 <main class="cs-page-wrapper">
-    <!-- ============================================ -->
-    <!-- CARRUSEL PRINCIPAL CON DESCUENTO ACTIVO -->
-    <!-- ============================================ -->
+
+<!-- ============================================ -->
+<!-- CARRUSEL PRINCIPAL -->
+<!-- ============================================ -->
 <section class="cs-carousel cs-controls-onhover" *ngIf="!load_descuento">
     <div class="cs-carousel-inner">
 
-      <!-- Slide 1 - Descuento Activo (SIEMPRE PRESENTE) -->
-      <div class="bg-size-cover py-xl-6" 
-           [style.background-image]="descuento_activo && descuento_activo.banner ? 
-                                      'url(' + url + 'obtener_banner_descuento/' + descuento_activo.banner + ')' : 
-                                      'url(assets/img/ecommerce/home/hero-slider/01.jpg)'"
-           [style.display]="descuento_activo ? 'block' : 'none'">
+      <!-- Slide 1 - Descuento Activo (SE MUESTRA SOLO SI HAY DESCUENTO) -->
+      <div *ngIf="descuento_activo" 
+           class="bg-size-cover py-xl-6" 
+           [style.background-image]="'url(' + url + 'obtener_banner_descuento/' + descuento_activo.banner + ')'">
         <div class="container pt-5 pb-6">
           <div class="row pb-lg-6">
             <div class="col-lg-6 offset-lg-1 offset-xl-0 pb-4 pb-md-6">
               <h3 class="font-size-lg text-uppercase cs-from-left cs-delay-1">
-                {{ descuento_activo ? formatear_fecha_descuento() : '' }}
+                {{ formatear_fecha_descuento() }}
               </h3>
               <h2 class="display-2 mb-lg-5 pb-3 cs-from-left">
-                {{ descuento_activo ? descuento_activo.titulo + ' - ' + descuento_activo.descuento + '% OFF' : '' }}
+                {{ descuento_activo.titulo }} - {{ descuento_activo.descuento }}% OFF
               </h2>
               <div class="mb-4 cs-scale-up cs-delay-2">
                 <a [routerLink]="['/productos']" class="btn btn-outline-primary btn-lg">
@@ -87,16 +86,13 @@
       </div>
     </div>
 
-    <!-- Paginador -->
+    <!-- Paginador - Se ajusta dinámicamente -->
     <div class="container position-relative">
       <div class="row mt-lg-n5">
         <div class="col-lg-7 col-md-8 col-sm-10 offset-lg-1 offset-xl-0">
           <div class="position-relative">
             <div id="pager" class="cs-pager cs-pager-inverse mb-xl-5 pb-5 pb-md-6">
-              <button type="button" data-nav="0">01</button>
-              <button type="button" data-nav="1">02</button>
-              <button type="button" data-nav="2">03</button>
-              <button type="button" data-nav="3">04</button>
+              <!-- Los botones se generan automáticamente por tns -->
             </div>
           </div>
         </div>

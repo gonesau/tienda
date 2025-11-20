@@ -23,39 +23,8 @@ export class InicioComponent implements OnInit, AfterViewInit {
   public load_tendencia = true;
   public load_categorias = true;
 
-  // Slides del carrusel principal (SIEMPRE 4 slides)
-  public slides_carrusel = [
-    {
-      tipo: 'descuento',
-      mostrar: false // Se actualiza cuando hay descuento
-    },
-    {
-      tipo: 'coleccion',
-      imagen: 'assets/img/ecommerce/home/hero-slider/01.jpg',
-      titulo: 'Moda Masculina 2025',
-      subtitulo: 'Nueva Colección',
-      boton: 'Ver colección',
-      mostrar: true
-    },
-    {
-      tipo: 'temporada',
-      imagen: 'assets/img/ecommerce/home/hero-slider/02.jpg',
-      titulo: 'Otoño-Invierno 2025',
-      subtitulo: 'Nueva Temporada',
-      boton: 'Explorar ahora',
-      mostrar: true
-    },
-    {
-      tipo: 'ofertas',
-      imagen: 'assets/img/ecommerce/home/hero-slider/04.jpg',
-      titulo: 'Ofertas Especiales',
-      subtitulo: 'Mejores Precios',
-      boton: 'Ver ofertas',
-      mostrar: true
-    }
-  ];
-
   private slider_principal: any = null;
+  private carruseles_inicializados = false;
 
   constructor(
     private _clienteService: ClienteService,
@@ -65,18 +34,12 @@ export class InicioComponent implements OnInit, AfterViewInit {
   }
 
   ngOnInit(): void {
-    // Cargar datos
+    // Cargar datos en secuencia controlada
     this.obtener_descuento_activo();
-    this.obtener_nuevos_productos();
-    this.obtener_productos_tendencia();
-    this.obtener_categorias();
   }
 
   ngAfterViewInit(): void {
-    // Pequeño delay para asegurar que el DOM esté listo
-    setTimeout(() => {
-      this.inicializar_carrusel_categorias_principales();
-    }, 100);
+    // Los carruseles se inicializarán después de cargar todos los datos
   }
 
   /**
@@ -87,30 +50,38 @@ export class InicioComponent implements OnInit, AfterViewInit {
       response => {
         if (response.data) {
           this.descuento_activo = response.data;
-          this.slides_carrusel[0].mostrar = true; // Activar slide de descuento
           console.log('Descuento activo:', this.descuento_activo);
         } else {
           this.descuento_activo = null;
-          this.slides_carrusel[0].mostrar = false;
         }
         this.load_descuento = false;
         
-        // Inicializar carrusel principal después de cargar descuento
-        setTimeout(() => {
-          this.inicializar_carrusel_principal();
-        }, 300);
+        // Cargar resto de datos después del descuento
+        this.cargar_datos_restantes();
       },
       error => {
         console.error('Error obteniendo descuento:', error);
         this.descuento_activo = null;
-        this.slides_carrusel[0].mostrar = false;
         this.load_descuento = false;
         
-        setTimeout(() => {
-          this.inicializar_carrusel_principal();
-        }, 300);
+        // Continuar cargando resto de datos
+        this.cargar_datos_restantes();
       }
     );
+  }
+
+  /**
+   * Carga el resto de datos en paralelo
+   */
+  cargar_datos_restantes() {
+    this.obtener_nuevos_productos();
+    this.obtener_productos_tendencia();
+    this.obtener_categorias();
+    
+    // Inicializar carruseles después de un delay para asegurar renderizado
+    setTimeout(() => {
+      this.inicializar_todos_los_carruseles();
+    }, 500);
   }
 
   /**
@@ -121,10 +92,6 @@ export class InicioComponent implements OnInit, AfterViewInit {
       response => {
         this.nuevos_productos = response.data.slice(0, 10);
         this.load_nuevos = false;
-        
-        setTimeout(() => {
-          this.inicializar_carrusel_nuevos();
-        }, 100);
       },
       error => {
         console.error('Error obteniendo nuevos productos:', error);
@@ -144,10 +111,6 @@ export class InicioComponent implements OnInit, AfterViewInit {
           .slice(0, 4);
         
         this.load_tendencia = false;
-        
-        setTimeout(() => {
-          this.inicializar_carrusel_tendencia();
-        }, 100);
       },
       error => {
         console.error('Error obteniendo productos tendencia:', error);
@@ -166,10 +129,6 @@ export class InicioComponent implements OnInit, AfterViewInit {
           this.categorias = response.data.categorias;
         }
         this.load_categorias = false;
-        
-        setTimeout(() => {
-          this.inicializar_carrusel_categorias();
-        }, 100);
       },
       error => {
         console.error('Error obteniendo categorías:', error);
@@ -225,19 +184,46 @@ export class InicioComponent implements OnInit, AfterViewInit {
   }
 
   /**
-   * Obtiene slides visibles
+   * Inicializa todos los carruseles en el orden correcto
    */
-  get slides_visibles() {
-    return this.slides_carrusel.filter(slide => slide.mostrar);
+  inicializar_todos_los_carruseles() {
+    if (this.carruseles_inicializados) return;
+    
+    console.log('Inicializando todos los carruseles...');
+    
+    // Esperar a que el DOM esté completamente renderizado
+    setTimeout(() => {
+      this.inicializar_carrusel_principal();
+      this.inicializar_carrusel_categorias_principales();
+      
+      setTimeout(() => {
+        if (this.nuevos_productos.length > 0) {
+          this.inicializar_carrusel_nuevos();
+        }
+        
+        if (this.productos_tendencia.length > 0) {
+          this.inicializar_carrusel_tendencia();
+        }
+        
+        if (this.categorias.length > 0) {
+          this.inicializar_carrusel_categorias();
+        }
+        
+        this.carruseles_inicializados = true;
+        console.log('✓ Todos los carruseles inicializados');
+      }, 200);
+    }, 100);
   }
 
   /**
    * Inicializa el carrusel principal
    */
   inicializar_carrusel_principal() {
+    // Limpiar slider anterior si existe
     if (this.slider_principal) {
       try {
         this.slider_principal.destroy();
+        this.slider_principal = null;
       } catch (e) {
         console.log('Limpiando slider anterior');
       }
@@ -245,12 +231,21 @@ export class InicioComponent implements OnInit, AfterViewInit {
 
     try {
       const container = document.querySelector('.cs-carousel-inner');
-      const slides = container?.children.length || 0;
+      
+      if (!container) {
+        console.warn('Contenedor del carrusel no encontrado');
+        return;
+      }
 
-      console.log('Inicializando carrusel con', slides, 'slides');
+      // Contar slides visibles (no ocultos con display: none)
+      const slides = Array.from(container.children).filter((child: any) => {
+        return window.getComputedStyle(child).display !== 'none';
+      });
 
-      if (!container || slides === 0) {
-        console.warn('No hay slides para inicializar');
+      console.log('Slides visibles:', slides.length);
+
+      if (slides.length === 0) {
+        console.warn('No hay slides visibles para inicializar');
         return;
       }
 
@@ -270,7 +265,7 @@ export class InicioComponent implements OnInit, AfterViewInit {
         controls: true,
         controlsPosition: 'bottom',
         controlsText: ['<i class="cxi-arrow-left"></i>', '<i class="cxi-arrow-right"></i>'],
-        loop: true,
+        loop: slides.length > 1,
         rewind: false,
         responsive: {
           0: { 
@@ -284,7 +279,7 @@ export class InicioComponent implements OnInit, AfterViewInit {
         }
       });
 
-      console.log('✓ Carrusel principal inicializado');
+      console.log('✓ Carrusel principal inicializado correctamente');
     } catch (error) {
       console.error('Error inicializando carrusel principal:', error);
     }
@@ -295,6 +290,9 @@ export class InicioComponent implements OnInit, AfterViewInit {
    */
   inicializar_carrusel_categorias_principales() {
     try {
+      const container = document.querySelector('.cs-carousel-inner-two');
+      if (!container) return;
+
       tns({
         container: '.cs-carousel-inner-two',
         controls: false,
@@ -320,6 +318,8 @@ export class InicioComponent implements OnInit, AfterViewInit {
           }
         }
       });
+      
+      console.log('✓ Carrusel categorías principales inicializado');
     } catch (error) {
       console.error('Error inicializando carrusel categorías principales:', error);
     }
@@ -329,9 +329,10 @@ export class InicioComponent implements OnInit, AfterViewInit {
    * Inicializa carrusel de nuevos productos
    */
   inicializar_carrusel_nuevos() {
-    if (this.nuevos_productos.length === 0) return;
-    
     try {
+      const container = document.querySelector('.cs-carousel-inner-three');
+      if (!container) return;
+
       tns({
         container: '.cs-carousel-inner-three',
         controls: false,
@@ -369,6 +370,8 @@ export class InicioComponent implements OnInit, AfterViewInit {
           }
         }
       });
+      
+      console.log('✓ Carrusel nuevos productos inicializado');
     } catch (error) {
       console.error('Error inicializando carrusel nuevos:', error);
     }
@@ -378,9 +381,10 @@ export class InicioComponent implements OnInit, AfterViewInit {
    * Inicializa carrusel de tendencias
    */
   inicializar_carrusel_tendencia() {
-    if (this.productos_tendencia.length === 0) return;
-    
     try {
+      const container = document.querySelector('.cs-carousel-inner-four');
+      if (!container) return;
+
       tns({
         container: '.cs-carousel-inner-four',
         nav: false,
@@ -407,6 +411,8 @@ export class InicioComponent implements OnInit, AfterViewInit {
           }
         }
       });
+      
+      console.log('✓ Carrusel tendencia inicializado');
     } catch (error) {
       console.error('Error inicializando carrusel tendencia:', error);
     }
@@ -416,9 +422,10 @@ export class InicioComponent implements OnInit, AfterViewInit {
    * Inicializa carrusel de categorías populares
    */
   inicializar_carrusel_categorias() {
-    if (this.categorias.length === 0) return;
-    
     try {
+      const container = document.querySelector('.cs-carousel-inner-five');
+      if (!container) return;
+
       tns({
         container: '.cs-carousel-inner-five',
         controls: false,
@@ -435,6 +442,8 @@ export class InicioComponent implements OnInit, AfterViewInit {
           1250: { items: 6 }
         }
       });
+      
+      console.log('✓ Carrusel categorías inicializado');
     } catch (error) {
       console.error('Error inicializando carrusel categorías:', error);
     }
